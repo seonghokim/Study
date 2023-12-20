@@ -3,34 +3,36 @@
 #include <ctype.h>
 #include <math.h>
 
-void EvenOddCompare(int n);
-void SumOfEachEvenOddNum(int n);
-void CheckLargestNum(int n1, int n2, int n3);
-void Swap(int* a, int* b);
-int SumOfDigits(int n, char* str, int mode);
-int FindMaxAmongSameDigitsNum(int n);
+void EvenOddCompare(long n);
+void SumOfEachEvenOddNum(long n);
+void CheckLargestNum(long n1, long n2, long n3);
+void Swap(long* a, long* b);
+long SumOfDigits(long n, char* str, long mode);
+long FindMaxAmongSameDigitsNum(long n);
 void NumVowelsNConsonants(char* str);
-bool CheckPrimeNum(int n);
-bool CheckPerfectNum(int n);
-bool CheckStrongNum(int n);
-bool CheckArmstrongNum(int n);
+bool CheckPrimeNum(long n);
+bool CheckPerfectNum(long n);
+bool CheckStrongNum(long n);
+bool CheckArmstrongNum(long n);
 long ReverseNum(long n);
-bool CheckPalindrome(int n);
+bool CheckPalindrome(long n);
 long AddBinaryNum(long n1, long n2);
-
+long Fibonacci(long n);
+long Bin2Gray(long n);
+long Gray2Bin(long n);
 
 int main(void){
-    int input;
-    int input1, input2, input3;
+    long input;
+    long input1, input2, input3;
     char i_str[100];
-    int result1=0, result2=0;
+    long result1=0, result2=0;
     bool state1, state2, state3;
     long linput1, linput2;
     long lresult1;
-    //printf("Enter 1 number: ");
-    //scanf("%d",&input);
-    printf("Enter 2 number: ");
-    scanf("%ld %ld",&linput1, &linput2);
+    printf("Enter 1 number: ");
+    scanf("%ld",&linput1);
+    //printf("Enter 2 number: ");
+    //scanf("%ld %ld",&linput1, &linput2);
     //printf("Enter string: ");
     //scanf("%[^\n]s",i_str);
     
@@ -55,22 +57,30 @@ int main(void){
     //result1 = ReverseNum(input);
     //state1 = CheckPalindrome(input);
     //printf("reversed num %d is palindrome %d \n", result1, state1);
-    lresult1 = AddBinaryNum(linput1, linput2);
-    printf("Binarynum: %ld\n", lresult1);
+    //lresult1 = AddBinaryNum(linput1, linput2);
+    //printf("Binarynum: %ld\n", lresult1);
+    //lresult1 = Fibonacci(linput1);
+    //lresult1 = Bin2Gray(linput1);
+    lresult1 = Gray2Bin(linput1);
+    printf("bin : %ld\n", lresult1);
+
+
+
+    
     return 0;
 }
 
 
-void EvenOddCompare(int n){
+void EvenOddCompare(long n){
      if(n%2==0)// (n&1 == 1) is using bitwise operator 
         printf("%d is even number\n", n);
     else
         printf("%d is odd number\n", n);
 }
-void SumOfEachEvenOddNum(int n){
-    int i;
-    int sum_even = 0;
-    int sum_odd = 0;
+void SumOfEachEvenOddNum(long n){
+    long i;
+    long sum_even = 0;
+    long sum_odd = 0;
 
     for(i=1; i<=n; i++)
     {
@@ -86,16 +96,16 @@ void SumOfEachEvenOddNum(int n){
     printf("Sum of odd numbers from 1 to N: %d\n", sum_odd);
     printf("Sum of even numbers from 1 to N: %d\n", sum_even);
 }
-void CheckLargestNum(int n1, int n2, int n3)
+void CheckLargestNum(long n1, long n2, long n3)
 {
-    int temp = (n1>n2) ? (n1>n3 ? n1 : n3) : (n2>n3 ? n2 : n3);
+    long temp = (n1>n2) ? (n1>n3 ? n1 : n3) : (n2>n3 ? n2 : n3);
     printf("Largest number among 3 numbers is %d\n", temp);
 }
-void Swap(int* a, int* b)
+void Swap(long* a, long* b)
 {
     printf("Num A: %d, Num B: %d is swaped.\n", *a, *b);
     // Native approach
-    int temp;
+    long temp;
     temp = *a;
     *a = *b;
     *b = temp;
@@ -110,12 +120,12 @@ void Swap(int* a, int* b)
 
     printf("After swapped,  A: %d, B: %d \n", *a, *b);
 }
-int SumOfDigits(int n, char* str, int mode)
+long SumOfDigits(long n, char* str, long mode)
 {
     // Mode 0 isn't recursive, Mode 1 is recursive
     // Mode 2 is string version
     if(mode == 0){// Not recursive
-        int sum1 = 0;
+        long sum1 = 0;
         while(n!=0){
             sum1 += n % 10;
             n /= 10;
@@ -131,9 +141,9 @@ int SumOfDigits(int n, char* str, int mode)
     }
     if(mode == 2)// For string
     {
-        int i;
-        int sum2 = 0;
-        int len = strlen(str);
+        long i;
+        long sum2 = 0;
+        long len = strlen(str);
 
         for(i=0 ; i<len ; i++){
             if(str[i] >= '0' && str[i] <= '9')
@@ -145,12 +155,12 @@ int SumOfDigits(int n, char* str, int mode)
 
     return -1;// Error
 }
-int FindMaxAmongSameDigitsNum(int n)
+long FindMaxAmongSameDigitsNum(long n)
 {
-    int temp[20]={0,};
-    int i=0;
-    int len = 0;
-    int maxValue = 0;
+    long temp[20]={0,};
+    long i=0;
+    long len = 0;
+    long maxValue = 0;
     while(n!=0){
         temp[i++] = (n % 10);
         n /= 10;
@@ -171,10 +181,10 @@ int FindMaxAmongSameDigitsNum(int n)
 }
 void NumVowelsNConsonants(char* str)
 {
-    int i = 0;
-    int num_vowel = 0;
-    int num_consonant = 0;
-    int num_special = 0;
+    long i = 0;
+    long num_vowel = 0;
+    long num_consonant = 0;
+    long num_special = 0;
     
     for(i=0 ; str[i] != '\0' ; i++){
         switch(str[i]){
@@ -198,9 +208,9 @@ void NumVowelsNConsonants(char* str)
     printf("Number of consonants in sentence = %d\n", num_consonant);
     printf("Number of special in sentence = %d\n", num_special);
 }
-bool CheckPrimeNum(int n)
+bool CheckPrimeNum(long n)
 {
-    int i;
+    long i;
     if(n <= 1)
         return false;
     if(n%2 == 0)
@@ -211,10 +221,10 @@ bool CheckPrimeNum(int n)
     return true;
 }
 // PerfectNumber = 6 = 1 + 2 + 3 (integer factorization except itself)
-bool CheckPerfectNum(int n)
+bool CheckPerfectNum(long n)
 {
-    int i;
-    int sum = 0;
+    long i;
+    long sum = 0;
     for(i=1; i<n ;i++){
         if(n%i == 0)
             sum += i;
@@ -225,13 +235,13 @@ bool CheckPerfectNum(int n)
         return false;
 }
 // StrongNumber = 145 = 1! + 4! + 5!
-bool CheckStrongNum(int n)
+bool CheckStrongNum(long n)
 {
-    int i;
-    int temp;
-    int multiple;
-    int sum = 0;
-    int org = n;
+    long i;
+    long temp;
+    long multiple;
+    long sum = 0;
+    long org = n;
     while(n!=0){
         temp = n%10;
         multiple = 1;
@@ -247,12 +257,12 @@ bool CheckStrongNum(int n)
 }
 // ArmstrongNum = 407 = 4*4*4 + 0*0*0 + 7*7*7 (n-digits)
 // x1x2x3x4 = pow(x1,4)+pow(x2,4)+pow(x3,4)+pow(x4,4) 
-bool CheckArmstrongNum(int n)
+bool CheckArmstrongNum(long n)
 {
-    int i;
-    int sum = 0;
-    int count_digits = 0;
-    int temp = n;
+    long i;
+    long sum = 0;
+    long count_digits = 0;
+    long temp = n;
     while(temp!=0){
         temp /= 10;
         count_digits++;
@@ -276,9 +286,9 @@ long ReverseNum(long n)
     }
     return reversed;
 }
-bool CheckPalindrome(int n)
+bool CheckPalindrome(long n)
 {
-    int revNum = ReverseNum(n);
+    long revNum = ReverseNum(n);
     if(n == revNum)
         return true;
     else
@@ -288,7 +298,7 @@ long AddBinaryNum(long n1, long n2)
 {
     long temp = n1 + n2;
     long lsb_bit = 0;
-    int i = 0, j = 0;
+    long i = 0, j = 0;
     long carry = 0;
     long result = 0;
     long buf[64] = {0,};
@@ -307,5 +317,67 @@ long AddBinaryNum(long n1, long n2)
     }
     return result;
 }
+long Fibonacci(long n)
+{
+    long fib1 = 0, fib2 = 1;
+    long i = 3;
+    if(n==1){
+        printf("fibN: %ld\n", fib1);
+        return fib1;
+    }
+    if(n==2){
+        printf("fibN: %ld\n", fib2);
+        return fib2;
+    }
+    if(n>=3){
+        while(i <= n){
+            fib1 = fib1 + fib2;
+            Swap(&fib1, &fib2);
+            i++;
+        }
+        printf("fibN: %ld\n", fib2);
+        return fib2;
+    }
+}
+long Bin2Gray(long n)
+{
+    // input is bit type like 1111001010(binary num), not 970(decimal num)
+    // So, this source code differ other optimized source code.
+    long a, b, result=0, i=0;
+    while(n != 0){
+        a = n % 10;
+        n /= 10;
+        b = n % 10;
+        if(a^b)
+            result += pow(10,i);
+        i++;
+    }
+    return result;
+}
+long Gray2Bin(long n)
+{
+    // input is bit type like 1000(gray num), not 8(decimal num)
+    // So, this source code differ other optimized source code.
+    long a, b, result=1, i=0;
+    long temp;
+    temp = n;
+    while(n!=0){//Calculate number(length) of bits
+        n /= 10;
+        i++;
+    }
+    temp = ReverseNum(temp);// Reversed number is used for easy calcuation
+    while((i-1)>0){
+        a = temp % 10;
+        temp /= 10;
+        b = temp % 10;
+        //MSB is shifted by "result*10" into left side
+        // "b^(result%10)" is binary number(1bit)
+        result = result*10 + (b^(result % 10));
+        i--;
+    }
+    return result;
+}
+
+
 
 
