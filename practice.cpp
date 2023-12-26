@@ -377,6 +377,54 @@ long Gray2Bin(long n)
     }
     return result;
 }
+long GetGCD(long n1, long n2)//Greatest Common Divisor 
+{
+    //This function use the Euclidean Algorithm)
+    //n1 = numerator, n2 = denominator
+    long high, low, remainder = 0;
+    high = (n1 > n2) ? n1 : n2;
+    low = (n1 < n2 ) ? n2 : n1;
+    remainder = high % low;
+    while(high % low != 0){
+        remainder = high % low;
+        high = low;
+        low = remainder;
+    }
+    return remainder;
+    // Recursive method
+    /*
+        while(n1 != n2){
+            return n1 > n2 ? GetGCD(n1-n2, n2) : GetGCD(n1, n2-n1);
+        }
+        return n1;
+    */
+   // Recursivre and Euclidean method
+   /*
+        if(low==0)
+            return 0;
+        else
+            return GetGCD(low, (high % low) );
+   */
+}
+long GetLCM(long n1, long n2)//Least Common Multiple
+{
+    long high = (n1 > n2) ? n1 : n2;
+    while(1){
+        if(high % n1==0 && high % n2 ==0)
+            return high;
+        high++;
+    }
+    //return n1*n2/GetGCD(n1,n2); // LCM formula
+}
+void SumOfArrElement(int* arr, int size)
+{
+    // Modifying
+}
+
+
+
+
+
 
 
 
