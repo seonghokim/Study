@@ -416,11 +416,40 @@ long GetLCM(long n1, long n2)//Least Common Multiple
     }
     //return n1*n2/GetGCD(n1,n2); // LCM formula
 }
-void SumOfArrElement(int* arr, int size)
+void DeletefArrElement(int* arr, int element, bool option)
 {
-    // Modifying
+    int i;
+    int size = sizeof(arr)/sizeof(int);
+    // Delete by index(option = false)
+    if(option == false){
+        for(i=element; i<size-1; i++)
+            arr[i] = arr[i+1];
+    }
+    // Delete by value(option = true)
+    if(option == true){
+        for(i=0; i<size; i++){
+            if(arr[i] == element){
+                for(; i<size-1; i++){
+                    arr[i] = arr[i+1];
+                    break;
+                }
+            }
+        }
+    }
 }
-
+void FindMissingNum(int* arr, int size)
+{
+    int i = 0;
+    int a = 0, b = 0;
+    // a0 xor a1 xor ... xor an-1 = a
+    // a0 xor a1 xor ... xor an = b
+    // a xor b = an
+    for(; i<size-1 ; i++)
+        a ^= i;
+    for(i=0; i<size; i++)
+        b ^= i;
+    printf("Missing Number is %d\n", a^b);
+}
 
 
 
