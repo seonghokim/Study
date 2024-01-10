@@ -7,8 +7,11 @@ Caution: The source code may differ from that written on the referenced site. (M
 
 
 If you want to see the source code, check "practice.cpp" file.
+
 If you want to see the summary of C language, check "everything in c.pptx" file.
+
 If you want to see the algorithm, check "algorithm_prac.cpp" file.
+
 If you want to see the algorithm details, check "Algorithm in c.pptx" file.
 
 
