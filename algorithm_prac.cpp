@@ -16,7 +16,7 @@
     {                             \
         printf(#x " is %.3f\n", x); \
     } while (0)
-
+#define THRESHOLD 2
 // int depth = 0;
 // int l_count = 0;
 // int r_count = 0;
@@ -113,6 +113,15 @@ void InsertionSort(int *arr, int size)
         for (j = i - 1; j >= 0 && arr[j] > key; j--)
             arr[j + 1] = arr[j]; // move element to right
         arr[j + 1] = key;        // Insert key value(if key is lowest value, j = -1, So, j+1 = 0)
+    }
+}
+void PartialInsertion(int* arr, int first, int last, int gap){
+    int i, j, key;
+    for(i = first+gap; i<=last; i+=gap){
+        key = arr[i];
+        for(j=i-gap; j>=first && arr[j] > key; j-=gap)
+            arr[j+gap] = arr[j];
+        arr[j+gap] = key;
     }
 }
 
@@ -430,6 +439,92 @@ void FBucketSort(float* farr, int fn){
             farr[idx++] = b[i][j];
 }
 
+/* 1) Find min, max value in array
+ * 2) Find bingo in array
+ * 3) Swap bingo and arr[i](i= 0, 1, 2, ..., size-1)
+ * 
+*/
+void BingoSort(int* arr, int size){
+    int b = arr[0];
+    int nb = arr[0];
+    int i;
+    int max, n_pos, s_pos;
+    for(i=1; i < size; i++){
+        b = (b < arr[i]) ? b : arr[i];//min value
+        nb = (nb > arr[i]) ? nb : arr[i];//max value
+    }
+    max = nb;
+    n_pos = 0;
+    while(b < nb){
+        s_pos = n_pos;
+        for(i=s_pos; i<size; i++){
+            if(arr[i] == b){
+                Swap(&arr[i], &arr[n_pos]);
+                n_pos++;
+            }
+            else if(arr[i] < nb)
+                nb = arr[i];
+        }
+        b = nb;
+        nb = max;
+    }
+}
+
+/* 1) Divide array by gap
+ * 2) In each section, execute sorting
+ * 3) Divide gap by 2
+ * 4) Repeat 2)~3) until gap is 0
+*/
+//Using interval sequence for calculating interval
+int CalculateGap(int size){
+    int h = 1;
+    while(h<size/3)
+        h = 3*h +1;
+    return h;
+}
+void ShellSort(int* arr, int size){
+    int gap, i, key, j;
+    //If not use CalculateGap(), use "gap = size/2; gap > 0; gap/=2" in for()
+    //If use CalculateGap(), use "gap = CalculateGap(size); gap > 0; gap /= 3" in for()
+    for(gap = size/2; gap > 0; gap/=2){
+        for(i=gap; i<size; i++){
+            key = arr[i];
+            for(j=i; j>=gap && arr[j-gap] > key; j -=gap)
+                arr[j] = arr[j-gap];
+            arr[j]=key;
+        }
+    }
+}
+
+
+
+void TimSort(int* arr, int size) {
+    int i, j, left, mid, right;
+    for (i = 0; i < size; i += THRESHOLD)
+        PartialInsertion(arr, i, (i+THRESHOLD-1 < size-1) ? (i+THRESHOLD-1) : (size-1), 1);
+
+    printf("After Insertion: ");
+    for(int q=0; q<size; q++)
+        printf("%d ", arr[q]);
+    printf("\n");
+
+    for (j = THRESHOLD; j < size; j *= 2) {
+        for (left = 0; left < size; left += 2 * j) {
+            mid = left + j - 1;
+            right = (left+2*j-1 < size-1) ? (left+2*j-1) : (size-1);
+            printf("j: %d, left: %d, mid: %d, right: %d\n", j, left, mid, right);
+            printf("Before Merge: ");
+            for(int t=0; t<size; t++)
+                printf("%d ", arr[t]);
+            printf("\n");
+            Merge(arr, left, mid, right);
+            printf("After Merge: ");
+            for(int g=0; g<size; g++)
+                printf("%d ", arr[g]);
+            printf("\n");
+        }
+    }
+}
 
 
 
@@ -440,12 +535,9 @@ int main()
     float farr[] = {0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434};
     int n = sizeof(arr) / sizeof(int);
     int fn = sizeof(farr) / sizeof(float);
-    BucketSort(arr, n, sizeof(int), CompareInt);
-    FBucketSort(farr, fn);
+    TimSort(arr, n);
     while (temp < n)
         INTPRINT(arr[temp++]);
     temp = 0;
-    while (temp < n)
-        FLOATPRINT(farr[temp++]);
     return 0;
 }
