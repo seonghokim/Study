@@ -496,36 +496,155 @@ void ShellSort(int* arr, int size){
     }
 }
 
-
-
+/* 1) Execute partial insertion sort
+ * 2) Execute merge() 
+*/
 void TimSort(int* arr, int size) {
     int i, j, left, mid, right;
     for (i = 0; i < size; i += THRESHOLD)
         PartialInsertion(arr, i, (i+THRESHOLD-1 < size-1) ? (i+THRESHOLD-1) : (size-1), 1);
-
-    printf("After Insertion: ");
-    for(int q=0; q<size; q++)
-        printf("%d ", arr[q]);
-    printf("\n");
-
     for (j = THRESHOLD; j < size; j *= 2) {
         for (left = 0; left < size; left += 2 * j) {
             mid = left + j - 1;
             right = (left+2*j-1 < size-1) ? (left+2*j-1) : (size-1);
-            printf("j: %d, left: %d, mid: %d, right: %d\n", j, left, mid, right);
-            printf("Before Merge: ");
-            for(int t=0; t<size; t++)
-                printf("%d ", arr[t]);
-            printf("\n");
             Merge(arr, left, mid, right);
-            printf("After Merge: ");
-            for(int g=0; g<size; g++)
-                printf("%d ", arr[g]);
-            printf("\n");
         }
     }
 }
 
+/*
+ *
+ *
+ * 
+*/
+void CombSort(int* arr, int size) {
+    int gap = size;
+    int i;
+    bool swapped = true;
+    while (gap > 1 || swapped) {
+        if (gap > 1)
+            gap = gap * 10 / 13;
+        else
+            gap = 1;
+        swapped = false;
+        for (i = 0; i + gap < size; i++) {
+            if (arr[i] > arr[i + gap]) {
+                Swap(&arr[i], &arr[i + gap]);
+                swapped = true;
+            }
+        }
+    }
+}
+
+/*
+ *
+ *
+ * 
+*/
+void PigeonholeSort(int arr[], int size) {
+    int min = arr[0], max = arr[0];
+    int i, index;
+    int p_size;
+    int* p_hole;
+    for (i = 1; i < size; i++) {
+        if (arr[i] < min)
+            min = arr[i];
+        if (arr[i] > max)
+            max = arr[i];
+    }
+    p_size = max - min + 1;
+    p_hole = (int*)malloc(p_size * sizeof(int));
+    for ( i = 0; i < p_size; i++)
+        p_hole[i] = 0;
+    for ( i = 0; i < size; i++)
+        p_hole[arr[i] - min]++;
+    index = 0;
+    for (i = 0; i <p_size; i++) {
+        while (p_hole[i] > 0) {
+            arr[index++] = i + min;
+            p_hole[i]--;
+        }
+    }
+    free(p_hole);
+}
+
+/*
+ *
+ *
+ * 
+*/
+void CycleSort(int* arr, int size) {
+    int c_start, item, pos, i;
+    for (c_start = 0; c_start < size - 1; c_start++) {
+        item = arr[c_start];
+        pos = c_start;
+        for (i = c_start + 1; i < size; i++)// 해당 원소의 정확한 위치 찾기 
+            if (arr[i] < item) 
+                pos++;
+        if (pos == c_start)// 이미 제자리에 있는 경우 건너뛰기
+            continue;
+        while (item == arr[pos])// 현재 원소를 올바른 위치로 이동
+            pos++;
+        Swap(&arr[pos], &item);
+        while (pos != c_start) {// 나머지 순환 도는 부분 처리
+            pos = c_start;
+            for (i = c_start + 1; i < size; i++)
+                if (arr[i] < item)
+                    pos++;
+            while (item == arr[pos]) 
+                pos++;
+            Swap(&arr[pos], &item);
+        }
+    }
+}
+// Condition: Array size: N
+//            Input range: 1~N or 0~N
+void CycleSort2(int* arr, int size){
+    int i=0;
+    int correct=1;
+    while(i < size){
+        correct = arr[i]-1;
+        if(i != correct)
+            Swap(&arr[i], &arr[correct]);
+        else
+            i++;
+    }
+}
+
+/*
+ *
+ *
+ * 
+*/
+void cocktailSort(int* arr, int size) {
+    bool swapped = true;
+    int start = 0;
+    int end = size - 1;
+
+    while (swapped) {// 오른쪽 방향으로 배열을 통과하면서 큰 값들을 정렬
+        swapped = false;
+        for (int i = start; i < end; i++) {
+            if (arr[i] > arr[i + 1]) {
+                Swap(&arr[i], &arr[i + 1]);
+                swapped = true;
+            }
+        }
+        if(!swapped)
+            break;
+        // 가장 큰 값이 마지막에 위치하도록 end 값을 감소
+        end--;
+        // 왼쪽 방향으로 배열을 통과하면서 작은 값들을 정렬
+        swapped = false;
+        for (int i = end - 1; i >= start; i--) {
+            if (arr[i] > arr[i + 1]) {
+                Swap(&arr[i], &arr[i + 1]);
+                swapped = true;
+            }
+        }
+        // 가장 작은 값이 첫 번째에 위치하도록 start 값을 증가
+        start++;
+    }
+}
 
 
 int main()
@@ -535,9 +654,8 @@ int main()
     float farr[] = {0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434};
     int n = sizeof(arr) / sizeof(int);
     int fn = sizeof(farr) / sizeof(float);
-    TimSort(arr, n);
+    CycleSort(arr, n);
     while (temp < n)
         INTPRINT(arr[temp++]);
-    temp = 0;
     return 0;
 }
