@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <ctype.h>
 #include <math.h>
+using namespace std;
 
 void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
@@ -20,6 +22,8 @@ long AddBinaryNum(long n1, long n2);
 long Fibonacci(long n);
 long Bin2Gray(long n);
 long Gray2Bin(long n);
+void TowerOfHanoi(int num, char from, char temp, char to);
+
 
 int main(void){
     long input;
@@ -61,9 +65,9 @@ int main(void){
     //printf("Binarynum: %ld\n", lresult1);
     //lresult1 = Fibonacci(linput1);
     //lresult1 = Bin2Gray(linput1);
-    lresult1 = Gray2Bin(linput1);
-    printf("bin : %ld\n", lresult1);
-
+    //lresult1 = Gray2Bin(linput1);
+    //printf("bin : %ld\n", lresult1);
+    TowerOfHanoi(3,'A','B','C');
 
 
     
@@ -451,8 +455,22 @@ void FindMissingNum(int* arr, int size)
     printf("Missing Number is %d\n", a^b);
 }
 
+void TowerOfHanoi(int num, char from, char temp, char to){
+    if(!num)
+        return;
+    TowerOfHanoi(num-1, from, to, temp);
+    printf("Move %d from %c to %c\n",num, from, to);
+    TowerOfHanoi(num-1, temp, from, to);
+}
 
-
+int String2Int(string str){
+    if(str.length()==1)
+        return (str[0]-'0');
+    double y = String2Int(str.substr(1));
+    double x = str[0]-'0';
+    x = x*pow(10, str.length()-1)+y;
+    return int(x);
+}
 
 
 

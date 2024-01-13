@@ -57,6 +57,44 @@ void Swap(int *a, int *b)
         *a = *a ^ *b;
     }
 }
+
+typedef struct Tree{
+    int key;
+    struct Tree* left;
+    struct Tree* right;
+}Tree;
+Tree* createNode(int key){
+    Tree* newNode = (Tree*)malloc(sizeof(Tree));
+    newNode->key = key;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+Tree* Insert(Tree* root, int key){
+    if(root == NULL)
+        return createNode(key);
+    if(key < root->key)
+        root->left = Insert(root->left, key);
+    else if(key > root->key)
+        root->right = Insert(root->right, key);
+    return root;
+}
+void InorderTraversal(Tree* root, int* arr, int* idx){
+    if(root != NULL){
+        // 1) printf() 없이 array에 정렬된 배열 저장
+
+        InorderTraversal(root->left, arr, idx);
+        arr[(*idx)++] = root->key;
+        InorderTraversal(root->right, arr, idx);
+
+        /* 2) pritnf()를 이용하여 정렬된 배열 출력
+
+        InorderTraversal(root->left);
+        printf("%d ", root->key);
+        InorderTraversal(root->right);
+        */
+    }
+}
+
 /* Feature: During Sorting, Don't manipulate sorted array(left)
  * 1) Find a min value in array
  * 2) Swap the min value and i-element(i=0, 1, ..., max)
@@ -264,9 +302,9 @@ void QuickSort(int *arr, int low, int high)
 }
 
 /* 1) Build Heap by Heapify()
- * 2) In Heapify(), current element is lower than child node, swap value
+ * 2) In Heapify(), current element is lower than child Tree, swap value
  * 3) Repeat 2) by recursion
- * 4) Extract root element(max value) by swap root node and last node, and execute heapify() except last element.
+ * 4) Extract root element(max value) by swap root Tree and last Tree, and execute heapify() except last element.
  */
 void Heapify(int *arr, int size, int cur_idx)
 {
@@ -647,14 +685,55 @@ void cocktailSort(int* arr, int size) {
 }
 
 
+void BitonicMerge(int arr[], int low, int cnt, int dir) {
+    int i, k;
+    if (cnt > 1) {
+        k = cnt / 2;
+        for (i = low; i < low + k; i++)
+            if ( (arr[i] > arr[i + k]) == (dir == 1))
+                Swap(&arr[i], &arr[i+k]);
+        BitonicMerge(arr, low, k, dir);
+        BitonicMerge(arr, low + k, k, dir);
+    }
+}
+void BitonicSort(int* arr, int low, int cnt, int dir) {
+    if (cnt > 1) {
+        int k = cnt / 2;
+        // 비트단위로 정렬하는 함수 호출 (증가하는 순서)
+        BitonicSort(arr, low, k, 1);
+        // 비트단위로 정렬된 배열을 역순으로 정렬하는 함수 호출 (감소하는 순서)
+        BitonicSort(arr, low + k, k, 0);
+        // 비트단위로 정렬된 두 배열을 합병
+        BitonicMerge(arr, low, cnt, dir);
+    }
+}
+
+void TreeSort(int* arr, int size){
+    int i = 0, index = 0;
+    Tree* root = NULL;
+    for(i=0; i<size; i++)
+        root = Insert(root, arr[i]);
+    InorderTraversal(root, arr, &index);
+}
+
+void TowerOfHanoi(int num, char from, char temp, char to){
+    if(!num)
+        return;
+    TowerOfHanoi(num-1, from, to, temp);
+    printf("Move %d from %c to %c\n",num, from, to);
+    TowerOfHanoi(num-1, temp, from, to);
+}
+
 int main()
 {
     int temp = 0;
-    int arr[] = {64, 25, 12, 22, 11};
-    float farr[] = {0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434};
+    int arr[] = {64, 25, 12, 22, 11, 52, 29, 10};
     int n = sizeof(arr) / sizeof(int);
-    int fn = sizeof(farr) / sizeof(float);
-    CycleSort(arr, n);
+    int tags[n];
+    for (int i = 0; i < n; i++)
+        tags[i] = i;
+    TowerOfHanoi(3,'A','B','C');
+    TreeSort(arr, n);
     while (temp < n)
         INTPRINT(arr[temp++]);
     return 0;
