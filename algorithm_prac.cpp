@@ -6,14 +6,14 @@
 #include <algorithm>
 
 // 자동 정렬 shift + alt + F
-#define INTPRINT(x)                  \
+#define INTPRINT(x)               \
     do                            \
     {                             \
         printf(#x " is %d\n", x); \
     } while (0)
-#define FLOATPRINT(x)                  \
-    do                            \
-    {                             \
+#define FLOATPRINT(x)               \
+    do                              \
+    {                               \
         printf(#x " is %.3f\n", x); \
     } while (0)
 #define THRESHOLD 2
@@ -28,6 +28,13 @@ int FindMax(int *arr, int size)
         if (arr[i] > max)
             max = arr[i];
     return max;
+}
+int GCD(int a, int b)
+{
+    if (b == 0)
+        return a;
+    else
+        return GCD(b, a % b);
 }
 
 typedef int (*CompareFunction)(const void *, const void *);
@@ -58,28 +65,112 @@ void Swap(int *a, int *b)
     }
 }
 
-typedef struct Tree{
+typedef struct Stack
+{
+    int data;
+    struct Stack *next;
+} Stack;
+typedef struct Tree
+{
     int key;
-    struct Tree* left;
-    struct Tree* right;
-}Tree;
-Tree* createNode(int key){
-    Tree* newNode = (Tree*)malloc(sizeof(Tree));
+    struct Tree *left;
+    struct Tree *right;
+} Tree;
+typedef struct Node
+{
+    int data;
+    struct Node *next;
+    struct Node *prev;
+} Node;
+
+void InitStack(Stack **s)
+{
+    *s = NULL;
+}
+int isEmpty(Stack *s)
+{
+    if (s == NULL)
+        return 1;
+    return 0;
+}
+void Push(Stack **s, int x)
+{
+    Stack *p = (Stack *)malloc(sizeof(*p));
+    if (p == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+    p->data = x;
+    p->next = *s;
+    *s = p;
+}
+int Pop(Stack **s)
+{
+    int x;
+    Stack *temp;
+    x = (*s)->data;
+    temp = *s;
+    (*s) = (*s)->next;
+    return x;
+}
+int Top(Stack *s)
+{
+    return s->data;
+}
+void SortedInsert(Stack **s, int x)
+{
+    int temp;
+    if (isEmpty(*s) || x > Top(*s))
+    {
+        Push(s, x);
+        return;
+    }
+    temp = Pop(s);
+    SortedInsert(s, x);
+    Push(s, temp);
+}
+void SortStack(Stack **s)
+{
+    int x;
+    if (!isEmpty(*s))
+    {
+        x = Pop(s);
+        SortStack(s);
+        SortedInsert(s, x);
+    }
+}
+void PrintStack(Stack *s)
+{
+    while (s)
+    {
+        printf("%d ", s->data);
+        s = s->next;
+    }
+    printf("\n");
+}
+
+Tree *createNode(int key)
+{
+    Tree *newNode = (Tree *)malloc(sizeof(Tree));
     newNode->key = key;
     newNode->left = newNode->right = NULL;
     return newNode;
 }
-Tree* Insert(Tree* root, int key){
-    if(root == NULL)
+Tree *Insert(Tree *root, int key)
+{
+    if (root == NULL)
         return createNode(key);
-    if(key < root->key)
+    if (key < root->key)
         root->left = Insert(root->left, key);
-    else if(key > root->key)
+    else if (key > root->key)
         root->right = Insert(root->right, key);
     return root;
 }
-void InorderTraversal(Tree* root, int* arr, int* idx){
-    if(root != NULL){
+void InorderTraversal(Tree *root, int *arr, int *idx)
+{
+    if (root != NULL)
+    {
         // 1) printf() 없이 array에 정렬된 배열 저장
 
         InorderTraversal(root->left, arr, idx);
@@ -153,13 +244,15 @@ void InsertionSort(int *arr, int size)
         arr[j + 1] = key;        // Insert key value(if key is lowest value, j = -1, So, j+1 = 0)
     }
 }
-void PartialInsertion(int* arr, int first, int last, int gap){
+void PartialInsertion(int *arr, int first, int last, int gap)
+{
     int i, j, key;
-    for(i = first+gap; i<=last; i+=gap){
+    for (i = first + gap; i <= last; i += gap)
+    {
         key = arr[i];
-        for(j=i-gap; j>=first && arr[j] > key; j-=gap)
-            arr[j+gap] = arr[j];
-        arr[j+gap] = key;
+        for (j = i - gap; j >= first && arr[j] > key; j -= gap)
+            arr[j + gap] = arr[j];
+        arr[j + gap] = key;
     }
 }
 
@@ -403,7 +496,7 @@ void RadixSort(int *arr, int size)
  * 2) Inset element in bucket array
  * 3) In each bucket array, sort elements
  * 4) Assign the sorted element in array sequentially
-*/
+ */
 void BucketSort(int *arr, int size, int type_size, CompareFunction cmp)
 {
     // 최댓값과 최솟값을 찾아 범위를 구합니다.
@@ -462,45 +555,52 @@ void BucketSort(int *arr, int size, int type_size, CompareFunction cmp)
     free(b);
     free(b_size);
 }
-void FBucketSort(float* farr, int fn){
+void FBucketSort(float *farr, int fn)
+{
     std::vector<float> b[fn];
-    int i=0, bi, idx, j;
-    for(i=0; i<fn; i++){
+    int i = 0, bi, idx, j;
+    for (i = 0; i < fn; i++)
+    {
         bi = fn * farr[i];
         b[bi].push_back(farr[i]);
     }
-    for(i=0; i<fn; i++)
+    for (i = 0; i < fn; i++)
         std::sort(b[i].begin(), b[i].end());
     idx = 0;
-    for(i=0; i<fn; i++)
-        for(j=0; j<b[i].size(); j++)
+    for (i = 0; i < fn; i++)
+        for (j = 0; j < b[i].size(); j++)
             farr[idx++] = b[i][j];
 }
 
 /* 1) Find min, max value in array
  * 2) Find bingo in array
  * 3) Swap bingo and arr[i](i= 0, 1, 2, ..., size-1)
- * 
-*/
-void BingoSort(int* arr, int size){
+ *
+ */
+void BingoSort(int *arr, int size)
+{
     int b = arr[0];
     int nb = arr[0];
     int i;
     int max, n_pos, s_pos;
-    for(i=1; i < size; i++){
-        b = (b < arr[i]) ? b : arr[i];//min value
-        nb = (nb > arr[i]) ? nb : arr[i];//max value
+    for (i = 1; i < size; i++)
+    {
+        b = (b < arr[i]) ? b : arr[i];    // min value
+        nb = (nb > arr[i]) ? nb : arr[i]; // max value
     }
     max = nb;
     n_pos = 0;
-    while(b < nb){
+    while (b < nb)
+    {
         s_pos = n_pos;
-        for(i=s_pos; i<size; i++){
-            if(arr[i] == b){
+        for (i = s_pos; i < size; i++)
+        {
+            if (arr[i] == b)
+            {
                 Swap(&arr[i], &arr[n_pos]);
                 n_pos++;
             }
-            else if(arr[i] < nb)
+            else if (arr[i] < nb)
                 nb = arr[i];
         }
         b = nb;
@@ -512,39 +612,46 @@ void BingoSort(int* arr, int size){
  * 2) In each section, execute sorting
  * 3) Divide gap by 2
  * 4) Repeat 2)~3) until gap is 0
-*/
-//Using interval sequence for calculating interval
-int CalculateGap(int size){
+ */
+// Using interval sequence for calculating interval
+int CalculateGap(int size)
+{
     int h = 1;
-    while(h<size/3)
-        h = 3*h +1;
+    while (h < size / 3)
+        h = 3 * h + 1;
     return h;
 }
-void ShellSort(int* arr, int size){
+void ShellSort(int *arr, int size)
+{
     int gap, i, key, j;
-    //If not use CalculateGap(), use "gap = size/2; gap > 0; gap/=2" in for()
-    //If use CalculateGap(), use "gap = CalculateGap(size); gap > 0; gap /= 3" in for()
-    for(gap = size/2; gap > 0; gap/=2){
-        for(i=gap; i<size; i++){
+    // If not use CalculateGap(), use "gap = size/2; gap > 0; gap/=2" in for()
+    // If use CalculateGap(), use "gap = CalculateGap(size); gap > 0; gap /= 3" in for()
+    for (gap = size / 2; gap > 0; gap /= 2)
+    {
+        for (i = gap; i < size; i++)
+        {
             key = arr[i];
-            for(j=i; j>=gap && arr[j-gap] > key; j -=gap)
-                arr[j] = arr[j-gap];
-            arr[j]=key;
+            for (j = i; j >= gap && arr[j - gap] > key; j -= gap)
+                arr[j] = arr[j - gap];
+            arr[j] = key;
         }
     }
 }
 
 /* 1) Execute partial insertion sort
- * 2) Execute merge() 
-*/
-void TimSort(int* arr, int size) {
+ * 2) Execute merge()
+ */
+void TimSort(int *arr, int size)
+{
     int i, j, left, mid, right;
     for (i = 0; i < size; i += THRESHOLD)
-        PartialInsertion(arr, i, (i+THRESHOLD-1 < size-1) ? (i+THRESHOLD-1) : (size-1), 1);
-    for (j = THRESHOLD; j < size; j *= 2) {
-        for (left = 0; left < size; left += 2 * j) {
+        PartialInsertion(arr, i, (i + THRESHOLD - 1 < size - 1) ? (i + THRESHOLD - 1) : (size - 1), 1);
+    for (j = THRESHOLD; j < size; j *= 2)
+    {
+        for (left = 0; left < size; left += 2 * j)
+        {
             mid = left + j - 1;
-            right = (left+2*j-1 < size-1) ? (left+2*j-1) : (size-1);
+            right = (left + 2 * j - 1 < size - 1) ? (left + 2 * j - 1) : (size - 1);
             Merge(arr, left, mid, right);
         }
     }
@@ -553,20 +660,24 @@ void TimSort(int* arr, int size) {
 /*
  *
  *
- * 
-*/
-void CombSort(int* arr, int size) {
+ *
+ */
+void CombSort(int *arr, int size)
+{
     int gap = size;
     int i;
     bool swapped = true;
-    while (gap > 1 || swapped) {
+    while (gap > 1 || swapped)
+    {
         if (gap > 1)
             gap = gap * 10 / 13;
         else
             gap = 1;
         swapped = false;
-        for (i = 0; i + gap < size; i++) {
-            if (arr[i] > arr[i + gap]) {
+        for (i = 0; i + gap < size; i++)
+        {
+            if (arr[i] > arr[i + gap])
+            {
                 Swap(&arr[i], &arr[i + gap]);
                 swapped = true;
             }
@@ -577,28 +688,32 @@ void CombSort(int* arr, int size) {
 /*
  *
  *
- * 
-*/
-void PigeonholeSort(int arr[], int size) {
+ *
+ */
+void PigeonholeSort(int arr[], int size)
+{
     int min = arr[0], max = arr[0];
     int i, index;
     int p_size;
-    int* p_hole;
-    for (i = 1; i < size; i++) {
+    int *p_hole;
+    for (i = 1; i < size; i++)
+    {
         if (arr[i] < min)
             min = arr[i];
         if (arr[i] > max)
             max = arr[i];
     }
     p_size = max - min + 1;
-    p_hole = (int*)malloc(p_size * sizeof(int));
-    for ( i = 0; i < p_size; i++)
+    p_hole = (int *)malloc(p_size * sizeof(int));
+    for (i = 0; i < p_size; i++)
         p_hole[i] = 0;
-    for ( i = 0; i < size; i++)
+    for (i = 0; i < size; i++)
         p_hole[arr[i] - min]++;
     index = 0;
-    for (i = 0; i <p_size; i++) {
-        while (p_hole[i] > 0) {
+    for (i = 0; i < p_size; i++)
+    {
+        while (p_hole[i] > 0)
+        {
             arr[index++] = i + min;
             p_hole[i]--;
         }
@@ -609,27 +724,30 @@ void PigeonholeSort(int arr[], int size) {
 /*
  *
  *
- * 
-*/
-void CycleSort(int* arr, int size) {
+ *
+ */
+void CycleSort(int *arr, int size)
+{
     int c_start, item, pos, i;
-    for (c_start = 0; c_start < size - 1; c_start++) {
+    for (c_start = 0; c_start < size - 1; c_start++)
+    {
         item = arr[c_start];
         pos = c_start;
-        for (i = c_start + 1; i < size; i++)// 해당 원소의 정확한 위치 찾기 
-            if (arr[i] < item) 
+        for (i = c_start + 1; i < size; i++) // 해당 원소의 정확한 위치 찾기
+            if (arr[i] < item)
                 pos++;
-        if (pos == c_start)// 이미 제자리에 있는 경우 건너뛰기
+        if (pos == c_start) // 이미 제자리에 있는 경우 건너뛰기
             continue;
-        while (item == arr[pos])// 현재 원소를 올바른 위치로 이동
+        while (item == arr[pos]) // 현재 원소를 올바른 위치로 이동
             pos++;
         Swap(&arr[pos], &item);
-        while (pos != c_start) {// 나머지 순환 도는 부분 처리
+        while (pos != c_start)
+        { // 나머지 순환 도는 부분 처리
             pos = c_start;
             for (i = c_start + 1; i < size; i++)
                 if (arr[i] < item)
                     pos++;
-            while (item == arr[pos]) 
+            while (item == arr[pos])
                 pos++;
             Swap(&arr[pos], &item);
         }
@@ -637,12 +755,14 @@ void CycleSort(int* arr, int size) {
 }
 // Condition: Array size: N
 //            Input range: 1~N or 0~N
-void CycleSort2(int* arr, int size){
-    int i=0;
-    int correct=1;
-    while(i < size){
-        correct = arr[i]-1;
-        if(i != correct)
+void CycleSort2(int *arr, int size)
+{
+    int i = 0;
+    int correct = 1;
+    while (i < size)
+    {
+        correct = arr[i] - 1;
+        if (i != correct)
             Swap(&arr[i], &arr[correct]);
         else
             i++;
@@ -652,29 +772,35 @@ void CycleSort2(int* arr, int size){
 /*
  *
  *
- * 
-*/
-void cocktailSort(int* arr, int size) {
+ *
+ */
+void cocktailSort(int *arr, int size)
+{
     bool swapped = true;
     int start = 0;
     int end = size - 1;
 
-    while (swapped) {// 오른쪽 방향으로 배열을 통과하면서 큰 값들을 정렬
+    while (swapped)
+    { // 오른쪽 방향으로 배열을 통과하면서 큰 값들을 정렬
         swapped = false;
-        for (int i = start; i < end; i++) {
-            if (arr[i] > arr[i + 1]) {
+        for (int i = start; i < end; i++)
+        {
+            if (arr[i] > arr[i + 1])
+            {
                 Swap(&arr[i], &arr[i + 1]);
                 swapped = true;
             }
         }
-        if(!swapped)
+        if (!swapped)
             break;
         // 가장 큰 값이 마지막에 위치하도록 end 값을 감소
         end--;
         // 왼쪽 방향으로 배열을 통과하면서 작은 값들을 정렬
         swapped = false;
-        for (int i = end - 1; i >= start; i--) {
-            if (arr[i] > arr[i + 1]) {
+        for (int i = end - 1; i >= start; i--)
+        {
+            if (arr[i] > arr[i + 1])
+            {
                 Swap(&arr[i], &arr[i + 1]);
                 swapped = true;
             }
@@ -684,20 +810,23 @@ void cocktailSort(int* arr, int size) {
     }
 }
 
-
-void BitonicMerge(int arr[], int low, int cnt, int dir) {
+void BitonicMerge(int arr[], int low, int cnt, int dir)
+{
     int i, k;
-    if (cnt > 1) {
+    if (cnt > 1)
+    {
         k = cnt / 2;
         for (i = low; i < low + k; i++)
-            if ( (arr[i] > arr[i + k]) == (dir == 1))
-                Swap(&arr[i], &arr[i+k]);
+            if ((arr[i] > arr[i + k]) == (dir == 1))
+                Swap(&arr[i], &arr[i + k]);
         BitonicMerge(arr, low, k, dir);
         BitonicMerge(arr, low + k, k, dir);
     }
 }
-void BitonicSort(int* arr, int low, int cnt, int dir) {
-    if (cnt > 1) {
+void BitonicSort(int *arr, int low, int cnt, int dir)
+{
+    if (cnt > 1)
+    {
         int k = cnt / 2;
         // 비트단위로 정렬하는 함수 호출 (증가하는 순서)
         BitonicSort(arr, low, k, 1);
@@ -708,20 +837,166 @@ void BitonicSort(int* arr, int low, int cnt, int dir) {
     }
 }
 
-void TreeSort(int* arr, int size){
+void TreeSort(int *arr, int size)
+{
     int i = 0, index = 0;
-    Tree* root = NULL;
-    for(i=0; i<size; i++)
+    Tree *root = NULL;
+    for (i = 0; i < size; i++)
         root = Insert(root, arr[i]);
     InorderTraversal(root, arr, &index);
 }
 
-void TowerOfHanoi(int num, char from, char temp, char to){
-    if(!num)
+void TowerOfHanoi(int num, char from, char temp, char to)
+{
+    if (!num)
         return;
-    TowerOfHanoi(num-1, from, to, temp);
-    printf("Move %d from %c to %c\n",num, from, to);
-    TowerOfHanoi(num-1, temp, from, to);
+    TowerOfHanoi(num - 1, from, to, temp);
+    printf("Move %d from %c to %c\n", num, from, to);
+    TowerOfHanoi(num - 1, temp, from, to);
+}
+
+void ReverseArray(int *arr, int start, int end)
+{
+    int temp;
+    while (start < end)
+    {
+        Swap(&arr[start], &arr[end]);
+        start++;
+        end--;
+    }
+}
+void RotateArray(int *arr, int dist, int size, int dir, bool temp_arr)
+{
+    int i, j;
+    int temp[dist];
+    int last;
+    if (temp_arr == false)
+    {
+        if (dir == 0)
+        {
+            for (i = 0; i < dist; i++)
+            { // Direction: left
+                last = arr[0];
+                for (j = 0; j < size - 1; j++)
+                    arr[j] = arr[j + 1];
+                arr[size - 1] = last;
+            }
+        }
+        else if (dir == 1)
+        { // Direction: right
+            for (i = 0; i < dist; i++)
+            {
+                last = arr[size - 1];
+                for (j = size - 1; j > 0; j--)
+                    arr[j] = arr[j - 1];
+                arr[0] = last;
+            }
+        }
+    }
+    else if (temp_arr == true)
+    {
+        if (dir == 0)
+        {
+            for (i = 0; i < dist; i++) // Direction: left
+                temp[i] = arr[i];
+            for (i = 0; i < size - dist; i++)
+                arr[i] = arr[i + dist];
+            for (i = size - dist; i < size; i++)
+                arr[i] = temp[i - (size - dist)];
+        }
+        else if (dir == 1)
+        { // Direction: right
+            for (i = 0; i < dist; i++)
+                temp[i] = arr[size - dist + i];
+            for (i = size - 1; i >= dist; i--)
+                arr[i] = arr[i - dist];
+            for (i = 0; i < dist; i++)
+                arr[i] = temp[i];
+        }
+    }
+}
+/* Supoose size = 15, dist = 10, arr[i]
+ * arr[0] = arr[10] <-- move right like arr[0] -> arr[5] -> arr[10] -> arr[0]
+ * arr[10] = arr[5]
+ * arr[5] = arr[0]
+ * i++
+ */
+void RotateArrayJuggling(int *arr, int dist, int size, int dir)
+{
+    int interval = GCD(size, dist);
+    int i, j, k, temp;
+    dist %= size;
+    if (dir == 0){ // Direction: left
+        for (i = 0; i < interval; i++){
+            temp = arr[i];
+            j = i;
+            while (1){
+                k = (j + dist) % size;
+                if (k == i)
+                    break;
+                arr[j] = arr[k];
+                j = k;
+            }
+            arr[j] = temp;
+        }
+    }
+    else if(dir == 1){// Direction: right
+        for(i=0; i<interval; i++){
+            temp = arr[size-1-i];
+            j = size-1-i;
+            while(1){
+                k = (j-dist+size) % size;
+                if(k == size-1-i )
+                    break;
+                arr[j] = arr[k];
+                j = k;
+            }
+            arr[j] = temp;
+        }
+    }
+}
+void RotateArrayReversal(int* arr, int dist, int size, int dir){
+    dist %= size;
+    // left d + right d' = size, ex) size = 6, d=2, d'=4
+    if(dir == 0){// Direction: left
+        ReverseArray(arr, 0, dist-1);
+        ReverseArray(arr, dist, size-1);
+        ReverseArray(arr, 0, size-1);//Location: last
+    }
+    else if(dir == 1){// Direction: right
+        ReverseArray(arr, 0, size -1);//Location: first
+        ReverseArray(arr, 0, dist -1);
+        ReverseArray(arr, dist, size -1);
+    }
+}
+
+int BinarySearch(int* arr, int low, int high, int key){
+    int mid = (low+high)/2;
+    if(high < low)
+        return -1;
+    if(key == arr[mid])
+        return mid;
+    if(key > arr[mid])
+        return BinarySearch(arr, mid+1, high, key);
+    return BinarySearch(arr, low, mid-1, key);
+}
+int InsertSortedArray(int* arr, int size, int key, int cap){
+    int i;
+    if(size > cap)
+        return size;
+    for(i=size-1; (i>=0 && arr[i] > key); i--)
+        arr[i+1] = arr[i];
+    arr[i+1] = key;
+    return (size+1);
+}
+int DeleteElement(int* arr, int size, int key){
+    int pos = BinarySearch(arr, 0, size-1, key);
+    int i;
+    if(pos == -1)
+        return size;
+    for(i=pos; i<size-1; i++)
+        arr[i] = arr[i+1];
+    return size-1;
 }
 
 int main()
@@ -732,7 +1007,7 @@ int main()
     int tags[n];
     for (int i = 0; i < n; i++)
         tags[i] = i;
-    TowerOfHanoi(3,'A','B','C');
+    TowerOfHanoi(3, 'A', 'B', 'C');
     TreeSort(arr, n);
     while (temp < n)
         INTPRINT(arr[temp++]);
