@@ -29,6 +29,7 @@ int FindMax(int *arr, int size)
             max = arr[i];
     return max;
 }
+
 int GCD(int a, int b)
 {
     if (b == 0)
@@ -865,14 +866,21 @@ void ReverseArray(int *arr, int start, int end)
         end--;
     }
 }
-void RotateArray(int *arr, int dist, int size, int dir, bool temp_arr)
+
+void RotateArray(int *arr, int dist, int size, bool dir, bool temp_arr)
 {
     int i, j;
     int temp[dist];
     int last;
+    dist %= size;
+    if (dist > (size / 2))
+    {
+        dir = !dir;
+        dist = size - dist;
+    }
     if (temp_arr == false)
     {
-        if (dir == 0)
+        if (dir == false)
         {
             for (i = 0; i < dist; i++)
             { // Direction: left
@@ -882,7 +890,7 @@ void RotateArray(int *arr, int dist, int size, int dir, bool temp_arr)
                 arr[size - 1] = last;
             }
         }
-        else if (dir == 1)
+        else if (dir == true)
         { // Direction: right
             for (i = 0; i < dist; i++)
             {
@@ -921,16 +929,24 @@ void RotateArray(int *arr, int dist, int size, int dir, bool temp_arr)
  * arr[5] = arr[0]
  * i++
  */
-void RotateArrayJuggling(int *arr, int dist, int size, int dir)
+void RotateArrayJuggling(int *arr, int dist, int size, bool dir)
 {
     int interval = GCD(size, dist);
     int i, j, k, temp;
     dist %= size;
-    if (dir == 0){ // Direction: left
-        for (i = 0; i < interval; i++){
+    if (dist > (size / 2))
+    {
+        dir = !dir;
+        dist = size - dist;
+    }
+    if (dir == false)
+    { // Direction: left
+        for (i = 0; i < interval; i++)
+        {
             temp = arr[i];
             j = i;
-            while (1){
+            while (1)
+            {
                 k = (j + dist) % size;
                 if (k == i)
                     break;
@@ -940,13 +956,16 @@ void RotateArrayJuggling(int *arr, int dist, int size, int dir)
             arr[j] = temp;
         }
     }
-    else if(dir == 1){// Direction: right
-        for(i=0; i<interval; i++){
-            temp = arr[size-1-i];
-            j = size-1-i;
-            while(1){
-                k = (j-dist+size) % size;
-                if(k == size-1-i )
+    else if (dir == true)
+    { // Direction: right
+        for (i = 0; i < interval; i++)
+        {
+            temp = arr[size - 1 - i];
+            j = size - 1 - i;
+            while (1)
+            {
+                k = (j - dist + size) % size;
+                if (k == size - 1 - i)
                     break;
                 arr[j] = arr[k];
                 j = k;
@@ -955,60 +974,216 @@ void RotateArrayJuggling(int *arr, int dist, int size, int dir)
         }
     }
 }
-void RotateArrayReversal(int* arr, int dist, int size, int dir){
+void RotateArrayReversal(int *arr, int dist, int size, bool dir)
+{
     dist %= size;
-    // left d + right d' = size, ex) size = 6, d=2, d'=4
-    if(dir == 0){// Direction: left
-        ReverseArray(arr, 0, dist-1);
-        ReverseArray(arr, dist, size-1);
-        ReverseArray(arr, 0, size-1);//Location: last
+    if (dist > (size / 2))
+    {
+        dir = !dir;
+        dist = size - dist;
     }
-    else if(dir == 1){// Direction: right
-        ReverseArray(arr, 0, size -1);//Location: first
-        ReverseArray(arr, 0, dist -1);
-        ReverseArray(arr, dist, size -1);
+    // left d + right d' = size, ex) size = 6, d=2, d'=4
+    if (dir == false)
+    { // Direction: left
+        ReverseArray(arr, 0, dist - 1);
+        ReverseArray(arr, dist, size - 1);
+        ReverseArray(arr, 0, size - 1); // Location: last
+    }
+    else if (dir == true)
+    {                                   // Direction: right
+        ReverseArray(arr, 0, size - 1); // Location: first
+        ReverseArray(arr, 0, dist - 1);
+        ReverseArray(arr, dist, size - 1);
     }
 }
 
-int BinarySearch(int* arr, int low, int high, int key){
-    int mid = (low+high)/2;
-    if(high < low)
+// Even element is bigger than adjacent odd element
+void WaveSort(int *arr, int size)
+{
+    int i;
+    BubbleSort(arr, size);
+    for (i = 0; i < size - 1; i += 2)
+        Swap(&arr[i], &arr[i + 1]);
+}
+
+int BinarySearch(int *arr, int low, int high, int key)
+{
+    int mid = (low + high) / 2;
+    if (high < low)
         return -1;
-    if(key == arr[mid])
+    if (key == arr[mid])
         return mid;
-    if(key > arr[mid])
-        return BinarySearch(arr, mid+1, high, key);
-    return BinarySearch(arr, low, mid-1, key);
+    if (key > arr[mid])
+        return BinarySearch(arr, mid + 1, high, key);
+    return BinarySearch(arr, low, mid - 1, key);
 }
-int InsertSortedArray(int* arr, int size, int key, int cap){
+int InsertSortedArray(int *arr, int size, int key, int cap)
+{
     int i;
-    if(size > cap)
+    if (size > cap)
         return size;
-    for(i=size-1; (i>=0 && arr[i] > key); i--)
-        arr[i+1] = arr[i];
-    arr[i+1] = key;
-    return (size+1);
+    for (i = size - 1; (i >= 0 && arr[i] > key); i--)
+        arr[i + 1] = arr[i];
+    arr[i + 1] = key;
+    return (size + 1);
 }
-int DeleteElement(int* arr, int size, int key){
-    int pos = BinarySearch(arr, 0, size-1, key);
+int DeleteElement(int *arr, int size, int key)
+{
+    int pos = BinarySearch(arr, 0, size - 1, key);
     int i;
-    if(pos == -1)
+    if (pos == -1)
         return size;
-    for(i=pos; i<size-1; i++)
-        arr[i] = arr[i+1];
-    return size-1;
+    for (i = pos; i < size - 1; i++)
+        arr[i] = arr[i + 1];
+    return size - 1;
 }
+
+int *CreateDiffArray(int *arr, int size)
+{
+    int *diffarr = (int *)malloc(size * sizeof(int));
+    int i;
+    diffarr[0] = arr[0];
+    for (i = 0; i < size; i++)
+        diffarr[i] = arr[i] - arr[i - 1];
+    return diffarr;
+}
+void UpdateDiffArray(int *arr, int left, int right, int value, int size)
+{
+    arr[left] += value;
+    if (right + 1 < size)
+        arr[right + 1] -= value;
+}
+void PrintDiffArray2Array(int *arr, int size)
+{
+    int i;
+    printf("%d ", arr[0]);
+    for (i = 1; i < size; i++)
+    {
+        arr[i] += arr[i - 1];
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+int MaxProfit2BuySell(int *price, int size, int option)
+{
+    if (option == 0)
+    {
+        int *profit = (int *)malloc(size * sizeof(int));
+        int i, result;
+        int max = price[size - 1];
+        int min = price[0];
+        for (i = 0; i < size; i++)
+            profit[i] = 0;
+        for (i = size - 2; i >= 0; i--){
+            if (price[i] > max)
+                max = price[i];
+            profit[i] = __max(profit[i + 1], max - price[i]);
+        }
+        for (i = 1; i < size; i++){
+            if (price[i] < min)
+                min = price[i];
+            profit[i] = __max(profit[i - 1], profit[i] + (price[i] - min));
+        }
+        result = profit[size - 1];
+        free(profit);
+        return result;
+    }
+    if (option == 1)
+    {
+        int first_buy = INT_MIN;
+        int first_sell = 0;
+        int second_buy = INT_MIN;
+        int second_sell = 0;
+        int i;
+        /* 이해하기
+         1) 대출을 통해 첫 주식 구매 ==> first_buy 음수값(최솟 값으로 구매)
+         2) 첫 주식 판매 ==> first_buy 양수(차액을 max로)
+         3) 2번째 주식 구매 ==> 주식 구매 대출(min)+1차 차액(max)
+         4) 2번째 주식 판매 ==> 최대 이익
+        */
+        for (i = 0; i < size; i++)
+        {                                                              // buy value is negative number
+            first_buy = __max(first_buy, -price[i]);                   // 제일 작은 값
+            first_sell = __max(first_sell, (price[i] + first_buy));    // max 차액
+            second_buy = __max(second_buy, (-price[i] + first_sell));  //  첫 차액 최대값-작은 값으로 구매
+            second_sell = __max(second_sell, (price[i] + second_buy)); // max 차액
+        }
+        return second_sell;
+    }
+    return 0;
+}
+
+int SubArraySum(int* arr, int size, int sum)
+{
+    int c_sum = arr[0], start = 0, i;
+    for(i=1; i<= size; i++){
+        while(c_sum > sum && start <i-1){
+            c_sum -= arr[start];
+            start++;
+        }
+        if(c_sum == sum)
+            return 1;
+        if(i < size)
+            c_sum += arr[i];
+    }
+    return 0;
+}
+int SmallestSubArraySum(int* arr, int size, int sum)
+{
+    int c_sum = 0, min_len = size+1;
+    int start =0, end =0;
+    while(end < size){
+        while(c_sum <= sum && end < size)
+            c_sum += arr[end++];
+        while(c_sum > sum && start < size){
+            if(end - start < min_len)
+                min_len = end - start;
+            c_sum -= arr[start++];
+        }
+    }
+    return min_len;
+}
+
+
+void Sort012(int* arr, int size){
+    int low = 0;
+    int high = size-1;
+    int mid = 0;
+    while(mid <= high){
+        switch(arr[mid]){
+            case 0:
+                Swap(&arr[low++], &arr[mid++]);
+                break;
+            case 1:
+                mid++;
+                break;
+            case 2:
+                Swap(&arr[mid], &arr[high--]);
+                break;
+        }
+    }
+}
+
+
+
 
 int main()
 {
     int temp = 0;
-    int arr[] = {64, 25, 12, 22, 11, 52, 29, 10};
+    //int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
+    int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
     int n = sizeof(arr) / sizeof(int);
-    int tags[n];
-    for (int i = 0; i < n; i++)
-        tags[i] = i;
-    TowerOfHanoi(3, 'A', 'B', 'C');
-    TreeSort(arr, n);
+    int result;
+    // int tags[n];
+    // for (int i = 0; i < n; i++)
+    //     tags[i] = i;
+    // TowerOfHanoi(3, 'A', 'B', 'C');
+    // TreeSort(arr, n);
+    //result = MaxProfit2BuySell(arr, n, 1);
+    //printf("Result: %d\n", result);
+
+    Sort012(arr, n);
     while (temp < n)
         INTPRINT(arr[temp++]);
     return 0;
