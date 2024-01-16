@@ -65,7 +65,11 @@ void Swap(int *a, int *b)
         *a = *a ^ *b;
     }
 }
-
+void CompSwap(int* a, int* b){
+    if(*a > *b){
+        Swap(a, b);
+    }
+}
 typedef struct Stack
 {
     int data;
@@ -1037,6 +1041,13 @@ int DeleteElement(int *arr, int size, int key)
         arr[i] = arr[i + 1];
     return size - 1;
 }
+void RemoveCharInString(char* s, char c){
+    int i, j, n = strlen(s);
+    for(i=j=0; i<n; i++)
+        if(s[i] != c)
+            s[j++] = s[i];
+    s[j] = '\0';
+}
 
 int *CreateDiffArray(int *arr, int size)
 {
@@ -1165,26 +1176,157 @@ void Sort012(int* arr, int size){
     }
 }
 
+void TwoArrayMerge(int* arr1, int* arr2, int size1, int size2){
+    int len = size1+size2;
+    int gap = len/2+(len%2);//ceiling gap
+    int left, right;
+    while(gap > 0){
+        left = 0;
+        right = left+gap;
+        while(right < len){
+            if(left < size1 && right >= size1)
+                CompSwap(&arr1[left], &arr2[right-size1]);
+            else if(left >= size1 && right >= size1)
+                CompSwap(&arr2[left-size1], &arr2[right-size1]);
+            else
+                CompSwap(&arr1[left], &arr1[right]);
+            left++;
+            right++;
+        }
+        if(gap == 1)
+            break;
+        gap = (gap/2)+(gap%2);
+    }
+}
+
+int PairSum(int* arr, int size, int x ){
+    int i=0;
+    int j=size-1;
+    while(i < j){
+        if(arr[i] + arr[j] == x)
+            return 1;
+        else if(arr[i]+arr[j] < x)
+            i++;
+        else
+            j--;
+    }
+    return 0;
+}
+int FindPeak(int* arr, int size){
+    int l=0;
+    int r= size-1;
+    int mid;
+    while(l<=r){
+        mid = (l+r)>>1;
+        if( (mid ==0 || arr[mid-1] <= arr[mid]) && (mid==size-1 || arr[mid+1] <= arr[mid]))
+            break;
+        if(mid > 0 && arr[mid-1] > arr[mid])
+            r = mid-1;
+        else
+            l = mid+1;
+    }
+    return mid;
+}
+int* FindAllPeak(int* arr, int size, int* count){
+    int* peak = NULL;
+    int i;
+    *count = 0;
+    for(i=0; i<size; i++){
+        if( (i==0 || arr[i-1] <= arr[i]) && (i==size-1 || arr[i] >= arr[i+1]) ){
+            (*count)++;
+            peak = (int*)realloc(peak, (*count) * sizeof(int));
+            peak[(*count)-1] = arr[i];
+        }
+    }
+    return peak;
+}
+
+int Equilibrium(int* arr, int size){
+    int sum=0;
+    int l_sum=0;
+    int i;
+    for(i=0; i<size; i++)
+        sum += arr[i];
+    for(i=0; i<size; i++){
+        // input array example: 1 2 3 4 5 10
+        sum -= arr[i];// 25--> 24 22 19 15 10 0
+        if(l_sum == sum)
+            return i;
+        l_sum += arr[i];//      1  3  6 10 15  
+    }
+}
+
+#define MAXN 10000
+#define SQRSIZE 100
+int arr[MAXN]; // original array
+int block[SQRSIZE]; // decomposed array
+int blk_sz; // block size
+void UpdateBlock(int idx, int val){
+    int blockNumber = idx / blk_sz;
+    block[blockNumber] += val - arr[idx];
+    arr[idx] = val;
+}
+int ArrayQuery(int l, int r)
+{
+    int sum = 0;
+    while (l < r and l % blk_sz != 0 and l != 0)
+        sum += arr[l++];
+    while (l + blk_sz - 1 <= r) {
+        sum += block[l / blk_sz];
+        l += blk_sz;
+    }
+    while (l <= r)
+        sum += arr[l++];
+    return sum;
+} 
+void BlockPreprocess(int input[], int n){
+    int blk_idx = -1, i;
+    blk_sz = sqrt(n);
+    for (i = 0; i < n; i++) {
+        arr[i] = input[i];
+        if (i % blk_sz == 0)
+            blk_idx++;
+        block[blk_idx] += arr[i];
+    }
+}
+
+bool IsSameBitBySingleFlip(char* str, int size){
+    int zero =0, one = 0;
+    char* ch;
+    for(ch=str; ch!='\0'; ++ch)
+        (*ch=='0') ? ++zero : ++one;
+    return (zero == 1 || one == 1);
+}
+
 
 
 
 int main()
 {
     int temp = 0;
-    //int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
-    int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
+    int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
+    //int arr[] = {1, 3, 20, 4, 1, 0};
+    //int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
     int n = sizeof(arr) / sizeof(int);
-    int result;
+    int i;
+    int count;
+    int result1;
+    int* result2 = FindAllPeak(arr, n, &count);
     // int tags[n];
     // for (int i = 0; i < n; i++)
     //     tags[i] = i;
     // TowerOfHanoi(3, 'A', 'B', 'C');
     // TreeSort(arr, n);
-    //result = MaxProfit2BuySell(arr, n, 1);
-    //printf("Result: %d\n", result);
+    for(i=0; i<count; i++)
+        printf("%d ", result2[i]);
+    printf("\n");
+    free(result2);
 
-    Sort012(arr, n);
-    while (temp < n)
-        INTPRINT(arr[temp++]);
+    //result1 = FindPeak(arr, n);
+    //printf("Result: %d\n", result1);
+
+    //Sort012(arr, n);
+    //while (temp < n)
+    //    INTPRINT(arr[temp++]);
     return 0;
 }
