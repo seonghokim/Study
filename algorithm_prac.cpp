@@ -56,13 +56,13 @@ int CompareDouble(const void *a, const void *b)
 }
 
 // If a and b indicate same memory, A XOR B is 0
-void Swap(int *a, int *b)
+void Swap(void *a, void *b)
 {
-    if (a != b)
+    if ((a != b))
     {
-        *a = *a ^ *b;
-        *b = *a ^ *b;
-        *a = *a ^ *b;
+        *(int*)a = *(int*)a ^ *(int*)b;
+        *(int*)b = *(int*)a ^ *(int*)b;
+        *(int*)a = *(int*)a ^ *(int*)b;
     }
 }
 void CompSwap(int* a, int* b){
@@ -1157,6 +1157,7 @@ int SmallestSubArraySum(int* arr, int size, int sum)
 }
 
 
+
 void Sort012(int* arr, int size){
     int low = 0;
     int high = size-1;
@@ -1254,6 +1255,7 @@ int Equilibrium(int* arr, int size){
             return i;
         l_sum += arr[i];//      1  3  6 10 15  
     }
+    return -1;
 }
 
 #define MAXN 10000
@@ -1293,11 +1295,152 @@ void BlockPreprocess(int input[], int n){
 bool IsSameBitBySingleFlip(char* str, int size){
     int zero =0, one = 0;
     char* ch;
-    for(ch=str; ch!='\0'; ++ch)
+    for(ch=str; *ch != '\0'; ++ch)
         (*ch=='0') ? ++zero : ++one;
     return (zero == 1 || one == 1);
 }
 
+int FindFlips(char* str, int n){
+    char last = ' ';
+    int count=0, i;
+    for(i=0; i<n; i++){
+        if(last!= str[i])
+            count++;
+        last = arr[i];
+    }
+    return count/2;
+}
+
+void Int2Gray(int n){
+    int i, j, val;
+    for(i=0; i< (1 << n); i++){
+        val = (i ^ (i >> 1));//Gray code Transform
+        for(j=n-1; j>=0; j--)
+            printf("%d", (val >> j) & 1);
+        printf(" ");
+    }
+    printf("\n");
+}
+int GrayDecimal2Decimal(int gray){
+    int inv = 0;
+    for(; gray!=0; gray >>= 1)
+        inv ^= gray;
+    return inv;
+}
+
+void Int2BinChar(char* s, int n){
+    int temp, index=0, start, end;
+    while(n){
+        temp = n % 2;
+        s[index++] = temp + '0';
+        n >>= 1;
+    }
+    s[index] = '\0';
+    for(start=0, end=index-1; start < end ; ++start, --end)
+        Swap(&s[start], &s[end]);
+}
+int FindChar(int input, int nRepeat, int f_index){
+    char str[100];
+    char temp[200];
+    int i, j, t_index;
+    Int2BinChar(str, input);
+    for(i=0; i< nRepeat; i++){
+        t_index = 0;
+        for(j=0; j<f_index; j++){
+            if(str[j] == '1'){
+                temp[t_index++] = '1';
+                temp[t_index++] = '0';
+            }
+            else{
+                temp[t_index++] = '0';
+                temp[t_index++] = '1';
+            }
+        }
+        temp[t_index] = '\0';
+        strcpy(str, temp);
+    }
+    return str[f_index]-'0';
+}
+
+void PrintAllSubString(char* str, int len){
+    int i, j, idx=0;
+    for(i=0; i<len; i++){
+        char temp[len-i+1];
+        idx = 0;
+        for(j=i; j<len; j++){
+            temp[idx++] = str[j];
+            temp[idx] = '\0';
+            printf("%s\n", temp);
+        }
+    }
+
+}
+void PrintAllSubSequence(char* str, int len){
+    int total = (1<<len)-1;
+    int i, j;
+    for(i=1; i<=total; i++){
+        printf("{ ");
+        for(j=0; j<len; j++)
+            if(i & (1<<j))
+                printf("%c ", str[j]);
+        printf("}\n");
+    }
+}
+int CountDistinctSubSequence(char* str, int len){
+    int dp[len+1];
+    int last[256];// 각 문자의 마지막 위치 저장, 현재 문자의 이전 위치 확인 -> 이전에 있었다면 중복 부분 수열 제거
+    int i;
+    memset(last, -1, sizeof(last));
+    dp[0] = 1;// 빈 문자열의 경우, 서로 다른 수열이 하나임
+    for(i=1; i<= len; i++){
+        dp[i] = 2* dp[i-1];
+        //printf("1 dP[%d]=%-4d, dp[%d]=%-4d\n", i, dp[i], i-1, dp[i-1]);
+        if(last[str[i-1]] != -1){
+            dp[i] -= dp[last[str[i-1]]];
+            //printf("2 dP[%d]=%-4d, dp[%d]=%4d,  last[str[%d]]=%-4d, str[%d]=%c\n", i, dp[i], last[str[i-1]], dp[last[str[i-1]]], i-1, last[str[i-1]], i-1, str[i-1]);
+        }
+        //printf("Before last[str[%d]]=%-4d \n", i-1, last[str[i-1]]);
+        last[str[i-1]] = i-1;
+        //printf("After last[%d]=%-4d, dp[%d]=%-4d\n", str[i-1], last[str[i-1]], len, dp[len] );
+    }
+    return dp[len];
+}
+void PrintAllDistinctSubsequences(char* str, int len) {
+    int dp[len + 1];
+    int last[256];
+    int i, j, mask, index;
+    char sub[1 << len][len+1];
+    //char sub[1 << len][len + 1];
+    bool printed[len+1];
+    memset(printed, false, sizeof(printed));
+    int count = 0;
+    memset(last, -1, sizeof(last));
+    dp[0] = 1;
+    for (i = 1; i <= len; i++) {
+        dp[i] = 2 * dp[i-1];
+        if (last[str[i-1]] != -1)
+            dp[i] -= dp[last[str[i-1]]];
+        last[str[i-1]] = i-1;
+    }
+    printf("Number of Distinct Sub Sequence: %d\n", dp[len]);
+    for (mask = 0; mask < (1<<len); mask++) {
+        index = 0;
+        for (j=0; j<len; j++)
+            if (mask & (1<<j))
+                sub[count][index++] = str[j];
+        sub[count++][index] = '\0';
+        
+    }
+    for (i = 0; i < count; i++){
+        if(!printed[i]){
+            printf("%s\n", sub[i]);
+            for(j=i+1; j<count; j++)
+                if(strcmp(sub[i], sub[j]) == 0)
+                    printed[j] = true;
+        }
+        
+    }
+}
 
 
 
@@ -1308,19 +1451,22 @@ int main()
     //int arr[] = {1, 3, 20, 4, 1, 0};
     //int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
     int n = sizeof(arr) / sizeof(int);
-    int i;
-    int count;
-    int result1;
-    int* result2 = FindAllPeak(arr, n, &count);
+    
+    char str[]= "ggb";
+    int m = strlen(str);
+    PrintAllDistinctSubsequences(str, m);
+    //printf("%d\n", CountDistinctSubSequence(str, m));
+    //int* result2 = FindAllPeak(arr, n, &count);
     // int tags[n];
     // for (int i = 0; i < n; i++)
     //     tags[i] = i;
     // TowerOfHanoi(3, 'A', 'B', 'C');
     // TreeSort(arr, n);
-    for(i=0; i<count; i++)
-        printf("%d ", result2[i]);
-    printf("\n");
-    free(result2);
+
+    //for(i=0; i<count; i++)
+    //    printf("%d ", result2[i]);
+    //printf("\n");
+    //free(result2);
 
     //result1 = FindPeak(arr, n);
     //printf("Result: %d\n", result1);
