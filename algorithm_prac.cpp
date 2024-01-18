@@ -60,13 +60,24 @@ void Swap(void *a, void *b)
 {
     if ((a != b))
     {
-        *(int*)a = *(int*)a ^ *(int*)b;
-        *(int*)b = *(int*)a ^ *(int*)b;
-        *(int*)a = *(int*)a ^ *(int*)b;
+        *(int *)a = *(int *)a ^ *(int *)b;
+        *(int *)b = *(int *)a ^ *(int *)b;
+        *(int *)a = *(int *)a ^ *(int *)b;
     }
 }
-void CompSwap(int* a, int* b){
-    if(*a > *b){
+
+int Min(void *a, void *b)
+{
+    return *(int *)a < *(int *)b ? *(int *)a : *(int *)b;
+}
+int Max(void *a, void *b)
+{
+    return *(int *)a > *(int *)b ? *(int *)a : *(int *)b;
+}
+void CompSwap(int *a, int *b)
+{
+    if (*a > *b)
+    {
         Swap(a, b);
     }
 }
@@ -870,7 +881,15 @@ void ReverseArray(int *arr, int start, int end)
         end--;
     }
 }
-
+void ReverseString(char* str){
+    int n = strlen(str);
+    int i, j;
+    for(i=0, j=n-1; i<j; i++, j--){
+        char ch = str[i];
+        str[i] = str[j];
+        str[j] = ch;
+    }
+}
 void RotateArray(int *arr, int dist, int size, bool dir, bool temp_arr)
 {
     int i, j;
@@ -1041,10 +1060,11 @@ int DeleteElement(int *arr, int size, int key)
         arr[i] = arr[i + 1];
     return size - 1;
 }
-void RemoveCharInString(char* s, char c){
+void RemoveCharInString(char *s, char c)
+{
     int i, j, n = strlen(s);
-    for(i=j=0; i<n; i++)
-        if(s[i] != c)
+    for (i = j = 0; i < n; i++)
+        if (s[i] != c)
             s[j++] = s[i];
     s[j] = '\0';
 }
@@ -1086,12 +1106,14 @@ int MaxProfit2BuySell(int *price, int size, int option)
         int min = price[0];
         for (i = 0; i < size; i++)
             profit[i] = 0;
-        for (i = size - 2; i >= 0; i--){
+        for (i = size - 2; i >= 0; i--)
+        {
             if (price[i] > max)
                 max = price[i];
             profit[i] = __max(profit[i + 1], max - price[i]);
         }
-        for (i = 1; i < size; i++){
+        for (i = 1; i < size; i++)
+        {
             if (price[i] < min)
                 min = price[i];
             profit[i] = __max(profit[i - 1], profit[i] + (price[i] - min));
@@ -1125,30 +1147,34 @@ int MaxProfit2BuySell(int *price, int size, int option)
     return 0;
 }
 
-int SubArraySum(int* arr, int size, int sum)
+int SubArraySum(int *arr, int size, int sum)
 {
     int c_sum = arr[0], start = 0, i;
-    for(i=1; i<= size; i++){
-        while(c_sum > sum && start <i-1){
+    for (i = 1; i <= size; i++)
+    {
+        while (c_sum > sum && start < i - 1)
+        {
             c_sum -= arr[start];
             start++;
         }
-        if(c_sum == sum)
+        if (c_sum == sum)
             return 1;
-        if(i < size)
+        if (i < size)
             c_sum += arr[i];
     }
     return 0;
 }
-int SmallestSubArraySum(int* arr, int size, int sum)
+int SmallestSubArraySum(int *arr, int size, int sum)
 {
-    int c_sum = 0, min_len = size+1;
-    int start =0, end =0;
-    while(end < size){
-        while(c_sum <= sum && end < size)
+    int c_sum = 0, min_len = size + 1;
+    int start = 0, end = 0;
+    while (end < size)
+    {
+        while (c_sum <= sum && end < size)
             c_sum += arr[end++];
-        while(c_sum > sum && start < size){
-            if(end - start < min_len)
+        while (c_sum > sum && start < size)
+        {
+            if (end - start < min_len)
                 min_len = end - start;
             c_sum -= arr[start++];
         }
@@ -1156,114 +1182,128 @@ int SmallestSubArraySum(int* arr, int size, int sum)
     return min_len;
 }
 
-
-
-void Sort012(int* arr, int size){
+void Sort012(int *arr, int size)
+{
     int low = 0;
-    int high = size-1;
+    int high = size - 1;
     int mid = 0;
-    while(mid <= high){
-        switch(arr[mid]){
-            case 0:
-                Swap(&arr[low++], &arr[mid++]);
-                break;
-            case 1:
-                mid++;
-                break;
-            case 2:
-                Swap(&arr[mid], &arr[high--]);
-                break;
+    while (mid <= high)
+    {
+        switch (arr[mid])
+        {
+        case 0:
+            Swap(&arr[low++], &arr[mid++]);
+            break;
+        case 1:
+            mid++;
+            break;
+        case 2:
+            Swap(&arr[mid], &arr[high--]);
+            break;
         }
     }
 }
 
-void TwoArrayMerge(int* arr1, int* arr2, int size1, int size2){
-    int len = size1+size2;
-    int gap = len/2+(len%2);//ceiling gap
+void TwoArrayMerge(int *arr1, int *arr2, int size1, int size2)
+{
+    int len = size1 + size2;
+    int gap = len / 2 + (len % 2); // ceiling gap
     int left, right;
-    while(gap > 0){
+    while (gap > 0)
+    {
         left = 0;
-        right = left+gap;
-        while(right < len){
-            if(left < size1 && right >= size1)
-                CompSwap(&arr1[left], &arr2[right-size1]);
-            else if(left >= size1 && right >= size1)
-                CompSwap(&arr2[left-size1], &arr2[right-size1]);
+        right = left + gap;
+        while (right < len)
+        {
+            if (left < size1 && right >= size1)
+                CompSwap(&arr1[left], &arr2[right - size1]);
+            else if (left >= size1 && right >= size1)
+                CompSwap(&arr2[left - size1], &arr2[right - size1]);
             else
                 CompSwap(&arr1[left], &arr1[right]);
             left++;
             right++;
         }
-        if(gap == 1)
+        if (gap == 1)
             break;
-        gap = (gap/2)+(gap%2);
+        gap = (gap / 2) + (gap % 2);
     }
 }
 
-int PairSum(int* arr, int size, int x ){
-    int i=0;
-    int j=size-1;
-    while(i < j){
-        if(arr[i] + arr[j] == x)
+int PairSum(int *arr, int size, int x)
+{
+    int i = 0;
+    int j = size - 1;
+    while (i < j)
+    {
+        if (arr[i] + arr[j] == x)
             return 1;
-        else if(arr[i]+arr[j] < x)
+        else if (arr[i] + arr[j] < x)
             i++;
         else
             j--;
     }
     return 0;
 }
-int FindPeak(int* arr, int size){
-    int l=0;
-    int r= size-1;
+int FindPeak(int *arr, int size)
+{
+    int l = 0;
+    int r = size - 1;
     int mid;
-    while(l<=r){
-        mid = (l+r)>>1;
-        if( (mid ==0 || arr[mid-1] <= arr[mid]) && (mid==size-1 || arr[mid+1] <= arr[mid]))
+    while (l <= r)
+    {
+        mid = (l + r) >> 1;
+        if ((mid == 0 || arr[mid - 1] <= arr[mid]) && (mid == size - 1 || arr[mid + 1] <= arr[mid]))
             break;
-        if(mid > 0 && arr[mid-1] > arr[mid])
-            r = mid-1;
+        if (mid > 0 && arr[mid - 1] > arr[mid])
+            r = mid - 1;
         else
-            l = mid+1;
+            l = mid + 1;
     }
     return mid;
 }
-int* FindAllPeak(int* arr, int size, int* count){
-    int* peak = NULL;
+int *FindAllPeak(int *arr, int size, int *count)
+{
+    int *peak = NULL;
     int i;
     *count = 0;
-    for(i=0; i<size; i++){
-        if( (i==0 || arr[i-1] <= arr[i]) && (i==size-1 || arr[i] >= arr[i+1]) ){
+    for (i = 0; i < size; i++)
+    {
+        if ((i == 0 || arr[i - 1] <= arr[i]) && (i == size - 1 || arr[i] >= arr[i + 1]))
+        {
             (*count)++;
-            peak = (int*)realloc(peak, (*count) * sizeof(int));
-            peak[(*count)-1] = arr[i];
+            peak = (int *)realloc(peak, (*count) * sizeof(int));
+            peak[(*count) - 1] = arr[i];
         }
     }
     return peak;
 }
 
-int Equilibrium(int* arr, int size){
-    int sum=0;
-    int l_sum=0;
+int Equilibrium(int *arr, int size)
+{
+    int sum = 0;
+    int l_sum = 0;
     int i;
-    for(i=0; i<size; i++)
+    for (i = 0; i < size; i++)
         sum += arr[i];
-    for(i=0; i<size; i++){
+    for (i = 0; i < size; i++)
+    {
         // input array example: 1 2 3 4 5 10
-        sum -= arr[i];// 25--> 24 22 19 15 10 0
-        if(l_sum == sum)
+        sum -= arr[i]; // 25--> 24 22 19 15 10 0
+        if (l_sum == sum)
             return i;
-        l_sum += arr[i];//      1  3  6 10 15  
+        l_sum += arr[i]; //      1  3  6 10 15
     }
     return -1;
 }
 
 #define MAXN 10000
 #define SQRSIZE 100
-int arr[MAXN]; // original array
+int arr[MAXN];      // original array
 int block[SQRSIZE]; // decomposed array
-int blk_sz; // block size
-void UpdateBlock(int idx, int val){
+int blk_sz;         // block size
+void UpdateBlock(int idx, int val)
+{
     int blockNumber = idx / blk_sz;
     block[blockNumber] += val - arr[idx];
     arr[idx] = val;
@@ -1273,18 +1313,21 @@ int ArrayQuery(int l, int r)
     int sum = 0;
     while (l < r and l % blk_sz != 0 and l != 0)
         sum += arr[l++];
-    while (l + blk_sz - 1 <= r) {
+    while (l + blk_sz - 1 <= r)
+    {
         sum += block[l / blk_sz];
         l += blk_sz;
     }
     while (l <= r)
         sum += arr[l++];
     return sum;
-} 
-void BlockPreprocess(int input[], int n){
+}
+void BlockPreprocess(int input[], int n)
+{
     int blk_idx = -1, i;
     blk_sz = sqrt(n);
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++)
+    {
         arr[i] = input[i];
         if (i % blk_sz == 0)
             blk_idx++;
@@ -1292,66 +1335,79 @@ void BlockPreprocess(int input[], int n){
     }
 }
 
-bool IsSameBitBySingleFlip(char* str, int size){
-    int zero =0, one = 0;
-    char* ch;
-    for(ch=str; *ch != '\0'; ++ch)
-        (*ch=='0') ? ++zero : ++one;
+bool IsSameBitBySingleFlip(char *str, int size)
+{
+    int zero = 0, one = 0;
+    char *ch;
+    for (ch = str; *ch != '\0'; ++ch)
+        (*ch == '0') ? ++zero : ++one;
     return (zero == 1 || one == 1);
 }
 
-int FindFlips(char* str, int n){
+int FindFlips(char *str, int n)
+{
     char last = ' ';
-    int count=0, i;
-    for(i=0; i<n; i++){
-        if(last!= str[i])
+    int count = 0, i;
+    for (i = 0; i < n; i++)
+    {
+        if (last != str[i])
             count++;
         last = arr[i];
     }
-    return count/2;
+    return count / 2;
 }
 
-void Int2Gray(int n){
+void Int2Gray(int n)
+{
     int i, j, val;
-    for(i=0; i< (1 << n); i++){
-        val = (i ^ (i >> 1));//Gray code Transform
-        for(j=n-1; j>=0; j--)
+    for (i = 0; i < (1 << n); i++)
+    {
+        val = (i ^ (i >> 1)); // Gray code Transform
+        for (j = n - 1; j >= 0; j--)
             printf("%d", (val >> j) & 1);
         printf(" ");
     }
     printf("\n");
 }
-int GrayDecimal2Decimal(int gray){
+int GrayDecimal2Decimal(int gray)
+{
     int inv = 0;
-    for(; gray!=0; gray >>= 1)
+    for (; gray != 0; gray >>= 1)
         inv ^= gray;
     return inv;
 }
 
-void Int2BinChar(char* s, int n){
-    int temp, index=0, start, end;
-    while(n){
+void Int2BinChar(char *s, int n)
+{
+    int temp, index = 0, start, end;
+    while (n)
+    {
         temp = n % 2;
         s[index++] = temp + '0';
         n >>= 1;
     }
     s[index] = '\0';
-    for(start=0, end=index-1; start < end ; ++start, --end)
+    for (start = 0, end = index - 1; start < end; ++start, --end)
         Swap(&s[start], &s[end]);
 }
-int FindChar(int input, int nRepeat, int f_index){
+int FindChar(int input, int nRepeat, int f_index)
+{
     char str[100];
     char temp[200];
     int i, j, t_index;
     Int2BinChar(str, input);
-    for(i=0; i< nRepeat; i++){
+    for (i = 0; i < nRepeat; i++)
+    {
         t_index = 0;
-        for(j=0; j<f_index; j++){
-            if(str[j] == '1'){
+        for (j = 0; j < f_index; j++)
+        {
+            if (str[j] == '1')
+            {
                 temp[t_index++] = '1';
                 temp[t_index++] = '0';
             }
-            else{
+            else
+            {
                 temp[t_index++] = '0';
                 temp[t_index++] = '1';
             }
@@ -1359,120 +1415,418 @@ int FindChar(int input, int nRepeat, int f_index){
         temp[t_index] = '\0';
         strcpy(str, temp);
     }
-    return str[f_index]-'0';
+    return str[f_index] - '0';
 }
 
-void PrintAllSubString(char* str, int len){
-    int i, j, idx=0;
-    for(i=0; i<len; i++){
-        char temp[len-i+1];
+void PrintAllSubString(char *str, int len)
+{
+    int i, j, idx = 0;
+    for (i = 0; i < len; i++)
+    {
+        char temp[len - i + 1];
         idx = 0;
-        for(j=i; j<len; j++){
+        for (j = i; j < len; j++)
+        {
             temp[idx++] = str[j];
             temp[idx] = '\0';
             printf("%s\n", temp);
         }
     }
-
 }
-void PrintAllSubSequence(char* str, int len){
-    int total = (1<<len)-1;
+void PrintAllSubSequence(char *str, int len)
+{
+    int total = (1 << len) - 1;
     int i, j;
-    for(i=1; i<=total; i++){
+    for (i = 1; i <= total; i++)
+    {
         printf("{ ");
-        for(j=0; j<len; j++)
-            if(i & (1<<j))
+        for (j = 0; j < len; j++)
+            if (i & (1 << j))
                 printf("%c ", str[j]);
         printf("}\n");
     }
 }
-int CountDistinctSubSequence(char* str, int len){
-    int dp[len+1];
-    int last[256];// 각 문자의 마지막 위치 저장, 현재 문자의 이전 위치 확인 -> 이전에 있었다면 중복 부분 수열 제거
+int CountDistinctSubSequence(char *str, int len)
+{
+    int dp[len + 1];
+    int last[256]; // 각 문자의 마지막 위치 저장, 현재 문자의 이전 위치 확인 -> 이전에 있었다면 중복 부분 수열 제거
     int i;
     memset(last, -1, sizeof(last));
-    dp[0] = 1;// 빈 문자열의 경우, 서로 다른 수열이 하나임
-    for(i=1; i<= len; i++){
-        dp[i] = 2* dp[i-1];
-        //printf("1 dP[%d]=%-4d, dp[%d]=%-4d\n", i, dp[i], i-1, dp[i-1]);
-        if(last[str[i-1]] != -1){
-            dp[i] -= dp[last[str[i-1]]];
-            //printf("2 dP[%d]=%-4d, dp[%d]=%4d,  last[str[%d]]=%-4d, str[%d]=%c\n", i, dp[i], last[str[i-1]], dp[last[str[i-1]]], i-1, last[str[i-1]], i-1, str[i-1]);
+    dp[0] = 1; // 빈 문자열의 경우, 서로 다른 수열이 하나임
+    for (i = 1; i <= len; i++)
+    {
+        dp[i] = 2 * dp[i - 1];
+        // printf("1 dP[%d]=%-4d, dp[%d]=%-4d\n", i, dp[i], i-1, dp[i-1]);
+        if (last[str[i - 1]] != -1)
+        {
+            dp[i] -= dp[last[str[i - 1]]];
+            // printf("2 dP[%d]=%-4d, dp[%d]=%4d,  last[str[%d]]=%-4d, str[%d]=%c\n", i, dp[i], last[str[i-1]], dp[last[str[i-1]]], i-1, last[str[i-1]], i-1, str[i-1]);
         }
-        //printf("Before last[str[%d]]=%-4d \n", i-1, last[str[i-1]]);
-        last[str[i-1]] = i-1;
-        //printf("After last[%d]=%-4d, dp[%d]=%-4d\n", str[i-1], last[str[i-1]], len, dp[len] );
+        // printf("Before last[str[%d]]=%-4d \n", i-1, last[str[i-1]]);
+        last[str[i - 1]] = i - 1;
+        // printf("After last[%d]=%-4d, dp[%d]=%-4d\n", str[i-1], last[str[i-1]], len, dp[len] );
     }
     return dp[len];
 }
-void PrintAllDistinctSubsequences(char* str, int len) {
+void PrintAllDistinctSubsequences(char *str, int len)
+{
     int dp[len + 1];
     int last[256];
     int i, j, mask, index;
-    char sub[1 << len][len+1];
-    //char sub[1 << len][len + 1];
-    bool printed[len+1];
+    char sub[1 << len][len + 1];
+    // char sub[1 << len][len + 1];
+    bool printed[len + 1];
     memset(printed, false, sizeof(printed));
     int count = 0;
     memset(last, -1, sizeof(last));
     dp[0] = 1;
-    for (i = 1; i <= len; i++) {
-        dp[i] = 2 * dp[i-1];
-        if (last[str[i-1]] != -1)
-            dp[i] -= dp[last[str[i-1]]];
-        last[str[i-1]] = i-1;
+    for (i = 1; i <= len; i++)
+    {
+        dp[i] = 2 * dp[i - 1];
+        if (last[str[i - 1]] != -1)
+            dp[i] -= dp[last[str[i - 1]]];
+        last[str[i - 1]] = i - 1;
     }
     printf("Number of Distinct Sub Sequence: %d\n", dp[len]);
-    for (mask = 0; mask < (1<<len); mask++) {
+    for (mask = 0; mask < (1 << len); mask++)
+    {
         index = 0;
-        for (j=0; j<len; j++)
-            if (mask & (1<<j))
+        for (j = 0; j < len; j++)
+            if (mask & (1 << j))
                 sub[count][index++] = str[j];
         sub[count++][index] = '\0';
-        
     }
-    for (i = 0; i < count; i++){
-        if(!printed[i]){
+    for (i = 0; i < count; i++)
+    {
+        if (!printed[i])
+        {
             printf("%s\n", sub[i]);
-            for(j=i+1; j<count; j++)
-                if(strcmp(sub[i], sub[j]) == 0)
+            for (j = i + 1; j < count; j++)
+                if (strcmp(sub[i], sub[j]) == 0)
                     printed[j] = true;
         }
-        
     }
 }
 
+// Sequence = 문자열 중 일부 문자를 제거하거나 제거하지 않고도 얻을 수 있는 문자열
+// SubString = 문자열에서 일부 연속된 문자로 이루어진 문자열
+// ex) ATBCEF
+// Sequence: ATCF
+// SubString: ATBC
+int CountLongestCommonSubsequence(char *str1, char *str2){
+    int n = strlen(str1);
+    int m = strlen(str2);
+    int prev[m + 1], cur[m + 1];
+    int min = (n > m) ? m : n;
+    bool isduplication[m] = {false, };
+    int i, j;
+    memset(isduplication, false, sizeof(isduplication));
+    memset(prev, 0, sizeof(prev));
+    memset(cur, 0, sizeof(cur));
+    for (i = 1; i < n + 1; i++){
+        for (j = 1; j < m + 1; j++){
+            if (str1[i - 1] == str2[j - 1])
+                cur[j] = 1 + prev[j - 1];
+            else
+                cur[j] = 0 + __max(cur[j - 1], prev[j]);
+        }
+        memcpy(prev, cur, sizeof(cur));
+    }
+    for (i = 1, j = 0; i < m + 1; i++, j++){ // Print LCS
+        if (isduplication[cur[i]] == false){
+            printf("%c", str2[j]);
+            isduplication[cur[i]] = true;
+        }
+    }
+    printf("\n");
+    return cur[m]; // Return LCS's length
+}
+int CountLongestCommonSubsequence2(char* str1, char* str2){
+    int m = strlen(str1);
+    int n = strlen(str2);
+    int dp[m+1][n+1];
+    int i, j;
+    for(i=0; i<=m; i++){
+        for(j=0; j<=n; j++){
+            if(i==0 || j==0)
+                dp[i][j] = 0;
+            else if(str1[i-1]==str2[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = __max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    return dp[m][n];
+}
+char* PrintLongestCommonSubsequence3(char* str1, char* str2){
+    int m = strlen(str1);
+    int n = strlen(str2);
+    int dp[m+1][n+1];
+    int i, j;
+    for(i=0; i<=m; i++){
+        for(j=0; j<=n; j++){
+            if(i==0 || j==0)
+                dp[i][j] = 0;
+            else if(str1[i-1]==str2[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = __max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    int idx = dp[m][n];
+    char* lcs = (char*)malloc((idx+1) * sizeof(char));
+    lcs[idx] = '\0';
+    i=m;
+    j=n;
+    while(i>0 && j>0){
+        if(str1[i-1] == str2[j-1]){
+            lcs[idx-1] = str1[i-1];
+            i--;
+            j--;
+            idx--;
+        }
+        else if(dp[i-1][j] > dp[i][j-1])
+            i--;
+        else
+            j--;
+    }
+    return lcs;
+}
+char* ShortestCommonSupersequence(char* str1, char* str2){
+    int len1 = strlen(str1);
+    int len2 = strlen(str2);
+    int dp[len1+1][len2+1];
+    int count  = 0;
+    int i, j, idx;
+    int scslen;
+    //Initialize
+    for(i=0; i<=len1; i++){
+        for(j=0; j<=len2; j++){
+            if(i==0)
+                dp[i][j] = j;
+            else if(j==0)
+                dp[i][j] = i;
+            else if(str1[i-1] == str2[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = 1+ __min(dp[i-1][j] , dp[i][j-1]);
+        }
+    }
+    printf("dp[len1][len2] of SCS: %d\n", dp[len1][len2]);
+    scslen = (len1 + len2+1);
+    char* scs = (char*)malloc((scslen+1) * sizeof(char));
+    i = len1;
+    j = len2;
+    idx = scslen;
+    //Compose Shortest Common Sequence
+    while(i>0 && j>0){
+        if(str1[i-1] == str2[j-1]){
+            scs[idx--] = str1[i-1];
+            i--;
+            j--;
+            count++;
+        }
+        else if(dp[i-1][j] > dp[i][j-1]){
+            scs[idx--] = str2[j-1];//scs[idx--] = str2[j-1];
+            j--;
+            count++;
+        }
+        else{
+            scs[idx--] = str1[i-1];
+            i--;
+            count++;
+        }
+    }
+    while(i>0){
+        scs[idx--] = str1[i-1];
+        i--;
+        count++;
+    }
+    while(j>0){
+        scs[idx--] = str2[j-1];
+        j--;
+        count++;
+    }
+    printf("Number of SCS: %d\n", count);
+    return scs;
+}
+int ShortestCommonSupersequence2(char* str1, char* str2){
+    int m  = strlen(str1);
+    int n = strlen(str2);
+    int k = CountLongestCommonSubsequence2(str1, str2);
+    return (m+n-k);
+}
+int CalculateOverlappingInString(char *str1, char *str2, char *overlap)
+{
+    int max = 0;
+    int len1 = strlen(str1);
+    int len2 = strlen(str2);
+    int i;
+    for (i = 1; i <= len1; i++){
+        if (strncmp(str1 + len1 - i, str2, i) == 0){
+            if (i > max){
+                max = i;
+                strcpy(overlap, str1);
+                strcat(overlap, str2 + i);
+            }
+        }
+    }
+    for (i = 1; i <= len2; i++){
+        if (strncmp(str1, str2 + len2 - i, i) == 0){
+            if (i > max){
+                max = i;
+                strcpy(overlap, str2);
+                strcat(overlap, str1 + i);
+            }
+        }
+    }
+    return max;
+}
+char *FindShortestSuperstring(char arr[][20], int len)
+{
+    char *merge_str = (char *)malloc(2 * 1000);
+    char *overlap = (char *)malloc(2 * 1000);
+    while (len > 1){
+        int max = -1;
+        int idx1 = 0, idx2 = 0, i = 0, j = 0;
+        int cur_overlap = 0;
+        for (i = 0; i < len; i++){
+            for (j = i + 1; j < len; j++){
+                cur_overlap = CalculateOverlappingInString(arr[i], arr[j], overlap);
+                if (cur_overlap > max)
+                {
+                    max = cur_overlap;
+                    idx1 = i;
+                    idx2 = j;
+                    strcpy(merge_str, overlap);
+                }
+            }
+        }
+        strcpy(arr[idx1], merge_str);
+        for (i = idx2 + 1; i < len; i++)
+            strcpy(arr[i - 1],arr[i]);
+        len--; 
+    }
+    free(overlap);
+    free(merge_str);
+    return arr[0];
+}
+char* FindLongestRepeatingSubsequence(char *str){
+    int n = strlen(str);
+    int dp[n+1][n+1];
+    int i, j, idx;
+    memset(dp, 0, sizeof(dp));
+    // Counting Number of LRS
+    for(i=1; i<=n; i++){
+        for(j=1; j<=n; j++){
+            if(str[i-1]==str[j-1] && i!=j)
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = __max(dp[i][j-1], dp[i-1][j]);
+            printf("%d ", dp[i][j]);
+        }
+        printf("\n");
+    }
+    //return dp[n][n]; --> Function type : int
+    // Print LRS
+    int lrslen = dp[n][n];
+    char* lrs = (char*)malloc((lrslen+1) * sizeof(char));
+    i = j = n;
+    idx = lrslen;
+    while(i>0 && j>0){
+        if(dp[i][j] == dp[i-1][j-1]+1){
+            lrs[idx--] = str[i-1];
+            i--;
+            j--;
+        }
+        else if(dp[i][j] == dp[i-1][j])
+            i--;
+        else
+            j--;
+    }
+    return lrs;
+}
+int CountLongestPalindromicSubsequence(char* str){
+    int n = strlen(str);
+    char temp[n];
+    int i, j;
+    strcpy(temp, str); //--> result: 5
+    //memcpy(temp, str, n); // --> result: 5
+    ReverseString(temp);
+    int dp[n+1][n+1];
+    memset(dp, 0, sizeof(dp));
+    for(i=1; i<=n; i++){
+        for(j=1; j<=n; j++){
+            if(str[i-1] == temp[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = __max(dp[i][j-1], dp[i-1][j]);
+        }
+    }
+    return dp[n][n];
+}
+char* PrintLongestPalindromicSubsequence(char* str){
+    int n = strlen(str);
+    char rev[n];
+    memcpy(rev, str, sizeof(rev));
+    ReverseString(rev);
+    return PrintLongestCommonSubsequence3(str, rev);
+}
+void PrintLongestPalindromicSubString(char* str){
+    for(int i =0; i<strlen(str); i++)
+        printf("%c",str[i]);
+}
+int CountLongestPalindromicSubString(char* str){
+    int n = strlen(str);
+    int start=0, end =1;
+    int low, high;
+    int i;
+    // Writing...
+}
+
+
+bool IsPalindrome(char* str){
+    int l = 0;
+    int r = strlen(str)-1;
+    while(l < r)
+        if(str[l++] != str[r++])
+            return false;
+    return true;
+}
 
 
 int main()
 {
-    int temp = 0;
-    int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
-    //int arr[] = {1, 3, 20, 4, 1, 0};
-    //int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
-    int n = sizeof(arr) / sizeof(int);
-    
-    char str[]= "ggb";
-    int m = strlen(str);
-    PrintAllDistinctSubsequences(str, m);
-    //printf("%d\n", CountDistinctSubSequence(str, m));
-    //int* result2 = FindAllPeak(arr, n, &count);
-    // int tags[n];
-    // for (int i = 0; i < n; i++)
-    //     tags[i] = i;
-    // TowerOfHanoi(3, 'A', 'B', 'C');
-    // TreeSort(arr, n);
-
-    //for(i=0; i<count; i++)
-    //    printf("%d ", result2[i]);
-    //printf("\n");
-    //free(result2);
-
-    //result1 = FindPeak(arr, n);
-    //printf("Result: %d\n", result1);
-
-    //Sort012(arr, n);
-    //while (temp < n)
-    //    INTPRINT(arr[temp++]);
+    char str1[] = "AGGTAB";//AGGTAB ,geek
+    char str2[] = "GXTXAYB";//GXTXAYB , eke
+    char str3[] = "axxxy";
+    char str4[] = "geeksforgeeks";
+    char *r1 = PrintLongestPalindromicSubsequence(str4);
+    //int r2 = CountLongestCommonSubsequence(str1, str2);
+    printf("%s\n", r1);
+    //printf("\n\n%d\n", r2);
+    int r2 = CountLongestPalindromicSubsequence(str4);
+    printf("%d\n", r2);
     return 0;
 }
+    //int temp = 0;
+    //int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
+    //char arr2[][20] = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
+    
+    //int n = sizeof(arr) / sizeof(int);
+    //int m = sizeof(arr2) / sizeof(arr2[0]);
+    // int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
+    // while (temp < n)
+    //     INTPRINT(arr[temp++]);
+
+
+/*     int r1 = CountLongestCommonSubsequence(str1, str2);
+    int r2 = CountLongestCommonSubsequence2(str1, str2);
+    printf("r1=%d  r2=%d\n", r1, r2);
+    int r3 = ShortestCommonSupersequence2(str1, str2);
+    printf("r3=%d\n", r3);
+    char *r4 = ShortestCommonSupersequence(str1, str2);
+    printf("%s\n", r4);
+    free(r4);
+    char* r5 = FindLongestRepeatingSubsequence(str3);
+    printf("%s\n", r5); */
