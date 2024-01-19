@@ -4,6 +4,7 @@
 #include <string.h>
 #include <vector>
 #include <algorithm>
+#include <ctype.h>
 
 // 자동 정렬 shift + alt + F
 #define INTPRINT(x)               \
@@ -1772,27 +1773,320 @@ char* PrintLongestPalindromicSubsequence(char* str){
     ReverseString(rev);
     return PrintLongestCommonSubsequence3(str, rev);
 }
-void PrintLongestPalindromicSubString(char* str){
-    for(int i =0; i<strlen(str); i++)
+void PrintLongestPalindromicSubString(char* str, int low, int high){
+    for(int i =low; i<=high; i++)
         printf("%c",str[i]);
+    printf("\n");
 }
 int CountLongestPalindromicSubString(char* str){
     int n = strlen(str);
     int start=0, end =1;
     int low, high;
     int i;
-    // Writing...
+    for(i=0; i<n; i++){
+        low = i-1;
+        high = i;
+        while(low >= 0 && high < n && str[low] == str[high]){
+            if(high-low+1 > end){
+                start = low;
+                end = high-low+1;
+            }
+            low--;
+            high++;
+        }
+        low = i-1;
+        high = i+1;
+        while(low >= 0 && high < n && str[low] == str[high]){
+            if(high-low+1 > end){
+                start = low;
+                end = high-low+1;
+            }
+            low--;
+            high++;
+        }
+    }
+    PrintLongestPalindromicSubString(str, start, start+end-1);
+    return end;
 }
 
-
+// Condition of Palindrome:
+// 1) At most, one character occurs an odd number of times
+// 2) All characters occur an even number of times
+// Character number = 26
 bool IsPalindrome(char* str){
     int l = 0;
     int r = strlen(str)-1;
     while(l < r)
-        if(str[l++] != str[r++])
+        if(str[l++] != str[r--])
             return false;
     return true;
 }
+bool CanPalindrome(char* str){
+    int bit = 0, mask =0;
+    int i, x;
+    for(i=0; str[i]!='\0'; i++){
+        if((str[i]-'A') < 32)
+            str[i] = tolower(str[i]);
+        x = str[i]-'a';
+        mask = 1 << x;//문자 번호에 해당하는 bit = 1
+        bit ^= mask;// bit는 문자 번호에 해당하는 bit 값 변화시킴(문자 개수 홀수: 1, 짝수: 0)
+    }
+    return (bit & (bit-1) == 0);//최종적으로 bit에는 1이 1개 있어야 함
+}
+bool IsRotationOfPalindrome(char* str){
+    if(IsPalindrome(str))
+        return true;
+    int n = strlen(str);
+    int i, j, idx;
+    for(i=0; i<n; i++){
+        char r_str[n+1];
+        strncpy(r_str, (str+i), n-i);
+        strncpy((r_str+n-i), str, i);
+        if(IsPalindrome(r_str))
+            return true;
+    }
+    return false;
+}
+
+int CountStringPalindromeByAddingMinChar(char* str){
+    int n = strlen(str);
+    int start = 0, end = n-1, res = 0;
+    while(start < end){
+        if(str[start] == str[end]){
+            start++;
+            end--;
+        }
+        else{
+            res++;
+            start = 0;
+            end = n-1-res;
+        }
+    }
+    return res;
+}
+
+char* MaxPalindromeUsingKChange(char* str, int k){
+    int n = strlen(str);
+    char* pal = (char*)malloc( n * sizeof(char));
+    strcpy(pal, str);
+    int l=0, r = n-1;
+    while(l < r){
+        if(str[l] != str[r]){
+            pal[l] = pal[r] = __max(str[l], str[r]);
+            k--;
+        }
+        l++;
+        r--;
+    }
+/*     if(k < 0)
+        return "Not Possible"; */
+    l = 0;
+    r = n-1;
+    while(l < r){
+        if(l == r && k > 0)
+            pal[l] = '9';
+        if(pal[l] < '9'){
+            if(k >=2 && pal[l] == str[l] && pal[r] == str[r]){
+                k -= 2;
+                pal[l] = pal[r] = '9';
+            }
+            else if(k >= 1 && pal[l] != str[l] || pal[r] != str[r]){
+                k--;
+                pal[l] = pal[r] = '9';
+            }
+        }
+        l++;
+        r--;
+    }
+    return pal;
+}
+
+int CountMinDelCharInStrForPalindrome(char* str){
+    int n = strlen(str);
+    int L[n];
+    int i, j, backup, temp;
+    for(i=n-1; i>=0; i--){
+        backup = 0;
+        for(j=i; j<n; j++){
+            if(j==i)
+                L[j] = 1;
+            else if(str[i] == str[j]){
+                temp = L[j];
+                L[j] = backup+2;
+                backup = temp;
+            }
+            else{
+                backup = L[j];
+                L[j] = __max(L[j], L[j-1]);
+            }
+        }
+    }
+    return (n - L[n-1]);
+}
+
+int CountMinInsertForPalinWithPermut(char* str){
+    int n = strlen(str);
+    int mask = 0;
+    int i, count=0;
+    for(i=0; i<n;i++)
+        mask ^= (1<<(str[i]-'a'));
+    if(mask == 0)
+        return 0;
+    while(mask){
+        count += mask&1;// Adding 1 bit(number of character)
+        mask >>= 1;// Divide 2
+    }
+    return count-1;
+}
+
+
+// Pattern Searching
+void PatternSearchingWithNaive(char* str, char* pat){
+    //All print index of patter found
+    int m = strlen(str);
+    int n = strlen(pat);
+    int i, j;
+    for(i=0; i<=m-n; i++){
+        for(j=0; j<n; j++){
+            if(str[i+j] != pat[j])
+                break;
+        }
+        if(j == n)
+            printf("Pattern found at index %d\n", i);
+    }
+    /* !! Caution !!
+        Naive Algorithm may be not work if many matching char followed by a mismatching char
+        Ex)
+        if str = "AAAAAAAAAAAAAAAAAB", pattern = "AAAAB" ==> Error
+        if str = "ABABABCABABABCABBABABC", pattern = "ABABAC" ==> Error
+    */
+}
+void ComputeLPSArray(char* pat, int m, int* lps){
+    //LPS array = Failure Function F
+    lps[0] = 0;
+    int i = 1, j = 0;
+    while(i < m){
+        if(pat[i] == pat[j]){
+            j++;
+            lps[i] = j;
+            i++;
+        }
+        else{
+            if(j != 0)
+                j = lps[j-1];
+            else{
+                lps[i] = 0;
+                i++;
+            }
+        }
+    }
+}
+void PatternSearchingWithKMP(char* str, char* pat){
+    //If KMP finds mismatching char, KMP knows next char
+    // LPS = Longest Prefix which is also Suffix)
+    int m = strlen(str);
+    int n = strlen(pat);
+    int lps[n];
+    ComputeLPSArray(pat, n, lps);
+    int i=0, j=0;
+    while((m-i) >= (n-j)){ // i < m
+        if(pat[j] == str[i]){
+            i++;
+            j++;
+        }
+        if(j == n){
+            printf("Found pattern at index %d\n", i-j);
+            j = lps[j-1];
+        }
+        else if(i < m && pat[j] != str[i]){
+            if(j != 0)
+                j = lps[j-1];
+            else
+                i++;
+        }
+    }
+}
+void ComputeZ(char* str, int* z){
+    int n = strlen(str);
+    int l, r, k;
+    int i;
+    l = r = 0;
+    for(i=1; i<n; i++){
+        if(i > r){
+            l = r = i;
+            while(r < n && str[r-l] == str[r])
+                r++;
+            z[i] = r-l;
+            r--;
+        }
+        else{
+            k = i-l;
+            if(z[k] < r-i+1)
+                z[i] = z[k];
+            else{
+                l=i;
+                while(r<n && str[r-l] == str[r])
+                    r++;
+                z[i] = r-l;
+                r--;
+            }
+        }
+    }
+}
+void PatternSearchingWithZ(char* str, char* pat){
+    int plen = strlen(pat);
+    int slen = strlen(str);
+    int concatlen = slen+plen+1;
+    char* concat = (char*)malloc(concatlen);
+    int Z[concatlen];
+    int i;
+    strcpy(concat, pat);
+    strcat(concat, "$");
+    strcat(concat, str);
+    ComputeZ(concat, Z);
+    for(i=0; i<concatlen; i++)
+        if(Z[i] == plen)
+            printf("Pattern found at index %d\n", i-plen-1);
+    
+    free(concat);
+}
+bool Search2DGrid(char* grid, char* word, int ridx, int cidx, int R, int C){
+    int x[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    int y[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    int len = strlen(word), dir, k, rdir, cdir;
+    if(*(grid+ridx*C+cidx) != word[0])
+        return false;
+    for(dir=0; dir<8; dir++){
+        rdir = ridx + x[dir], cdir = cidx + y[dir];
+        for(k=1; k<len; k++){
+            if(rdir >= R || rdir<0 || cdir >= C || cdir<0)
+                break;
+            if(*(grid+rdir*C+cdir) != word[k])
+                break;
+            rdir += x[dir], cdir += y[dir];
+        }
+        if(k==len)
+            return true; 
+    }
+    return false;
+}
+void PatternSearchWith2DGrid(char* grid, char* word, int r, int c){
+    int i, j;
+    for(i=0; i<r; i++)
+        for(j=0; j<c; j++)
+            if(Search2DGrid(grid, word, i, j, r, c))
+                printf("Pattern found at (%d,%d)\n", i, j);
+    /* Input data In main()
+    int r=3, c=13;
+    char grid[r][c] =  {"GEEKSFORGEEKS",
+                        "GEEKSQUIZGEEK",
+                        "IDEQAPRACTICE" };
+    char pattern1[] = "GEEKS";
+    char pattern2[] = "EEE";
+    PatternSearchWith2DGrid((char*)grid, pattern1, r, c);
+    */
+}
+
 
 
 int main()
@@ -1800,25 +2094,37 @@ int main()
     char str1[] = "AGGTAB";//AGGTAB ,geek
     char str2[] = "GXTXAYB";//GXTXAYB , eke
     char str3[] = "axxxy";
-    char str4[] = "geeksforgeeks";
-    char *r1 = PrintLongestPalindromicSubsequence(str4);
-    //int r2 = CountLongestCommonSubsequence(str1, str2);
-    printf("%s\n", r1);
-    //printf("\n\n%d\n", r2);
-    int r2 = CountLongestPalindromicSubsequence(str4);
-    printf("%d\n", r2);
+    char str4[] = "geeksforgeeks";//forgeeksskeegfor, geeksforgeeks, abcde
+    char str5[] = "GEEKS FOR GEEKS";// AAAAAAAAAAAAAAAAAB, AABAACAADAABAAABAA
+    char str6[] = "GEEK";// AAAAB, AABA,
+
+
     return 0;
 }
-    //int temp = 0;
-    //int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
-    //char arr2[][20] = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
+    /* char *r1 = PrintLongestPalindromicSubsequence(str4);
+    int r2 = CountLongestCommonSubsequence(str1, str2);
+    printf("%s\n", r1);
+    printf("\n\n%d\n", r2);
+    PatternSearchingWithZ(str5, str6);
     
-    //int n = sizeof(arr) / sizeof(int);
-    //int m = sizeof(arr2) / sizeof(arr2[0]);
-    // int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
-    // while (temp < n)
-    //     INTPRINT(arr[temp++]);
-
+    printf("r2 %d\n", r2);
+    
+    free(r2); */
+/*     int temp = 0;
+    int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
+    char arr2[][20] = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
+    
+    int n = sizeof(arr) / sizeof(int);
+    int m = sizeof(arr2) / sizeof(arr2[0]);
+     int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
+     while (temp < n)
+         INTPRINT(arr[temp++]); */
+/*     char str1[] = "AGGTAB";//AGGTAB ,geek
+    char str2[] = "GXTXAYB";//GXTXAYB , eke
+    char str3[] = "axxxy";
+    char str4[] = "geeksforgeeks";//forgeeksskeegfor, geeksforgeeks, abcde
+    char str5[] = "GEEKS FOR GEEKS";// AAAAAAAAAAAAAAAAAB, AABAACAADAABAAABAA
+    char str6[] = "GEEK";// AAAAB, AABA, */
 
 /*     int r1 = CountLongestCommonSubsequence(str1, str2);
     int r2 = CountLongestCommonSubsequence2(str1, str2);
