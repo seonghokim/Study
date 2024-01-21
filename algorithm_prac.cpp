@@ -104,13 +104,13 @@ void InitStack(Stack **s)
 {
     *s = NULL;
 }
-int isEmpty(Stack *s)
+int isEmptyStack(Stack *s)
 {
     if (s == NULL)
         return 1;
     return 0;
 }
-void Push(Stack **s, int x)
+void PushStack(Stack **s, int x)
 {
     Stack *p = (Stack *)malloc(sizeof(*p));
     if (p == NULL)
@@ -122,7 +122,7 @@ void Push(Stack **s, int x)
     p->next = *s;
     *s = p;
 }
-int Pop(Stack **s)
+int PopStack(Stack **s)
 {
     int x;
     Stack *temp;
@@ -131,28 +131,28 @@ int Pop(Stack **s)
     (*s) = (*s)->next;
     return x;
 }
-int Top(Stack *s)
+int TopStack(Stack *s)
 {
     return s->data;
 }
 void SortedInsert(Stack **s, int x)
 {
     int temp;
-    if (isEmpty(*s) || x > Top(*s))
+    if (isEmptyStack(*s) || x > TopStack(*s))
     {
-        Push(s, x);
+        PushStack(s, x);
         return;
     }
-    temp = Pop(s);
+    temp = PopStack(s);
     SortedInsert(s, x);
-    Push(s, temp);
+    PushStack(s, temp);
 }
 void SortStack(Stack **s)
 {
     int x;
-    if (!isEmpty(*s))
+    if (!isEmptyStack(*s))
     {
-        x = Pop(s);
+        x = PopStack(s);
         SortStack(s);
         SortedInsert(s, x);
     }
@@ -167,21 +167,21 @@ void PrintStack(Stack *s)
     printf("\n");
 }
 
-Tree *createNode(int key)
+Tree *createTreeNode(int key)
 {
     Tree *newNode = (Tree *)malloc(sizeof(Tree));
     newNode->key = key;
     newNode->left = newNode->right = NULL;
     return newNode;
 }
-Tree *Insert(Tree *root, int key)
+Tree *InsertTree(Tree *root, int key)
 {
     if (root == NULL)
-        return createNode(key);
+        return createTreeNode(key);
     if (key < root->key)
-        root->left = Insert(root->left, key);
+        root->left = InsertTree(root->left, key);
     else if (key > root->key)
-        root->right = Insert(root->right, key);
+        root->right = InsertTree(root->right, key);
     return root;
 }
 void InorderTraversal(Tree *root, int *arr, int *idx)
@@ -258,7 +258,7 @@ void InsertionSort(int *arr, int size)
         key = arr[i]; // Initailly, 2nd element is key(last key is arr[size-1])
         for (j = i - 1; j >= 0 && arr[j] > key; j--)
             arr[j + 1] = arr[j]; // move element to right
-        arr[j + 1] = key;        // Insert key value(if key is lowest value, j = -1, So, j+1 = 0)
+        arr[j + 1] = key;        // InsertTree key value(if key is lowest value, j = -1, So, j+1 = 0)
     }
 }
 void PartialInsertion(int *arr, int first, int last, int gap)
@@ -444,7 +444,7 @@ void HeapSort(int *arr, int size)
 }
 
 /* 1) Find max value in array
- * 2) Insert the number of element's value into temperary array
+ * 2) InsertTree the number of element's value into temperary array
  * 3) Find the cumlative sum of temperary array by arr[i] +=arr[i-1];
  * 4) Trace the location that input-array element's value equal to temperary array's index.
  * 5) Find the index of output-array that is same as the result of (element's value of temperary array -1), copy the value of input array element
@@ -859,7 +859,7 @@ void TreeSort(int *arr, int size)
     int i = 0, index = 0;
     Tree *root = NULL;
     for (i = 0; i < size; i++)
-        root = Insert(root, arr[i]);
+        root = InsertTree(root, arr[i]);
     InorderTraversal(root, arr, &index);
 }
 
@@ -1300,27 +1300,27 @@ int Equilibrium(int *arr, int size)
 
 #define MAXN 10000
 #define SQRSIZE 100
-int arr[MAXN];      // original array
+int oarr[MAXN];      // original array
 int block[SQRSIZE]; // decomposed array
 int blk_sz;         // block size
 void UpdateBlock(int idx, int val)
 {
     int blockNumber = idx / blk_sz;
-    block[blockNumber] += val - arr[idx];
-    arr[idx] = val;
+    block[blockNumber] += val - oarr[idx];
+    oarr[idx] = val;
 }
 int ArrayQuery(int l, int r)
 {
     int sum = 0;
     while (l < r and l % blk_sz != 0 and l != 0)
-        sum += arr[l++];
+        sum += oarr[l++];
     while (l + blk_sz - 1 <= r)
     {
         sum += block[l / blk_sz];
         l += blk_sz;
     }
     while (l <= r)
-        sum += arr[l++];
+        sum += oarr[l++];
     return sum;
 }
 void BlockPreprocess(int input[], int n)
@@ -1329,10 +1329,10 @@ void BlockPreprocess(int input[], int n)
     blk_sz = sqrt(n);
     for (i = 0; i < n; i++)
     {
-        arr[i] = input[i];
+        oarr[i] = input[i];
         if (i % blk_sz == 0)
             blk_idx++;
-        block[blk_idx] += arr[i];
+        block[blk_idx] += oarr[i];
     }
 }
 
@@ -1353,7 +1353,7 @@ int FindFlips(char *str, int n)
     {
         if (last != str[i])
             count++;
-        last = arr[i];
+        last = str[i];
     }
     return count / 2;
 }
@@ -2086,7 +2086,282 @@ void PatternSearchWith2DGrid(char* grid, char* word, int r, int c){
     PatternSearchWith2DGrid((char*)grid, pattern1, r, c);
     */
 }
+void PatterSearchWithWildCard(char* str, char* pat, bool* ismatch){
+    int n = strlen(str);
+    int m  = strlen(pat);
+    int i=0, j=0, sidx=-1, match=0;
+    while(i < n){
+        if(j<m && (pat[j] =='?' || pat[j] == str[i])){
+            i++;
+            j++;
+        }
+        else if(j<m && pat[j] == '*'){
+            sidx = j;
+            match = i;
+            j++;
+        }
+        else if(sidx != -1){
+            j = sidx +1;
+            match++;
+            i = match;
+        }
+        else
+            *ismatch = false;
+    }
+    while( j<m && pat[j]=='*')
+        j++;
+    *ismatch = !!(j==m);
+}
 
+int GetNextStateForFA(char* pat, int len, int state, int x){
+    int ns, i;
+    if(state < len && x == pat[state])
+        return state+1;
+    for(ns = state; ns > 0; ns--){
+        if(pat[ns-1] == x){
+            for(i=0; i<ns-1; i++)
+                if(pat[i] != pat[state-ns+1+i])
+                    break;
+            if(i == ns-1)
+                return ns;
+        }
+    }
+    return 0;
+}
+void ComputeTF(char* pat, int len, int TF[][256]){
+    int state, x;
+    for(state=0; state<=len; state++)
+        for(x=0; x<256; x++)
+            TF[state][x] = GetNextStateForFA(pat, len, state, x);
+}
+void PatternSearchWithFiniteAutomata(char* str, char* pat){
+    int m = strlen(str);
+    int n = strlen(pat);
+    int TF[n+1][256];
+    int i, state=0;
+    ComputeTF(pat, n, TF);
+    for(i=0; i<m; i++){
+        state = TF[state][str[i]];
+        if(state == n)
+            printf("Pattern found at index %d\n", i-n+1);
+    }
+}
+void PatternSearchWithRabinKarp(char* str, char* pat, int prime){
+    int plen = strlen(pat);
+    int slen = strlen(str);
+    int i, j;
+    int  p = 0, t = 0, h = 1;
+    for(i=0; i<plen-1; i++)
+        h = (h * 256) % prime;
+    for(i=0; i<plen; i++){
+        p = (256 * p + pat[i]) % prime;
+        t = (256 * t + str[i]) % prime;        
+    }
+    for(i=0; i<= slen-plen; i++){
+        if(p == t){
+            for(j=0; j<plen; j++)
+                if(str[i+j] != pat[j])
+                    break;
+            if(j == plen)
+                printf("Pattern found at index %d\n", i);
+        }
+        if(i < slen-plen){
+            t = (256 * (t- str[i] * h) + str[i+plen]) % prime;
+            if(t < 0)
+                t += prime;
+        }
+    }
+}
+void PatternSearchWithBoyerMoore(char* str, char* pat){
+    // Bad char Heuristic
+    int m = strlen(str);
+    int n = strlen(pat);
+    int ch[256];
+    int i, j, s=0;
+    for(i=0; i<256; i++)
+        ch[i] = -1;
+    for(i=0; i<n; i++)
+        ch[(int)pat[i]] = i;
+    while( s <= (m-n)){
+        j = n-1;
+        while(j>=0 && pat[j] == str[s+j])
+            j--;
+        if(j < 0){
+            printf("Pattern occurs at shift %d\n", s);
+            s += (s+n < m)? n-ch[str[s+n]] : 1;
+        }
+        else
+            s += __max(1, j-ch[str[s+j]]);
+    }
+}
+
+typedef struct TrieNode{
+    struct TrieNode* child[26];
+    struct TrieNode* failurelink;
+    int isEndOfWord;
+}TrieNode;
+typedef struct QueueNode{
+    TrieNode* data;
+    struct QueueNode* next;
+}QueueNode;
+typedef struct Queue{
+    QueueNode* front;
+    QueueNode* rear;
+}Queue;
+Queue* CreateQueue(){
+    Queue* que = (Queue*)malloc(sizeof(Queue));
+    que->front = que->rear = NULL;
+    return que;
+}
+void EnqueueTrie(Queue* que, TrieNode* data){
+    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
+    newNode ->data = data;
+    newNode ->next = NULL;
+    if(que->rear == NULL)
+        que->front = que->rear = newNode;
+    else{
+        que->rear->next = newNode;
+        que->rear = newNode;
+    }
+}
+TrieNode* DequeueTrie(Queue* que){
+    if(que->front == NULL)
+        return NULL;
+    else{
+        QueueNode* temp = que->front;
+        TrieNode* data = temp->data;
+        que->front = temp->next;
+        free(temp);
+        if(que->front == NULL)
+            que->rear = NULL;
+        return data;
+    }
+}
+TrieNode* CreateTrieNode(){
+    int i;
+    TrieNode* node = (TrieNode*)malloc(sizeof(TrieNode));
+    for(i=0; i<26; i++)
+        node->child[i] = NULL;
+    node->failurelink = NULL;
+    node->isEndOfWord = 0;
+    return node;
+}
+void InsertPatternInTrie(TrieNode* root, char* pat){
+    int i, idx;
+    int plen = strlen(pat);
+    TrieNode* cur = root;
+    for(i=0; i<plen; i++){
+        idx = pat[i]-'A';
+        if(!cur->child[idx])
+            cur->child[idx] = CreateTrieNode();
+        cur = cur->child[idx];
+    }
+    cur->isEndOfWord = 1;
+}
+void BuildAhoCorasick(TrieNode* root){
+    int i;
+    Queue* que = CreateQueue();
+    for(i=0; i<26; i++){
+        if(root->child[i]){
+            EnqueueTrie(que, root->child[i]);
+            root->child[i]->failurelink = root;
+        }
+    }
+    while(que->front){
+        TrieNode* cur = DequeueTrie(que);
+        for(i=0; i<26; i++){
+            TrieNode* child = cur->child[i];
+            if(child){
+                EnqueueTrie(que, child);
+                TrieNode* fail = cur->failurelink;
+                while(fail && !fail->child[i])
+                    fail = fail->failurelink;
+                if(fail)
+                    child->failurelink = fail->child[i];
+                else
+                    child->failurelink = root;
+            }
+        }
+    }
+    free(que);
+}
+void SearchAhoCorasick(TrieNode* root, char* str){
+    int i, idx;
+    int slen = strlen(str);
+    TrieNode* cur = root;
+    for(i=0; i<slen; i++){
+        idx = str[i]-'A';
+        while(cur && !cur->child[idx])
+            cur = cur->failurelink;
+        if(cur)
+            cur = cur->child[idx];
+        else
+            cur = root;
+        TrieNode* temp = cur;
+        while(temp){
+            if(temp->isEndOfWord)
+                printf("Pattern found at index %d\n", i);
+            temp = temp->failurelink;
+        }
+    }
+}
+void FreeTrie(TrieNode* node){
+    int i;
+    if(!node)
+        return;
+    for(i=0; i<26; i++)
+        FreeTrie(node->child[i]);
+    free(node);
+}
+
+bool IsSamePattern(char* str, char* pat){
+    int slen = strlen(str);
+    int plen = strlen(pat);
+    int i;
+    char ch[128]={0,};
+    char map[128]={0,};
+    if(plen != slen)
+        return false;
+    for(i=0; i<slen; i++){
+        if(ch[pat[i]] == 0 && map[str[i]]==0){
+            ch[pat[i]] = str[i];
+            map[str[i]] = pat[i];
+        }
+        else if(ch[pat[i]] != str[i] || map[str[i]] != pat[i])
+            return false;
+    }
+    return true;
+}
+void PatternMatch(char str[5][5], char* pat){
+    int slen = 5;
+    int i;
+    for(i=0; i<slen; i++){
+        if(IsSamePattern(str[i], pat))
+            printf("%s ", str[i]);
+    }
+    printf("\n");
+}
+bool CheckPattern(char* str, char* pat){
+    int order = 1;
+    int last_order = -1;
+    int i;
+    int label[256];
+    int m = strlen(str);
+    int n = strlen(pat);
+    memset(label, -1, sizeof(label));
+    for(i=0; i<n; i++){
+        label[pat[i]] = order;
+        order++;
+    }
+    for(i=0; i<m; i++){
+        if(label[str[i]] != -1){
+            if(label[str[i]] < last_order)
+                return false;
+            last_order = label[str[i]];
+        }
+    }
+    return true;
+}
 
 
 int main()
@@ -2095,9 +2370,11 @@ int main()
     char str2[] = "GXTXAYB";//GXTXAYB , eke
     char str3[] = "axxxy";
     char str4[] = "geeksforgeeks";//forgeeksskeegfor, geeksforgeeks, abcde
-    char str5[] = "GEEKS FOR GEEKS";// AAAAAAAAAAAAAAAAAB, AABAACAADAABAAABAA
-    char str6[] = "GEEK";// AAAAB, AABA,
-
+    char str5[] = "baaabab";// AAAAAAAAAAAAAAAAAB, AABAACAADAABAAABAA
+    char str6[] = "GEEKS FOR GEEKS";// AAAAB, AABA,
+    char dic[5][5] = {"abb", "abc", "xyz", "xyy", "bbb"};
+    char pat[] = "GEEK";
+    PatternSearchWithRabinKarp(str6, pat, 101);
 
     return 0;
 }
