@@ -93,12 +93,12 @@ typedef struct Tree
     struct Tree *left;
     struct Tree *right;
 } Tree;
-typedef struct Node
+typedef struct DNode//Double Linked List Node
 {
     int data;
-    struct Node *next;
-    struct Node *prev;
-} Node;
+    struct DNode *next;
+    struct DNode *prev;
+} DNode;
 
 void InitStack(Stack **s)
 {
@@ -2362,6 +2362,443 @@ bool CheckPattern(char* str, char* pat){
     }
     return true;
 }
+
+//------------------ Linked List ------------------
+typedef struct SNode{
+    int data;
+    struct SNode* next;
+    SNode(int val){
+        this->data = val;
+        this->next = NULL;
+    }
+}SNode;
+int SNodeLength(SNode* head){
+    SNode* temp = head;
+    int count = 0;
+    while(temp != NULL){
+        count++;
+        temp = temp->next;
+    }
+    return count;
+}
+int DNodeLength(DNode* head){
+    DNode* temp = head;
+    int count = 0;
+    if(temp == NULL)
+        return 0;
+    else{
+        while( head != temp->next){
+            count++;
+            temp = temp->next;
+        }
+        return count+1;
+    }
+}
+void InsertFrontSNode(SNode** head_ref, int data){
+    SNode* new_node = (SNode*)malloc(sizeof(SNode));
+    new_node->data = data;
+    new_node->next = (*head_ref);//Node that head pointed
+    (*head_ref) = new_node;//Head Node points new node
+}
+void InsertMidSNode(SNode* prev, int data){
+    if(prev == NULL)
+        return;
+    SNode* new_node = (SNode*)malloc(sizeof(SNode));
+    new_node->data = data;
+    new_node->next = prev->next;
+    prev->next = new_node;
+}
+void InsertEndSNode(SNode** head_ref, int data){
+    SNode* new_node = (SNode*)malloc(sizeof(SNode));
+    SNode* last = *head_ref;
+    new_node->data = data;
+    new_node->next = NULL;
+    if(*head_ref == NULL){// If Linked List is empty
+        *head_ref = new_node;
+        return;
+    }
+    while(last->next != NULL)// IF Linked List is full some elemnets.
+        last = last->next;//Shift pointer to last node
+    last->next = new_node;
+    return;
+}
+void DeletionFrontSNode(SNode** head, int pos){// Last inserted element's node is head node
+    SNode* temp;
+    SNode* prev;
+    int i;
+    temp = *head;
+    prev = *head;
+    for(i=0; i<pos;i++){
+        if(i==0 && pos == 1){
+            *head = (*head)->next;
+            free(temp);
+        }
+        else{
+            if(i==pos-1 && temp){
+                prev->next = temp->next;
+                free(temp);
+            }
+            else{
+                prev = temp;
+                if(prev == NULL)
+                    break;
+                temp = temp->next;
+            }
+        }
+    }
+}
+
+void InsertionFrontDNode(DNode** head, int data){
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    new_node->data = data;
+    new_node->next = (*head);
+    new_node->prev = NULL;
+    if((*head) != NULL)
+        (*head)->prev = new_node;
+    (*head) = new_node;
+}
+void InsertionMidBehindDNode(DNode* prev, int data){
+    if(prev == NULL)
+        return;
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    new_node->data = data;
+    new_node->next = prev->next;
+    prev->next = new_node;
+    new_node->prev = prev;
+    if(new_node->next !=NULL)
+        new_node->next->prev = new_node;
+}
+void InsetionMidFrontDNode(DNode* next, int data, DNode* head){
+    if(next == NULL)
+        return;
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    new_node->data = data;
+    new_node->prev = next->prev;
+    next->prev = new_node;
+    new_node->next = next;
+    if(new_node->prev != NULL)
+        new_node->prev->next = new_node;
+    else
+        head = new_node;
+}
+void InsertionEndDNode(DNode** head, int data){
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    DNode* last = *head;
+    new_node->data = data;
+    new_node->next = NULL;
+    if(*head == NULL){
+        new_node->prev = NULL;
+        *head = new_node;
+        return;
+    }
+    while(last->next != NULL)
+        last = last->next;
+    last->next = new_node;
+    new_node->prev = last;
+}
+void DeletionEndDNode(DNode** head, DNode* del){
+    DNode* cur = *head;
+    int i;
+    
+    if(*head == NULL || del == NULL)
+        return;
+    if(*head == del)
+        *head = del->next;
+    if(del->next != NULL)
+        del->next->prev = del->prev;
+    if(del->prev != NULL)
+        del->prev->next = del->next;
+    free(del);
+    return;
+}
+void DeletionPosDNode(DNode** head, int pos){
+    if(*head == NULL || pos<=0)
+        return;
+    DNode* cur = *head;
+    int i;
+    for(i=1; cur!=NULL && i<pos; i++)
+        cur = cur->next;
+    if(cur == NULL)
+        return;
+    DeletionEndDNode(head, cur);
+}
+
+void InsertionEmptyCNode(SNode* last, int data){
+    if(last != NULL)
+        return;
+    SNode* temp = (SNode*)malloc(sizeof(SNode));
+    temp->data = data;
+    last = temp;
+    temp->next = last;
+}
+void InsertionFrontCNode(SNode* last, int data){
+    if(last ==NULL)
+        return InsertionEmptyCNode(last, data);
+    SNode* temp = (SNode*)malloc(sizeof(SNode));
+    temp->data = data;
+    temp->next = last->next;
+    last->next = temp;
+}
+void InsertionEndCNode(SNode* last, int data){
+    if(last == NULL)
+        return InsertionEmptyCNode(last, data);
+    SNode* temp = (SNode*)malloc(sizeof(SNode));
+    temp->data = data;
+    temp->next = last->next;
+    last->next = temp;
+    last = temp;
+}
+void InsertionMidCNode(SNode* last, int data, int item){
+    if(last == NULL)
+        return;
+    SNode* temp, *p;
+    p = last->next;
+    do{
+        if(p->data == item){
+            temp = (SNode*)malloc(sizeof(SNode));
+            temp->data = data;
+            temp->next = p->next;
+            p->next = temp;
+            if(p == last)
+                last = temp;
+            return;
+        }
+        p = p->next;
+    }while(p!= last->next);
+    return;
+}
+void DeletionFrontCNode(SNode** head){
+    SNode* prev = *head, *first = *head;
+    if(*head == NULL)
+        return;
+    if(prev->next == prev){
+        *head = NULL;
+        return;
+    }
+    while(prev->next != *head)
+        prev = prev->next;
+    prev->next = first->next;
+    *head = prev->next;
+    free(first);
+    return;
+}
+void DeletionEndCNode(SNode** head){
+    SNode* cur = *head, *temp = *head, *prev;
+    if(*head == NULL)
+        return;
+    if(cur->next == cur){
+        *head = NULL;
+        return;
+    }
+    while(cur->next != *head){
+        prev = cur;
+        cur = cur->next;
+    }
+    prev->next = cur->next;
+    *head = prev->next;
+    free(cur);
+    return;
+}
+void DeletionIdxCNode(SNode** head, int idx){
+    int len = SNodeLength(*head);
+    int count = 1;
+    SNode* prev = *head, *next = *head;
+    if(*head == NULL)
+        return;
+    if(idx >= len | idx<0)
+        return;
+    if(idx == 0){
+        DeletionFrontCNode(head);
+        return;
+    }
+    while(len > 0){
+        if(idx == count){
+            prev->next = next->next;
+            free(next);
+            return;
+        }
+        prev = prev->next;
+        next = prev->next;
+        len--;
+        count++;
+    }
+    return;
+}
+
+void InsertEndDCNode(DNode** start, int data){
+    if(*start == NULL){
+        DNode* new_node =(DNode*)malloc(sizeof(DNode));
+        new_node->data = data;
+        new_node->next = new_node->prev = new_node;
+        *start = new_node;
+        return;
+    }
+    DNode* last = (*start)->prev;
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    new_node->data = data;
+    new_node->next = *start;
+    (*start)->prev = new_node;
+    new_node->prev = last;
+    last->next = new_node;
+}
+void InsertionFrontDCNode(DNode** start, int data){
+    DNode* last = (*start)->prev;
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    new_node->data = data;
+    new_node->next = *start;
+    new_node->prev = last;
+    last->next = (*start)->prev = new_node;
+    *start = new_node;
+}
+void InsertionValBehindDCNode(DNode** start, int data, int base_val){
+    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    new_node->data = data;
+    DNode* temp = *start;
+    while(temp->data != base_val)
+        temp = temp->next;
+    DNode* next = temp->next;
+    temp->next = new_node;
+    new_node->prev = temp;
+    new_node->next = next;
+    next->prev = new_node;
+}
+void InsertionIdxDCNode(DNode* start, int data, int idx){
+    DNode* temp, *new_node;
+    int i, count;
+    new_node=(DNode*)malloc(sizeof(DNode));
+    temp = start;
+    count = DNodeLength(start);
+    if(temp == NULL || count < idx)
+        return;
+    else{
+        new_node->data = data;
+        for(i=1; i<idx-1; i++)
+            temp = temp->next;
+        new_node->next = temp->next;
+        (temp->next)->prev = new_node;
+        temp->next = new_node;
+        new_node->prev = temp;
+    }
+}
+void DeletionValDCNode(DNode** start, int val){
+    if(*start == NULL)
+        return;
+    DNode* cur = *start, *prev = NULL;
+    while(cur->data != val){
+        if(cur->next == *start)
+            return;
+        prev = cur;
+        cur = cur->next;
+    }
+    if(cur == *start){
+        prev = (*start)->prev;
+        *start = (*start)->next;
+        prev->next = *start;
+        (*start)->prev = prev;
+        free(cur);
+    }
+    else if(cur->next == *start){
+        prev->next = *start;
+        (*start)->prev = prev;
+        free(cur);
+    }
+    else{
+        DNode* temp = cur->next;
+        prev->next = temp;
+        temp->prev = prev;
+        free(cur);
+    }
+}
+void ReverseDCNode(DNode** head){
+    if(*head == NULL)
+        return;
+    DNode* cur = *head;
+    while(cur->next != *head){
+        DNode* temp = cur->next;
+        cur->next = cur->prev;
+        cur->prev = temp;
+        cur = temp;
+    }
+    DNode* temp = cur->next;
+    cur->next = cur->prev;
+    cur->prev = temp;
+    *head = cur;
+}
+void SearchDCNode(DNode* start, int val){
+    DNode* temp = start;
+    int count=0;
+    bool flag=false;
+    if(temp == NULL)
+        return;
+    else{
+        while(temp->next != start){
+            if(temp->data == val){
+                flag = true;
+                count++;
+                break;
+            }
+            count++;
+            temp = temp->next;
+        }
+        if(temp->data == val){
+            count++;
+            flag = true;
+        }
+        if(flag)
+            printf("%d found at index %d\n", val, count);
+        else
+            printf("There is no %d in Doubly Circular Linked List\n", val);
+    }
+}
+DNode* BinaryTree2DNode(DNode* root, DNode** head){
+    if(root == NULL)
+        return root;
+    static DNode* prev = NULL;
+    BinaryTree2DNode(root->prev, head);
+    if(prev == NULL)
+        *head = root;
+    else{
+        root->prev = prev;
+        prev->next = root;
+    }
+    prev = root;
+    BinaryTree2DNode(root->next, head);
+    return prev;
+}
+DNode* BinaryTree2DCNode(DNode* root){
+    DNode* head = NULL;
+    DNode* tail = BinaryTree2DNode(root, &head);
+
+    tail->next = head;
+    head->prev = tail;
+    return head;
+}
+void Array2DCLL(int* arr, int size, DNode** start){
+    DNode* new_node, *temp;
+    int i;
+    for(i=0; i<size; i++){
+        new_node = (DNode*)malloc(sizeof(DNode));
+        new_node->data = arr[i];
+        if(i==0){
+            *start = new_node;
+            new_node->prev = *start;
+            new_node->next = *start;
+        }
+        else{
+            temp = (*start)->prev;
+            temp->next = new_node;
+            new_node->next = *start;
+            new_node->prev = temp;
+            temp = *start;
+            temp->prev = new_node;
+        }
+    }
+}
+
+
+
+
+
 
 
 int main()
