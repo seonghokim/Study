@@ -82,11 +82,7 @@ void CompSwap(int *a, int *b)
         Swap(a, b);
     }
 }
-typedef struct Stack
-{
-    int data;
-    struct Stack *next;
-} Stack;
+
 typedef struct Tree
 {
     int key;
@@ -100,72 +96,6 @@ typedef struct DNode//Double Linked List Node
     struct DNode *prev;
 } DNode;
 
-void InitStack(Stack **s)
-{
-    *s = NULL;
-}
-int isEmptyStack(Stack *s)
-{
-    if (s == NULL)
-        return 1;
-    return 0;
-}
-void PushStack(Stack **s, int x)
-{
-    Stack *p = (Stack *)malloc(sizeof(*p));
-    if (p == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        return;
-    }
-    p->data = x;
-    p->next = *s;
-    *s = p;
-}
-int PopStack(Stack **s)
-{
-    int x;
-    Stack *temp;
-    x = (*s)->data;
-    temp = *s;
-    (*s) = (*s)->next;
-    return x;
-}
-int TopStack(Stack *s)
-{
-    return s->data;
-}
-void SortedInsert(Stack **s, int x)
-{
-    int temp;
-    if (isEmptyStack(*s) || x > TopStack(*s))
-    {
-        PushStack(s, x);
-        return;
-    }
-    temp = PopStack(s);
-    SortedInsert(s, x);
-    PushStack(s, temp);
-}
-void SortStack(Stack **s)
-{
-    int x;
-    if (!isEmptyStack(*s))
-    {
-        x = PopStack(s);
-        SortStack(s);
-        SortedInsert(s, x);
-    }
-}
-void PrintStack(Stack *s)
-{
-    while (s)
-    {
-        printf("%d ", s->data);
-        s = s->next;
-    }
-    printf("\n");
-}
 
 Tree *createTreeNode(int key)
 {
@@ -202,7 +132,9 @@ void InorderTraversal(Tree *root, int *arr, int *idx)
         */
     }
 }
-
+//----------------------------------------
+//----------------- Sort ----------------- 
+//----------------------------------------
 /* Feature: During Sorting, Don't manipulate sorted array(left)
  * 1) Find a min value in array
  * 2) Swap the min value and i-element(i=0, 1, ..., max)
@@ -863,6 +795,9 @@ void TreeSort(int *arr, int size)
     InorderTraversal(root, arr, &index);
 }
 
+//----------------------------------------
+//----------------- Array ---------------- 
+//----------------------------------------
 void TowerOfHanoi(int num, char from, char temp, char to)
 {
     if (!num)
@@ -1336,6 +1271,9 @@ void BlockPreprocess(int input[], int n)
     }
 }
 
+//----------------------------------------
+//---------------- String ---------------- 
+//----------------------------------------
 bool IsSameBitBySingleFlip(char *str, int size)
 {
     int zero = 0, one = 0;
@@ -2204,16 +2142,16 @@ typedef struct QueueNode{
     TrieNode* data;
     struct QueueNode* next;
 }QueueNode;
-typedef struct Queue{
+typedef struct TrieQueue{
     QueueNode* front;
     QueueNode* rear;
-}Queue;
-Queue* CreateQueue(){
-    Queue* que = (Queue*)malloc(sizeof(Queue));
+}TrieQueue;
+TrieQueue* CreateTrieQueue(){
+    TrieQueue* que = (TrieQueue*)malloc(sizeof(TrieQueue));
     que->front = que->rear = NULL;
     return que;
 }
-void EnqueueTrie(Queue* que, TrieNode* data){
+void EnqueueTrie(TrieQueue* que, TrieNode* data){
     QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
     newNode ->data = data;
     newNode ->next = NULL;
@@ -2224,7 +2162,7 @@ void EnqueueTrie(Queue* que, TrieNode* data){
         que->rear = newNode;
     }
 }
-TrieNode* DequeueTrie(Queue* que){
+TrieNode* DequeueTrie(TrieQueue* que){
     if(que->front == NULL)
         return NULL;
     else{
@@ -2260,7 +2198,7 @@ void InsertPatternInTrie(TrieNode* root, char* pat){
 }
 void BuildAhoCorasick(TrieNode* root){
     int i;
-    Queue* que = CreateQueue();
+    TrieQueue* que = CreateTrieQueue();
     for(i=0; i<26; i++){
         if(root->child[i]){
             EnqueueTrie(que, root->child[i]);
@@ -2362,8 +2300,9 @@ bool CheckPattern(char* str, char* pat){
     }
     return true;
 }
-
-//------------------ Linked List ------------------
+//----------------------------------------
+//-------------- Linked List ------------- 
+//----------------------------------------
 typedef struct SNode{
     int data;
     struct SNode* next;
@@ -2795,15 +2734,366 @@ void Array2DCLL(int* arr, int size, DNode** start){
     }
 }
 
+//----------------------------------------
+//----------------- Stack ---------------- 
+//----------------------------------------
+typedef struct LLStack
+{
+    int data;
+    struct LLStack *next;
+} LLStack;
+void InitLLStack(LLStack **s)
+{
+    *s = NULL;
+}
+bool isEmptyLLStack(LLStack *s)
+{
+    if (s == NULL)
+        return true;
+    return false;
+}
+void PushLLStack(LLStack **s, int x)
+{
+    LLStack *p = (LLStack *)malloc(sizeof(*p));
+    if (p == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+    p->data = x;
+    p->next = *s;
+    *s = p;
+}
+int PopLLStack(LLStack **s)
+{
+    int x = (*s)->data;
+    LLStack *temp = *s;
+    (*s) = (*s)->next;
+    free(temp);
+    return x;
+}
+int TopLLStack(LLStack *s)
+{
+    return s->data;
+}
+void SortedInsertLLStack(LLStack **s, int x)
+{
+    int temp;
+    if (isEmptyLLStack(*s) || x > TopLLStack(*s))
+    {
+        PushLLStack(s, x);
+        return;
+    }
+    temp = PopLLStack(s);
+    SortedInsertLLStack(s, x);
+    PushLLStack(s, temp);
+}
+void SortLLStack(LLStack **s)
+{
+    int x;
+    if (!isEmptyLLStack(*s))
+    {
+        x = PopLLStack(s);
+        SortLLStack(s);
+        SortedInsertLLStack(s, x);
+    }
+}
+void PrintLLStack(LLStack *s)
+{
+    while (s)
+    {
+        printf("%d ", s->data);
+        s = s->next;
+    }
+    printf("\n");
+}
 
+typedef struct Stack{
+    int top;
+    unsigned int cap;
+    int* arr;
+}Stack;
+Stack* CreateStack(unsigned cap){
+    Stack* st = (Stack*)malloc(sizeof(Stack));
+    st->cap = cap;
+    st->top = -1;
+    st->arr = (int*)malloc(st->cap * sizeof(int));
+    return st;
+}
+bool IsFullStack(Stack* st){
+    return st->top == st->cap-1;
+}
+bool IsEmptyStack(Stack* st){
+    return st->top == -1;
+}
+void PushStack(Stack* st, int data){
+    if(IsFullStack(st))
+        return;
+    st->arr[++st->top] = data;
+}
+int PopStack(Stack* st){
+    if(IsEmptyStack(st))
+        return INT_MIN;
+    return st->arr[st->top--];
+}
+int PeekStack(Stack* st){
+    if(IsEmptyStack(st))
+        return INT_MIN;
+    return st->arr[st->top];
+}
+void DecMonotonicStack(int* arr, int n){
+    Stack* st = CreateStack(n);
+    int i;
+    for(i=0; i<n; i++){
+        while(!IsEmptyStack(st) && arr[i] > PeekStack(st))
+            PopStack(st);
+        PushStack(st, arr[i]);
+    }
+    int n2 = st->top+1;
+    int* ans = (int*)malloc(n2 * sizeof(int));
+    int j = n2-1;
+    while(!IsEmptyStack(st)){
+        ans[j] = PopStack(st);
+        j--;
+    }
+    for(i=0; i<n2; i++)
+        printf("%d ", ans[i]);
+    
+    free(st->arr);
+    //free(st);
+    free(ans);
+}
+void IncMonotonicStack(int* arr, int n){
+    Stack* st = CreateStack(n);
+    int i;
+    for(i=0; i<n; i++){
+        while(!IsEmptyStack(st) && arr[i] < PeekStack(st))
+            PopStack(st);
+        PushStack(st, arr[i]);
+    }
+    int n2 = st->top+1;
+    int* ans = (int*)malloc(n2 * sizeof(int));
+    int j = n2-1;
+    while(!IsEmptyStack(st)){
+        ans[j] = PopStack(st);
+        j--;
+    }
+    for(i=0; i<n2; i++)
+        printf("%d ", ans[i]);
+    
+    free(st->arr);
+    //free(st);
+    free(ans);
+}
 
+typedef struct QueueByStack{
+    LLStack* st1;
+    LLStack* st2;
+}SQue;
+void EnqueueByStack(SQue* q, int x){
+    PushLLStack(&q->st1, x);
+}
+int DequeueByStack(SQue* q){
+    int x;
+    if(q->st1 == NULL && q->st2 == NULL)
+        return -1;
+    if(q->st2 == NULL)
+        while(q->st1 != NULL){
+            x = PopLLStack(&q->st1);
+            PushLLStack(&q->st2, x);
+        }
+    x = PopLLStack(&q->st2);
+    return x;
+}
+
+typedef struct SpecialStack{
+    int min;
+    int demo_val;
+    int* arr;
+    int top;
+}SStack;
+#define DEMO_VAL 9999
+SStack* CreateSStack(){
+    SStack* s = (SStack*)malloc(sizeof(SStack));
+    s->min = -1;
+    s->demo_val = DEMO_VAL;
+    s->arr = NULL;
+    s->top = -1;
+    return s;
+}
+void GetMinSStack(SStack* s){
+    printf("Min: %d\n", s->min);
+}
+void PushSStack(SStack* s, int val){
+    if(s->arr == NULL || val < s->min)
+        s->min = val;
+    s->top++;
+    s->arr = (int*)realloc(s->arr, (s->top+1)*sizeof(int));
+    s->arr[s->top] = val * s->demo_val + s->min;
+}
+int PopSStack(SStack* s){
+    if(s->top == -1)
+        return -1;
+    int val = s->arr[s->top];
+    s->top--;
+    if(s->top != -1)
+        s->min = s->arr[s->top] % s->demo_val;
+    else
+        s->min = -1;
+    s->arr = (int*)realloc(s->arr, (s->top+1)*sizeof(int));
+    return val / s->demo_val;
+}
+int PeekSStack(SStack* s){
+    return s->arr[s->top] / s->demo_val;
+}
+void DestroySStack(SStack* s){
+    free(s->arr);
+    free(s);
+}
+
+typedef struct TwoStack{
+    int* arr;
+    int size;
+    int top1;
+    int top2;
+}TStack;
+TStack* CreateTStack(int n){
+    TStack* ts = (TStack*)malloc(sizeof(TStack));
+    ts->size = n;
+    ts->arr = (int*)malloc(n * sizeof(int));
+    ts->top1 = -1;
+    ts->top2 = n;
+    return ts;
+}
+void Push1TStack(TStack* ts, int x){
+    if(ts->top1 < ts->top2 - 1){
+        ts->top1++;
+        ts->arr[ts->top1] = x;
+    }
+    else
+        exit(1);
+}
+void Push2TStack(TStack* ts){
+    if(ts->top1 < ts->top2 -1){
+        ts->top2--;
+        ts->arr[ts->top2] = x;
+    }
+    else
+        exit(1);
+}
+int Pop1TStack(TStack* ts){
+    if(ts->top1 >= 0){
+        int x = ts->arr[ts->top1];
+        ts->top1--;
+        return x;
+    }
+    else
+        exit(1);
+}
+int Pop2TStack(TStack* ts){
+    if(ts->top2 < ts->size){
+        int x = ts->arr[ts->top2];
+        ts->top2++;
+        return x;
+    }
+    else
+        exit(1);
+}
+void DestroyTStack(TStack* ts){
+    free(ts->arr);
+    free(ts);
+}
+
+typedef struct{
+    int* arr;
+    int front;
+    int rear;
+    int cap;
+}Queue;
+typedef struct StackByQueue{
+    Queue q1, q2;
+}QStack;
+Queue* CreateQueue(int cap){
+    Queue* q = (Queue*)malloc(sizeof(Queue));
+    q->arr = (int*)malloc(cap * sizeof(int));
+    q->front = q->rear = -1;
+    q->cap = cap;
+    return q;
+}
+bool IsEmptyQueue(Queue* q){
+    return q->front == -1;
+}
+bool IsFullQueue(Queue* q){
+    return (q->rear+1) % q->cap == q->front;
+}
+void Enqueue(Queue* q, int x){
+    if(IsFullQueue(q))
+        exit(1);
+    if(IsEmptyQueue(q))
+        q->front = q->rear = 0;
+    else
+        q->rear = (q->rear+1) % q->cap;
+    q->arr[q->rear] = x;
+}
+int Dequeue(Queue* q){
+    if(IsEmptyQueue(q))
+        exit(1);
+    int x = q->arr[q->front];
+    if(q->front == q->rear)
+        q->front = q->rear = -1;
+    else
+        q->front = (q->front+1) % q->cap;
+    return x;
+}
+QStack* CreateQStack(int cap){
+    QStack* s = (QStack*)malloc(sizeof(QStack));
+    s->q1 = *CreateQueue(cap);
+    s->q2 = *CreateQueue(cap);
+    return s;
+}
+void PushQStack(QStack* s, int x){
+    Enqueue(&(s->q2), x);
+    while(!IsEmptyQueue(&(s->q1)))
+        Enqueue(&(s->q2), Dequeue(&(s->q1)));
+    Queue temp = s->q1;
+    s->q1 = s->q2;
+    s->q2 = temp;
+}
+void PopQStack(QStack* s){
+    if(IsEmptyQueue(&(s->q1)))
+        exit(1);
+    Dequeue(&(s->q1));
+}
+int TopQStack(QStack* s){
+    if(IsEmptyQueue(&(s->q1)))
+        return -1;
+    return s->q1.arr[s->q1.front];
+}
+int size(QStack* s){
+    return IsEmptyQueue(&(s->q1)) ? 0 :s->q1.cap;
+}
 
 
 
 
 int main()
 {
-    char str1[] = "AGGTAB";//AGGTAB ,geek
+    SStack* s = CreateSStack();
+    int arr[] = {3, 2, 6, 1, 8, 5, 5, 5, 5};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    for(int i=0; i<n; i++){
+        PushSStack(s, arr[i]);
+        GetMinSStack(s);
+    }
+    printf("\n");
+    for(int i=0; i<n; i++){
+        PopSStack(s);
+        GetMinSStack(s);
+    }
+    DestroySStack(s);
+    return 0;
+}
+    /* char str1[] = "AGGTAB";//AGGTAB ,geek
     char str2[] = "GXTXAYB";//GXTXAYB , eke
     char str3[] = "axxxy";
     char str4[] = "geeksforgeeks";//forgeeksskeegfor, geeksforgeeks, abcde
@@ -2811,10 +3101,9 @@ int main()
     char str6[] = "GEEKS FOR GEEKS";// AAAAB, AABA,
     char dic[5][5] = {"abb", "abc", "xyz", "xyy", "bbb"};
     char pat[] = "GEEK";
-    PatternSearchWithRabinKarp(str6, pat, 101);
-
-    return 0;
-}
+    int arr[] = {1, 4, 5, 3, 12, 10};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    IncMonotonicStack(arr, n); */
     /* char *r1 = PrintLongestPalindromicSubsequence(str4);
     int r2 = CountLongestCommonSubsequence(str1, str2);
     printf("%s\n", r1);
