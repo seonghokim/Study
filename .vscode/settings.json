@@ -5,6 +5,16 @@
         "initializer_list": "cpp",
         "utility": "cpp",
         "functional": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp",
+        "atomic": "cpp",
+        "cstddef": "cpp",
+        "vector": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp",
+        "cmath": "cpp",
+        "limits": "cpp",
+        "new": "cpp"
     }
 }

@@ -5,8 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include <ctype.h>
+#include <iostream>
 
 // 자동 정렬 shift + alt + F
+// 커서영역 선택 Shft + alt + left 
+// 1수준 접기 ctrl z x  --> 모든 수준 ( 모든 커서 닫기 ctrl z c)
+// 모두 펼치기 ctrl shift z x
 #define INTPRINT(x)               \
     do                            \
     {                             \
@@ -89,13 +93,12 @@ typedef struct Tree
     struct Tree *left;
     struct Tree *right;
 } Tree;
-typedef struct DNode//Double Linked List Node
+typedef struct DNode // Double Linked List Node
 {
     int data;
     struct DNode *next;
     struct DNode *prev;
 } DNode;
-
 
 Tree *createTreeNode(int key)
 {
@@ -133,7 +136,7 @@ void InorderTraversal(Tree *root, int *arr, int *idx)
     }
 }
 //----------------------------------------
-//----------------- Sort ----------------- 
+//----------------- Sort -----------------
 //----------------------------------------
 /* Feature: During Sorting, Don't manipulate sorted array(left)
  * 1) Find a min value in array
@@ -796,7 +799,7 @@ void TreeSort(int *arr, int size)
 }
 
 //----------------------------------------
-//----------------- Array ---------------- 
+//----------------- Array ----------------
 //----------------------------------------
 void TowerOfHanoi(int num, char from, char temp, char to)
 {
@@ -817,10 +820,12 @@ void ReverseArray(int *arr, int start, int end)
         end--;
     }
 }
-void ReverseString(char* str){
+void ReverseString(char *str)
+{
     int n = strlen(str);
     int i, j;
-    for(i=0, j=n-1; i<j; i++, j--){
+    for (i = 0, j = n - 1; i < j; i++, j--)
+    {
         char ch = str[i];
         str[i] = str[j];
         str[j] = ch;
@@ -1235,7 +1240,7 @@ int Equilibrium(int *arr, int size)
 
 #define MAXN 10000
 #define SQRSIZE 100
-int oarr[MAXN];      // original array
+int oarr[MAXN];     // original array
 int block[SQRSIZE]; // decomposed array
 int blk_sz;         // block size
 void UpdateBlock(int idx, int val)
@@ -1272,7 +1277,7 @@ void BlockPreprocess(int input[], int n)
 }
 
 //----------------------------------------
-//---------------- String ---------------- 
+//---------------- String ----------------
 //----------------------------------------
 bool IsSameBitBySingleFlip(char *str, int size)
 {
@@ -1452,18 +1457,23 @@ void PrintAllDistinctSubsequences(char *str, int len)
 // ex) ATBCEF
 // Sequence: ATCF
 // SubString: ATBC
-int CountLongestCommonSubsequence(char *str1, char *str2){
+int CountLongestCommonSubsequence(char *str1, char *str2)
+{
     int n = strlen(str1);
     int m = strlen(str2);
     int prev[m + 1], cur[m + 1];
     int min = (n > m) ? m : n;
-    bool isduplication[m] = {false, };
+    bool isduplication[m] = {
+        false,
+    };
     int i, j;
     memset(isduplication, false, sizeof(isduplication));
     memset(prev, 0, sizeof(prev));
     memset(cur, 0, sizeof(cur));
-    for (i = 1; i < n + 1; i++){
-        for (j = 1; j < m + 1; j++){
+    for (i = 1; i < n + 1; i++)
+    {
+        for (j = 1; j < m + 1; j++)
+        {
             if (str1[i - 1] == str2[j - 1])
                 cur[j] = 1 + prev[j - 1];
             else
@@ -1471,8 +1481,10 @@ int CountLongestCommonSubsequence(char *str1, char *str2){
         }
         memcpy(prev, cur, sizeof(cur));
     }
-    for (i = 1, j = 0; i < m + 1; i++, j++){ // Print LCS
-        if (isduplication[cur[i]] == false){
+    for (i = 1, j = 0; i < m + 1; i++, j++)
+    { // Print LCS
+        if (isduplication[cur[i]] == false)
+        {
             printf("%c", str2[j]);
             isduplication[cur[i]] = true;
         }
@@ -1480,120 +1492,138 @@ int CountLongestCommonSubsequence(char *str1, char *str2){
     printf("\n");
     return cur[m]; // Return LCS's length
 }
-int CountLongestCommonSubsequence2(char* str1, char* str2){
+int CountLongestCommonSubsequence2(char *str1, char *str2)
+{
     int m = strlen(str1);
     int n = strlen(str2);
-    int dp[m+1][n+1];
+    int dp[m + 1][n + 1];
     int i, j;
-    for(i=0; i<=m; i++){
-        for(j=0; j<=n; j++){
-            if(i==0 || j==0)
+    for (i = 0; i <= m; i++)
+    {
+        for (j = 0; j <= n; j++)
+        {
+            if (i == 0 || j == 0)
                 dp[i][j] = 0;
-            else if(str1[i-1]==str2[j-1])
-                dp[i][j] = 1 + dp[i-1][j-1];
+            else if (str1[i - 1] == str2[j - 1])
+                dp[i][j] = 1 + dp[i - 1][j - 1];
             else
-                dp[i][j] = __max(dp[i-1][j], dp[i][j-1]);
+                dp[i][j] = __max(dp[i - 1][j], dp[i][j - 1]);
         }
     }
     return dp[m][n];
 }
-char* PrintLongestCommonSubsequence3(char* str1, char* str2){
+char *PrintLongestCommonSubsequence3(char *str1, char *str2)
+{
     int m = strlen(str1);
     int n = strlen(str2);
-    int dp[m+1][n+1];
+    int dp[m + 1][n + 1];
     int i, j;
-    for(i=0; i<=m; i++){
-        for(j=0; j<=n; j++){
-            if(i==0 || j==0)
+    for (i = 0; i <= m; i++)
+    {
+        for (j = 0; j <= n; j++)
+        {
+            if (i == 0 || j == 0)
                 dp[i][j] = 0;
-            else if(str1[i-1]==str2[j-1])
-                dp[i][j] = 1 + dp[i-1][j-1];
+            else if (str1[i - 1] == str2[j - 1])
+                dp[i][j] = 1 + dp[i - 1][j - 1];
             else
-                dp[i][j] = __max(dp[i-1][j], dp[i][j-1]);
+                dp[i][j] = __max(dp[i - 1][j], dp[i][j - 1]);
         }
     }
     int idx = dp[m][n];
-    char* lcs = (char*)malloc((idx+1) * sizeof(char));
+    char *lcs = (char *)malloc((idx + 1) * sizeof(char));
     lcs[idx] = '\0';
-    i=m;
-    j=n;
-    while(i>0 && j>0){
-        if(str1[i-1] == str2[j-1]){
-            lcs[idx-1] = str1[i-1];
+    i = m;
+    j = n;
+    while (i > 0 && j > 0)
+    {
+        if (str1[i - 1] == str2[j - 1])
+        {
+            lcs[idx - 1] = str1[i - 1];
             i--;
             j--;
             idx--;
         }
-        else if(dp[i-1][j] > dp[i][j-1])
+        else if (dp[i - 1][j] > dp[i][j - 1])
             i--;
         else
             j--;
     }
     return lcs;
 }
-char* ShortestCommonSupersequence(char* str1, char* str2){
+char *ShortestCommonSupersequence(char *str1, char *str2)
+{
     int len1 = strlen(str1);
     int len2 = strlen(str2);
-    int dp[len1+1][len2+1];
-    int count  = 0;
+    int dp[len1 + 1][len2 + 1];
+    int count = 0;
     int i, j, idx;
     int scslen;
-    //Initialize
-    for(i=0; i<=len1; i++){
-        for(j=0; j<=len2; j++){
-            if(i==0)
+    // Initialize
+    for (i = 0; i <= len1; i++)
+    {
+        for (j = 0; j <= len2; j++)
+        {
+            if (i == 0)
                 dp[i][j] = j;
-            else if(j==0)
+            else if (j == 0)
                 dp[i][j] = i;
-            else if(str1[i-1] == str2[j-1])
-                dp[i][j] = 1 + dp[i-1][j-1];
+            else if (str1[i - 1] == str2[j - 1])
+                dp[i][j] = 1 + dp[i - 1][j - 1];
             else
-                dp[i][j] = 1+ __min(dp[i-1][j] , dp[i][j-1]);
+                dp[i][j] = 1 + __min(dp[i - 1][j], dp[i][j - 1]);
         }
     }
     printf("dp[len1][len2] of SCS: %d\n", dp[len1][len2]);
-    scslen = (len1 + len2+1);
-    char* scs = (char*)malloc((scslen+1) * sizeof(char));
+    scslen = (len1 + len2 + 1);
+    char *scs = (char *)malloc((scslen + 1) * sizeof(char));
     i = len1;
     j = len2;
     idx = scslen;
-    //Compose Shortest Common Sequence
-    while(i>0 && j>0){
-        if(str1[i-1] == str2[j-1]){
-            scs[idx--] = str1[i-1];
+    // Compose Shortest Common Sequence
+    while (i > 0 && j > 0)
+    {
+        if (str1[i - 1] == str2[j - 1])
+        {
+            scs[idx--] = str1[i - 1];
             i--;
             j--;
             count++;
         }
-        else if(dp[i-1][j] > dp[i][j-1]){
-            scs[idx--] = str2[j-1];//scs[idx--] = str2[j-1];
+        else if (dp[i - 1][j] > dp[i][j - 1])
+        {
+            scs[idx--] = str2[j - 1]; // scs[idx--] = str2[j-1];
             j--;
             count++;
         }
-        else{
-            scs[idx--] = str1[i-1];
+        else
+        {
+            scs[idx--] = str1[i - 1];
             i--;
             count++;
         }
     }
-    while(i>0){
-        scs[idx--] = str1[i-1];
+    while (i > 0)
+    {
+        scs[idx--] = str1[i - 1];
         i--;
         count++;
     }
-    while(j>0){
-        scs[idx--] = str2[j-1];
+    while (j > 0)
+    {
+        scs[idx--] = str2[j - 1];
         j--;
         count++;
     }
     printf("Number of SCS: %d\n", count);
     return scs;
 }
-int ShortestCommonSupersequence2(char* str1, char* str2){
-    int m  = strlen(str1);
+int ShortestCommonSupersequence2(char *str1, char *str2)
+{
+    int m = strlen(str1);
     int n = strlen(str2);
     int k = CountLongestCommonSubsequence2(str1, str2);
-    return (m+n-k);
+    return (m + n - k);
 }
 int CalculateOverlappingInString(char *str1, char *str2, char *overlap)
 {
@@ -1601,18 +1631,24 @@ int CalculateOverlappingInString(char *str1, char *str2, char *overlap)
     int len1 = strlen(str1);
     int len2 = strlen(str2);
     int i;
-    for (i = 1; i <= len1; i++){
-        if (strncmp(str1 + len1 - i, str2, i) == 0){
-            if (i > max){
+    for (i = 1; i <= len1; i++)
+    {
+        if (strncmp(str1 + len1 - i, str2, i) == 0)
+        {
+            if (i > max)
+            {
                 max = i;
                 strcpy(overlap, str1);
                 strcat(overlap, str2 + i);
             }
         }
     }
-    for (i = 1; i <= len2; i++){
-        if (strncmp(str1, str2 + len2 - i, i) == 0){
-            if (i > max){
+    for (i = 1; i <= len2; i++)
+    {
+        if (strncmp(str1, str2 + len2 - i, i) == 0)
+        {
+            if (i > max)
+            {
                 max = i;
                 strcpy(overlap, str2);
                 strcat(overlap, str1 + i);
@@ -1625,12 +1661,15 @@ char *FindShortestSuperstring(char arr[][20], int len)
 {
     char *merge_str = (char *)malloc(2 * 1000);
     char *overlap = (char *)malloc(2 * 1000);
-    while (len > 1){
+    while (len > 1)
+    {
         int max = -1;
         int idx1 = 0, idx2 = 0, i = 0, j = 0;
         int cur_overlap = 0;
-        for (i = 0; i < len; i++){
-            for (j = i + 1; j < len; j++){
+        for (i = 0; i < len; i++)
+        {
+            for (j = i + 1; j < len; j++)
+            {
                 cur_overlap = CalculateOverlappingInString(arr[i], arr[j], overlap);
                 if (cur_overlap > max)
                 {
@@ -1643,107 +1682,123 @@ char *FindShortestSuperstring(char arr[][20], int len)
         }
         strcpy(arr[idx1], merge_str);
         for (i = idx2 + 1; i < len; i++)
-            strcpy(arr[i - 1],arr[i]);
-        len--; 
+            strcpy(arr[i - 1], arr[i]);
+        len--;
     }
     free(overlap);
     free(merge_str);
     return arr[0];
 }
-char* FindLongestRepeatingSubsequence(char *str){
+char *FindLongestRepeatingSubsequence(char *str)
+{
     int n = strlen(str);
-    int dp[n+1][n+1];
+    int dp[n + 1][n + 1];
     int i, j, idx;
     memset(dp, 0, sizeof(dp));
     // Counting Number of LRS
-    for(i=1; i<=n; i++){
-        for(j=1; j<=n; j++){
-            if(str[i-1]==str[j-1] && i!=j)
-                dp[i][j] = 1 + dp[i-1][j-1];
+    for (i = 1; i <= n; i++)
+    {
+        for (j = 1; j <= n; j++)
+        {
+            if (str[i - 1] == str[j - 1] && i != j)
+                dp[i][j] = 1 + dp[i - 1][j - 1];
             else
-                dp[i][j] = __max(dp[i][j-1], dp[i-1][j]);
+                dp[i][j] = __max(dp[i][j - 1], dp[i - 1][j]);
             printf("%d ", dp[i][j]);
         }
         printf("\n");
     }
-    //return dp[n][n]; --> Function type : int
-    // Print LRS
+    // return dp[n][n]; --> Function type : int
+    //  Print LRS
     int lrslen = dp[n][n];
-    char* lrs = (char*)malloc((lrslen+1) * sizeof(char));
+    char *lrs = (char *)malloc((lrslen + 1) * sizeof(char));
     i = j = n;
     idx = lrslen;
-    while(i>0 && j>0){
-        if(dp[i][j] == dp[i-1][j-1]+1){
-            lrs[idx--] = str[i-1];
+    while (i > 0 && j > 0)
+    {
+        if (dp[i][j] == dp[i - 1][j - 1] + 1)
+        {
+            lrs[idx--] = str[i - 1];
             i--;
             j--;
         }
-        else if(dp[i][j] == dp[i-1][j])
+        else if (dp[i][j] == dp[i - 1][j])
             i--;
         else
             j--;
     }
     return lrs;
 }
-int CountLongestPalindromicSubsequence(char* str){
+int CountLongestPalindromicSubsequence(char *str)
+{
     int n = strlen(str);
     char temp[n];
     int i, j;
     strcpy(temp, str); //--> result: 5
-    //memcpy(temp, str, n); // --> result: 5
+    // memcpy(temp, str, n); // --> result: 5
     ReverseString(temp);
-    int dp[n+1][n+1];
+    int dp[n + 1][n + 1];
     memset(dp, 0, sizeof(dp));
-    for(i=1; i<=n; i++){
-        for(j=1; j<=n; j++){
-            if(str[i-1] == temp[j-1])
-                dp[i][j] = 1 + dp[i-1][j-1];
+    for (i = 1; i <= n; i++)
+    {
+        for (j = 1; j <= n; j++)
+        {
+            if (str[i - 1] == temp[j - 1])
+                dp[i][j] = 1 + dp[i - 1][j - 1];
             else
-                dp[i][j] = __max(dp[i][j-1], dp[i-1][j]);
+                dp[i][j] = __max(dp[i][j - 1], dp[i - 1][j]);
         }
     }
     return dp[n][n];
 }
-char* PrintLongestPalindromicSubsequence(char* str){
+char *PrintLongestPalindromicSubsequence(char *str)
+{
     int n = strlen(str);
     char rev[n];
     memcpy(rev, str, sizeof(rev));
     ReverseString(rev);
     return PrintLongestCommonSubsequence3(str, rev);
 }
-void PrintLongestPalindromicSubString(char* str, int low, int high){
-    for(int i =low; i<=high; i++)
-        printf("%c",str[i]);
+void PrintLongestPalindromicSubString(char *str, int low, int high)
+{
+    for (int i = low; i <= high; i++)
+        printf("%c", str[i]);
     printf("\n");
 }
-int CountLongestPalindromicSubString(char* str){
+int CountLongestPalindromicSubString(char *str)
+{
     int n = strlen(str);
-    int start=0, end =1;
+    int start = 0, end = 1;
     int low, high;
     int i;
-    for(i=0; i<n; i++){
-        low = i-1;
+    for (i = 0; i < n; i++)
+    {
+        low = i - 1;
         high = i;
-        while(low >= 0 && high < n && str[low] == str[high]){
-            if(high-low+1 > end){
+        while (low >= 0 && high < n && str[low] == str[high])
+        {
+            if (high - low + 1 > end)
+            {
                 start = low;
-                end = high-low+1;
+                end = high - low + 1;
             }
             low--;
             high++;
         }
-        low = i-1;
-        high = i+1;
-        while(low >= 0 && high < n && str[low] == str[high]){
-            if(high-low+1 > end){
+        low = i - 1;
+        high = i + 1;
+        while (low >= 0 && high < n && str[low] == str[high])
+        {
+            if (high - low + 1 > end)
+            {
                 start = low;
-                end = high-low+1;
+                end = high - low + 1;
             }
             low--;
             high++;
         }
     }
-    PrintLongestPalindromicSubString(str, start, start+end-1);
+    PrintLongestPalindromicSubString(str, start, start + end - 1);
     return end;
 }
 
@@ -1751,84 +1806,100 @@ int CountLongestPalindromicSubString(char* str){
 // 1) At most, one character occurs an odd number of times
 // 2) All characters occur an even number of times
 // Character number = 26
-bool IsPalindrome(char* str){
+bool IsPalindrome(char *str)
+{
     int l = 0;
-    int r = strlen(str)-1;
-    while(l < r)
-        if(str[l++] != str[r--])
+    int r = strlen(str) - 1;
+    while (l < r)
+        if (str[l++] != str[r--])
             return false;
     return true;
 }
-bool CanPalindrome(char* str){
-    int bit = 0, mask =0;
+bool CanPalindrome(char *str)
+{
+    int bit = 0, mask = 0;
     int i, x;
-    for(i=0; str[i]!='\0'; i++){
-        if((str[i]-'A') < 32)
+    for (i = 0; str[i] != '\0'; i++)
+    {
+        if ((str[i] - 'A') < 32)
             str[i] = tolower(str[i]);
-        x = str[i]-'a';
-        mask = 1 << x;//문자 번호에 해당하는 bit = 1
-        bit ^= mask;// bit는 문자 번호에 해당하는 bit 값 변화시킴(문자 개수 홀수: 1, 짝수: 0)
+        x = str[i] - 'a';
+        mask = 1 << x; // 문자 번호에 해당하는 bit = 1
+        bit ^= mask;   // bit는 문자 번호에 해당하는 bit 값 변화시킴(문자 개수 홀수: 1, 짝수: 0)
     }
-    return (bit & (bit-1) == 0);//최종적으로 bit에는 1이 1개 있어야 함
+    return (bit & (bit - 1) == 0); // 최종적으로 bit에는 1이 1개 있어야 함
 }
-bool IsRotationOfPalindrome(char* str){
-    if(IsPalindrome(str))
+bool IsRotationOfPalindrome(char *str)
+{
+    if (IsPalindrome(str))
         return true;
     int n = strlen(str);
     int i, j, idx;
-    for(i=0; i<n; i++){
-        char r_str[n+1];
-        strncpy(r_str, (str+i), n-i);
-        strncpy((r_str+n-i), str, i);
-        if(IsPalindrome(r_str))
+    for (i = 0; i < n; i++)
+    {
+        char r_str[n + 1];
+        strncpy(r_str, (str + i), n - i);
+        strncpy((r_str + n - i), str, i);
+        if (IsPalindrome(r_str))
             return true;
     }
     return false;
 }
 
-int CountStringPalindromeByAddingMinChar(char* str){
+int CountStringPalindromeByAddingMinChar(char *str)
+{
     int n = strlen(str);
-    int start = 0, end = n-1, res = 0;
-    while(start < end){
-        if(str[start] == str[end]){
+    int start = 0, end = n - 1, res = 0;
+    while (start < end)
+    {
+        if (str[start] == str[end])
+        {
             start++;
             end--;
         }
-        else{
+        else
+        {
             res++;
             start = 0;
-            end = n-1-res;
+            end = n - 1 - res;
         }
     }
     return res;
 }
 
-char* MaxPalindromeUsingKChange(char* str, int k){
+char *MaxPalindromeUsingKChange(char *str, int k)
+{
     int n = strlen(str);
-    char* pal = (char*)malloc( n * sizeof(char));
+    char *pal = (char *)malloc(n * sizeof(char));
     strcpy(pal, str);
-    int l=0, r = n-1;
-    while(l < r){
-        if(str[l] != str[r]){
+    int l = 0, r = n - 1;
+    while (l < r)
+    {
+        if (str[l] != str[r])
+        {
             pal[l] = pal[r] = __max(str[l], str[r]);
             k--;
         }
         l++;
         r--;
     }
-/*     if(k < 0)
-        return "Not Possible"; */
+    /*     if(k < 0)
+            return "Not Possible"; */
     l = 0;
-    r = n-1;
-    while(l < r){
-        if(l == r && k > 0)
+    r = n - 1;
+    while (l < r)
+    {
+        if (l == r && k > 0)
             pal[l] = '9';
-        if(pal[l] < '9'){
-            if(k >=2 && pal[l] == str[l] && pal[r] == str[r]){
+        if (pal[l] < '9')
+        {
+            if (k >= 2 && pal[l] == str[l] && pal[r] == str[r])
+            {
                 k -= 2;
                 pal[l] = pal[r] = '9';
             }
-            else if(k >= 1 && pal[l] != str[l] || pal[r] != str[r]){
+            else if (k >= 1 && pal[l] != str[l] || pal[r] != str[r])
+            {
                 k--;
                 pal[l] = pal[r] = '9';
             }
@@ -1839,57 +1910,66 @@ char* MaxPalindromeUsingKChange(char* str, int k){
     return pal;
 }
 
-int CountMinDelCharInStrForPalindrome(char* str){
+int CountMinDelCharInStrForPalindrome(char *str)
+{
     int n = strlen(str);
     int L[n];
     int i, j, backup, temp;
-    for(i=n-1; i>=0; i--){
+    for (i = n - 1; i >= 0; i--)
+    {
         backup = 0;
-        for(j=i; j<n; j++){
-            if(j==i)
+        for (j = i; j < n; j++)
+        {
+            if (j == i)
                 L[j] = 1;
-            else if(str[i] == str[j]){
+            else if (str[i] == str[j])
+            {
                 temp = L[j];
-                L[j] = backup+2;
+                L[j] = backup + 2;
                 backup = temp;
             }
-            else{
+            else
+            {
                 backup = L[j];
-                L[j] = __max(L[j], L[j-1]);
+                L[j] = __max(L[j], L[j - 1]);
             }
         }
     }
-    return (n - L[n-1]);
+    return (n - L[n - 1]);
 }
 
-int CountMinInsertForPalinWithPermut(char* str){
+int CountMinInsertForPalinWithPermut(char *str)
+{
     int n = strlen(str);
     int mask = 0;
-    int i, count=0;
-    for(i=0; i<n;i++)
-        mask ^= (1<<(str[i]-'a'));
-    if(mask == 0)
+    int i, count = 0;
+    for (i = 0; i < n; i++)
+        mask ^= (1 << (str[i] - 'a'));
+    if (mask == 0)
         return 0;
-    while(mask){
-        count += mask&1;// Adding 1 bit(number of character)
-        mask >>= 1;// Divide 2
+    while (mask)
+    {
+        count += mask & 1; // Adding 1 bit(number of character)
+        mask >>= 1;        // Divide 2
     }
-    return count-1;
+    return count - 1;
 }
 
-
 // Pattern Searching
-void PatternSearchingWithNaive(char* str, char* pat){
-    //All print index of patter found
+void PatternSearchingWithNaive(char *str, char *pat)
+{
+    // All print index of patter found
     int m = strlen(str);
     int n = strlen(pat);
     int i, j;
-    for(i=0; i<=m-n; i++){
-        for(j=0; j<n; j++){
-            if(str[i+j] != pat[j])
+    for (i = 0; i <= m - n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            if (str[i + j] != pat[j])
                 break;
         }
-        if(j == n)
+        if (j == n)
             printf("Pattern found at index %d\n", i);
     }
     /* !! Caution !!
@@ -1899,120 +1979,140 @@ void PatternSearchingWithNaive(char* str, char* pat){
         if str = "ABABABCABABABCABBABABC", pattern = "ABABAC" ==> Error
     */
 }
-void ComputeLPSArray(char* pat, int m, int* lps){
-    //LPS array = Failure Function F
+void ComputeLPSArray(char *pat, int m, int *lps)
+{
+    // LPS array = Failure Function F
     lps[0] = 0;
     int i = 1, j = 0;
-    while(i < m){
-        if(pat[i] == pat[j]){
+    while (i < m)
+    {
+        if (pat[i] == pat[j])
+        {
             j++;
             lps[i] = j;
             i++;
         }
-        else{
-            if(j != 0)
-                j = lps[j-1];
-            else{
+        else
+        {
+            if (j != 0)
+                j = lps[j - 1];
+            else
+            {
                 lps[i] = 0;
                 i++;
             }
         }
     }
 }
-void PatternSearchingWithKMP(char* str, char* pat){
-    //If KMP finds mismatching char, KMP knows next char
-    // LPS = Longest Prefix which is also Suffix)
+void PatternSearchingWithKMP(char *str, char *pat)
+{
+    // If KMP finds mismatching char, KMP knows next char
+    //  LPS = Longest Prefix which is also Suffix)
     int m = strlen(str);
     int n = strlen(pat);
     int lps[n];
     ComputeLPSArray(pat, n, lps);
-    int i=0, j=0;
-    while((m-i) >= (n-j)){ // i < m
-        if(pat[j] == str[i]){
+    int i = 0, j = 0;
+    while ((m - i) >= (n - j))
+    { // i < m
+        if (pat[j] == str[i])
+        {
             i++;
             j++;
         }
-        if(j == n){
-            printf("Found pattern at index %d\n", i-j);
-            j = lps[j-1];
+        if (j == n)
+        {
+            printf("Found pattern at index %d\n", i - j);
+            j = lps[j - 1];
         }
-        else if(i < m && pat[j] != str[i]){
-            if(j != 0)
-                j = lps[j-1];
+        else if (i < m && pat[j] != str[i])
+        {
+            if (j != 0)
+                j = lps[j - 1];
             else
                 i++;
         }
     }
 }
-void ComputeZ(char* str, int* z){
+void ComputeZ(char *str, int *z)
+{
     int n = strlen(str);
     int l, r, k;
     int i;
     l = r = 0;
-    for(i=1; i<n; i++){
-        if(i > r){
+    for (i = 1; i < n; i++)
+    {
+        if (i > r)
+        {
             l = r = i;
-            while(r < n && str[r-l] == str[r])
+            while (r < n && str[r - l] == str[r])
                 r++;
-            z[i] = r-l;
+            z[i] = r - l;
             r--;
         }
-        else{
-            k = i-l;
-            if(z[k] < r-i+1)
+        else
+        {
+            k = i - l;
+            if (z[k] < r - i + 1)
                 z[i] = z[k];
-            else{
-                l=i;
-                while(r<n && str[r-l] == str[r])
+            else
+            {
+                l = i;
+                while (r < n && str[r - l] == str[r])
                     r++;
-                z[i] = r-l;
+                z[i] = r - l;
                 r--;
             }
         }
     }
 }
-void PatternSearchingWithZ(char* str, char* pat){
+void PatternSearchingWithZ(char *str, char *pat)
+{
     int plen = strlen(pat);
     int slen = strlen(str);
-    int concatlen = slen+plen+1;
-    char* concat = (char*)malloc(concatlen);
+    int concatlen = slen + plen + 1;
+    char *concat = (char *)malloc(concatlen);
     int Z[concatlen];
     int i;
     strcpy(concat, pat);
     strcat(concat, "$");
     strcat(concat, str);
     ComputeZ(concat, Z);
-    for(i=0; i<concatlen; i++)
-        if(Z[i] == plen)
-            printf("Pattern found at index %d\n", i-plen-1);
-    
+    for (i = 0; i < concatlen; i++)
+        if (Z[i] == plen)
+            printf("Pattern found at index %d\n", i - plen - 1);
+
     free(concat);
 }
-bool Search2DGrid(char* grid, char* word, int ridx, int cidx, int R, int C){
+bool Search2DGrid(char *grid, char *word, int ridx, int cidx, int R, int C)
+{
     int x[] = {-1, -1, -1, 0, 0, 1, 1, 1};
     int y[] = {-1, 0, 1, -1, 1, -1, 0, 1};
     int len = strlen(word), dir, k, rdir, cdir;
-    if(*(grid+ridx*C+cidx) != word[0])
+    if (*(grid + ridx * C + cidx) != word[0])
         return false;
-    for(dir=0; dir<8; dir++){
+    for (dir = 0; dir < 8; dir++)
+    {
         rdir = ridx + x[dir], cdir = cidx + y[dir];
-        for(k=1; k<len; k++){
-            if(rdir >= R || rdir<0 || cdir >= C || cdir<0)
+        for (k = 1; k < len; k++)
+        {
+            if (rdir >= R || rdir < 0 || cdir >= C || cdir < 0)
                 break;
-            if(*(grid+rdir*C+cdir) != word[k])
+            if (*(grid + rdir * C + cdir) != word[k])
                 break;
             rdir += x[dir], cdir += y[dir];
         }
-        if(k==len)
-            return true; 
+        if (k == len)
+            return true;
     }
     return false;
 }
-void PatternSearchWith2DGrid(char* grid, char* word, int r, int c){
+void PatternSearchWith2DGrid(char *grid, char *word, int r, int c)
+{
     int i, j;
-    for(i=0; i<r; i++)
-        for(j=0; j<c; j++)
-            if(Search2DGrid(grid, word, i, j, r, c))
+    for (i = 0; i < r; i++)
+        for (j = 0; j < c; j++)
+            if (Search2DGrid(grid, word, i, j, r, c))
                 printf("Pattern found at (%d,%d)\n", i, j);
     /* Input data In main()
     int r=3, c=13;
@@ -2024,197 +2124,233 @@ void PatternSearchWith2DGrid(char* grid, char* word, int r, int c){
     PatternSearchWith2DGrid((char*)grid, pattern1, r, c);
     */
 }
-void PatterSearchWithWildCard(char* str, char* pat, bool* ismatch){
+void PatterSearchWithWildCard(char *str, char *pat, bool *ismatch)
+{
     int n = strlen(str);
-    int m  = strlen(pat);
-    int i=0, j=0, sidx=-1, match=0;
-    while(i < n){
-        if(j<m && (pat[j] =='?' || pat[j] == str[i])){
+    int m = strlen(pat);
+    int i = 0, j = 0, sidx = -1, match = 0;
+    while (i < n)
+    {
+        if (j < m && (pat[j] == '?' || pat[j] == str[i]))
+        {
             i++;
             j++;
         }
-        else if(j<m && pat[j] == '*'){
+        else if (j < m && pat[j] == '*')
+        {
             sidx = j;
             match = i;
             j++;
         }
-        else if(sidx != -1){
-            j = sidx +1;
+        else if (sidx != -1)
+        {
+            j = sidx + 1;
             match++;
             i = match;
         }
         else
             *ismatch = false;
     }
-    while( j<m && pat[j]=='*')
+    while (j < m && pat[j] == '*')
         j++;
-    *ismatch = !!(j==m);
+    *ismatch = !!(j == m);
 }
 
-int GetNextStateForFA(char* pat, int len, int state, int x){
+int GetNextStateForFA(char *pat, int len, int state, int x)
+{
     int ns, i;
-    if(state < len && x == pat[state])
-        return state+1;
-    for(ns = state; ns > 0; ns--){
-        if(pat[ns-1] == x){
-            for(i=0; i<ns-1; i++)
-                if(pat[i] != pat[state-ns+1+i])
+    if (state < len && x == pat[state])
+        return state + 1;
+    for (ns = state; ns > 0; ns--)
+    {
+        if (pat[ns - 1] == x)
+        {
+            for (i = 0; i < ns - 1; i++)
+                if (pat[i] != pat[state - ns + 1 + i])
                     break;
-            if(i == ns-1)
+            if (i == ns - 1)
                 return ns;
         }
     }
     return 0;
 }
-void ComputeTF(char* pat, int len, int TF[][256]){
+void ComputeTF(char *pat, int len, int TF[][256])
+{
     int state, x;
-    for(state=0; state<=len; state++)
-        for(x=0; x<256; x++)
+    for (state = 0; state <= len; state++)
+        for (x = 0; x < 256; x++)
             TF[state][x] = GetNextStateForFA(pat, len, state, x);
 }
-void PatternSearchWithFiniteAutomata(char* str, char* pat){
+void PatternSearchWithFiniteAutomata(char *str, char *pat)
+{
     int m = strlen(str);
     int n = strlen(pat);
-    int TF[n+1][256];
-    int i, state=0;
+    int TF[n + 1][256];
+    int i, state = 0;
     ComputeTF(pat, n, TF);
-    for(i=0; i<m; i++){
+    for (i = 0; i < m; i++)
+    {
         state = TF[state][str[i]];
-        if(state == n)
-            printf("Pattern found at index %d\n", i-n+1);
+        if (state == n)
+            printf("Pattern found at index %d\n", i - n + 1);
     }
 }
-void PatternSearchWithRabinKarp(char* str, char* pat, int prime){
+void PatternSearchWithRabinKarp(char *str, char *pat, int prime)
+{
     int plen = strlen(pat);
     int slen = strlen(str);
     int i, j;
-    int  p = 0, t = 0, h = 1;
-    for(i=0; i<plen-1; i++)
+    int p = 0, t = 0, h = 1;
+    for (i = 0; i < plen - 1; i++)
         h = (h * 256) % prime;
-    for(i=0; i<plen; i++){
+    for (i = 0; i < plen; i++)
+    {
         p = (256 * p + pat[i]) % prime;
-        t = (256 * t + str[i]) % prime;        
+        t = (256 * t + str[i]) % prime;
     }
-    for(i=0; i<= slen-plen; i++){
-        if(p == t){
-            for(j=0; j<plen; j++)
-                if(str[i+j] != pat[j])
+    for (i = 0; i <= slen - plen; i++)
+    {
+        if (p == t)
+        {
+            for (j = 0; j < plen; j++)
+                if (str[i + j] != pat[j])
                     break;
-            if(j == plen)
+            if (j == plen)
                 printf("Pattern found at index %d\n", i);
         }
-        if(i < slen-plen){
-            t = (256 * (t- str[i] * h) + str[i+plen]) % prime;
-            if(t < 0)
+        if (i < slen - plen)
+        {
+            t = (256 * (t - str[i] * h) + str[i + plen]) % prime;
+            if (t < 0)
                 t += prime;
         }
     }
 }
-void PatternSearchWithBoyerMoore(char* str, char* pat){
+void PatternSearchWithBoyerMoore(char *str, char *pat)
+{
     // Bad char Heuristic
     int m = strlen(str);
     int n = strlen(pat);
     int ch[256];
-    int i, j, s=0;
-    for(i=0; i<256; i++)
+    int i, j, s = 0;
+    for (i = 0; i < 256; i++)
         ch[i] = -1;
-    for(i=0; i<n; i++)
+    for (i = 0; i < n; i++)
         ch[(int)pat[i]] = i;
-    while( s <= (m-n)){
-        j = n-1;
-        while(j>=0 && pat[j] == str[s+j])
+    while (s <= (m - n))
+    {
+        j = n - 1;
+        while (j >= 0 && pat[j] == str[s + j])
             j--;
-        if(j < 0){
+        if (j < 0)
+        {
             printf("Pattern occurs at shift %d\n", s);
-            s += (s+n < m)? n-ch[str[s+n]] : 1;
+            s += (s + n < m) ? n - ch[str[s + n]] : 1;
         }
         else
-            s += __max(1, j-ch[str[s+j]]);
+            s += __max(1, j - ch[str[s + j]]);
     }
 }
 
-typedef struct TrieNode{
-    struct TrieNode* child[26];
-    struct TrieNode* failurelink;
+typedef struct TrieNode
+{
+    struct TrieNode *child[26];
+    struct TrieNode *failurelink;
     int isEndOfWord;
-}TrieNode;
-typedef struct QueueNode{
-    TrieNode* data;
-    struct QueueNode* next;
-}QueueNode;
-typedef struct TrieQueue{
-    QueueNode* front;
-    QueueNode* rear;
-}TrieQueue;
-TrieQueue* CreateTrieQueue(){
-    TrieQueue* que = (TrieQueue*)malloc(sizeof(TrieQueue));
+} TrieNode;
+typedef struct QueueNode
+{
+    TrieNode *data;
+    struct QueueNode *next;
+} QueueNode;
+typedef struct TrieQueue
+{
+    QueueNode *front;
+    QueueNode *rear;
+} TrieQueue;
+TrieQueue *CreateTrieQueue()
+{
+    TrieQueue *que = (TrieQueue *)malloc(sizeof(TrieQueue));
     que->front = que->rear = NULL;
     return que;
 }
-void EnqueueTrie(TrieQueue* que, TrieNode* data){
-    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
-    newNode ->data = data;
-    newNode ->next = NULL;
-    if(que->rear == NULL)
+void EnqueueTrie(TrieQueue *que, TrieNode *data)
+{
+    QueueNode *newNode = (QueueNode *)malloc(sizeof(QueueNode));
+    newNode->data = data;
+    newNode->next = NULL;
+    if (que->rear == NULL)
         que->front = que->rear = newNode;
-    else{
+    else
+    {
         que->rear->next = newNode;
         que->rear = newNode;
     }
 }
-TrieNode* DequeueTrie(TrieQueue* que){
-    if(que->front == NULL)
+TrieNode *DequeueTrie(TrieQueue *que)
+{
+    if (que->front == NULL)
         return NULL;
-    else{
-        QueueNode* temp = que->front;
-        TrieNode* data = temp->data;
+    else
+    {
+        QueueNode *temp = que->front;
+        TrieNode *data = temp->data;
         que->front = temp->next;
         free(temp);
-        if(que->front == NULL)
+        if (que->front == NULL)
             que->rear = NULL;
         return data;
     }
 }
-TrieNode* CreateTrieNode(){
+TrieNode *CreateTrieNode()
+{
     int i;
-    TrieNode* node = (TrieNode*)malloc(sizeof(TrieNode));
-    for(i=0; i<26; i++)
+    TrieNode *node = (TrieNode *)malloc(sizeof(TrieNode));
+    for (i = 0; i < 26; i++)
         node->child[i] = NULL;
     node->failurelink = NULL;
     node->isEndOfWord = 0;
     return node;
 }
-void InsertPatternInTrie(TrieNode* root, char* pat){
+void InsertPatternInTrie(TrieNode *root, char *pat)
+{
     int i, idx;
     int plen = strlen(pat);
-    TrieNode* cur = root;
-    for(i=0; i<plen; i++){
-        idx = pat[i]-'A';
-        if(!cur->child[idx])
+    TrieNode *cur = root;
+    for (i = 0; i < plen; i++)
+    {
+        idx = pat[i] - 'A';
+        if (!cur->child[idx])
             cur->child[idx] = CreateTrieNode();
         cur = cur->child[idx];
     }
     cur->isEndOfWord = 1;
 }
-void BuildAhoCorasick(TrieNode* root){
+void BuildAhoCorasick(TrieNode *root)
+{
     int i;
-    TrieQueue* que = CreateTrieQueue();
-    for(i=0; i<26; i++){
-        if(root->child[i]){
+    TrieQueue *que = CreateTrieQueue();
+    for (i = 0; i < 26; i++)
+    {
+        if (root->child[i])
+        {
             EnqueueTrie(que, root->child[i]);
             root->child[i]->failurelink = root;
         }
     }
-    while(que->front){
-        TrieNode* cur = DequeueTrie(que);
-        for(i=0; i<26; i++){
-            TrieNode* child = cur->child[i];
-            if(child){
+    while (que->front)
+    {
+        TrieNode *cur = DequeueTrie(que);
+        for (i = 0; i < 26; i++)
+        {
+            TrieNode *child = cur->child[i];
+            if (child)
+            {
                 EnqueueTrie(que, child);
-                TrieNode* fail = cur->failurelink;
-                while(fail && !fail->child[i])
+                TrieNode *fail = cur->failurelink;
+                while (fail && !fail->child[i])
                     fail = fail->failurelink;
-                if(fail)
+                if (fail)
                     child->failurelink = fail->child[i];
                 else
                     child->failurelink = root;
@@ -2223,63 +2359,77 @@ void BuildAhoCorasick(TrieNode* root){
     }
     free(que);
 }
-void SearchAhoCorasick(TrieNode* root, char* str){
+void SearchAhoCorasick(TrieNode *root, char *str)
+{
     int i, idx;
     int slen = strlen(str);
-    TrieNode* cur = root;
-    for(i=0; i<slen; i++){
-        idx = str[i]-'A';
-        while(cur && !cur->child[idx])
+    TrieNode *cur = root;
+    for (i = 0; i < slen; i++)
+    {
+        idx = str[i] - 'A';
+        while (cur && !cur->child[idx])
             cur = cur->failurelink;
-        if(cur)
+        if (cur)
             cur = cur->child[idx];
         else
             cur = root;
-        TrieNode* temp = cur;
-        while(temp){
-            if(temp->isEndOfWord)
+        TrieNode *temp = cur;
+        while (temp)
+        {
+            if (temp->isEndOfWord)
                 printf("Pattern found at index %d\n", i);
             temp = temp->failurelink;
         }
     }
 }
-void FreeTrie(TrieNode* node){
+void FreeTrie(TrieNode *node)
+{
     int i;
-    if(!node)
+    if (!node)
         return;
-    for(i=0; i<26; i++)
+    for (i = 0; i < 26; i++)
         FreeTrie(node->child[i]);
     free(node);
 }
 
-bool IsSamePattern(char* str, char* pat){
+bool IsSamePattern(char *str, char *pat)
+{
     int slen = strlen(str);
     int plen = strlen(pat);
     int i;
-    char ch[128]={0,};
-    char map[128]={0,};
-    if(plen != slen)
+    char ch[128] = {
+        0,
+    };
+    char map[128] = {
+        0,
+    };
+    if (plen != slen)
         return false;
-    for(i=0; i<slen; i++){
-        if(ch[pat[i]] == 0 && map[str[i]]==0){
+    for (i = 0; i < slen; i++)
+    {
+        if (ch[pat[i]] == 0 && map[str[i]] == 0)
+        {
             ch[pat[i]] = str[i];
             map[str[i]] = pat[i];
         }
-        else if(ch[pat[i]] != str[i] || map[str[i]] != pat[i])
+        else if (ch[pat[i]] != str[i] || map[str[i]] != pat[i])
             return false;
     }
     return true;
 }
-void PatternMatch(char str[5][5], char* pat){
+void PatternMatch(char str[5][5], char *pat)
+{
     int slen = 5;
     int i;
-    for(i=0; i<slen; i++){
-        if(IsSamePattern(str[i], pat))
+    for (i = 0; i < slen; i++)
+    {
+        if (IsSamePattern(str[i], pat))
             printf("%s ", str[i]);
     }
     printf("\n");
 }
-bool CheckPattern(char* str, char* pat){
+bool CheckPattern(char *str, char *pat)
+{
     int order = 1;
     int last_order = -1;
     int i;
@@ -2287,13 +2437,16 @@ bool CheckPattern(char* str, char* pat){
     int m = strlen(str);
     int n = strlen(pat);
     memset(label, -1, sizeof(label));
-    for(i=0; i<n; i++){
+    for (i = 0; i < n; i++)
+    {
         label[pat[i]] = order;
         order++;
     }
-    for(i=0; i<m; i++){
-        if(label[str[i]] != -1){
-            if(label[str[i]] < last_order)
+    for (i = 0; i < m; i++)
+    {
+        if (label[str[i]] != -1)
+        {
+            if (label[str[i]] < last_order)
                 return false;
             last_order = label[str[i]];
         }
@@ -2301,85 +2454,102 @@ bool CheckPattern(char* str, char* pat){
     return true;
 }
 //----------------------------------------
-//-------------- Linked List ------------- 
+//-------------- Linked List -------------
 //----------------------------------------
-typedef struct SNode{
+typedef struct SNode
+{
     int data;
-    struct SNode* next;
-    SNode(int val){
+    struct SNode *next;
+    SNode(int val)
+    {
         this->data = val;
         this->next = NULL;
     }
-}SNode;
-int SNodeLength(SNode* head){
-    SNode* temp = head;
+} SNode;
+int SNodeLength(SNode *head)
+{
+    SNode *temp = head;
     int count = 0;
-    while(temp != NULL){
+    while (temp != NULL)
+    {
         count++;
         temp = temp->next;
     }
     return count;
 }
-int DNodeLength(DNode* head){
-    DNode* temp = head;
+int DNodeLength(DNode *head)
+{
+    DNode *temp = head;
     int count = 0;
-    if(temp == NULL)
+    if (temp == NULL)
         return 0;
-    else{
-        while( head != temp->next){
+    else
+    {
+        while (head != temp->next)
+        {
             count++;
             temp = temp->next;
         }
-        return count+1;
+        return count + 1;
     }
 }
-void InsertFrontSNode(SNode** head_ref, int data){
-    SNode* new_node = (SNode*)malloc(sizeof(SNode));
+void InsertFrontSNode(SNode **head_ref, int data)
+{
+    SNode *new_node = (SNode *)malloc(sizeof(SNode));
     new_node->data = data;
-    new_node->next = (*head_ref);//Node that head pointed
-    (*head_ref) = new_node;//Head Node points new node
+    new_node->next = (*head_ref); // Node that head pointed
+    (*head_ref) = new_node;       // Head Node points new node
 }
-void InsertMidSNode(SNode* prev, int data){
-    if(prev == NULL)
+void InsertMidSNode(SNode *prev, int data)
+{
+    if (prev == NULL)
         return;
-    SNode* new_node = (SNode*)malloc(sizeof(SNode));
+    SNode *new_node = (SNode *)malloc(sizeof(SNode));
     new_node->data = data;
     new_node->next = prev->next;
     prev->next = new_node;
 }
-void InsertEndSNode(SNode** head_ref, int data){
-    SNode* new_node = (SNode*)malloc(sizeof(SNode));
-    SNode* last = *head_ref;
+void InsertEndSNode(SNode **head_ref, int data)
+{
+    SNode *new_node = (SNode *)malloc(sizeof(SNode));
+    SNode *last = *head_ref;
     new_node->data = data;
     new_node->next = NULL;
-    if(*head_ref == NULL){// If Linked List is empty
+    if (*head_ref == NULL)
+    { // If Linked List is empty
         *head_ref = new_node;
         return;
     }
-    while(last->next != NULL)// IF Linked List is full some elemnets.
-        last = last->next;//Shift pointer to last node
+    while (last->next != NULL) // IF Linked List is full some elemnets.
+        last = last->next;     // Shift pointer to last node
     last->next = new_node;
     return;
 }
-void DeletionFrontSNode(SNode** head, int pos){// Last inserted element's node is head node
-    SNode* temp;
-    SNode* prev;
+void DeletionFrontSNode(SNode **head, int pos)
+{ // Last inserted element's node is head node
+    SNode *temp;
+    SNode *prev;
     int i;
     temp = *head;
     prev = *head;
-    for(i=0; i<pos;i++){
-        if(i==0 && pos == 1){
+    for (i = 0; i < pos; i++)
+    {
+        if (i == 0 && pos == 1)
+        {
             *head = (*head)->next;
             free(temp);
         }
-        else{
-            if(i==pos-1 && temp){
+        else
+        {
+            if (i == pos - 1 && temp)
+            {
                 prev->next = temp->next;
                 free(temp);
             }
-            else{
+            else
+            {
                 prev = temp;
-                if(prev == NULL)
+                if (prev == NULL)
                     break;
                 temp = temp->next;
             }
@@ -2387,149 +2557,167 @@ void DeletionFrontSNode(SNode** head, int pos){// Last inserted element's node i
     }
 }
 
-void InsertionFrontDNode(DNode** head, int data){
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+void InsertionFrontDNode(DNode **head, int data)
+{
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
     new_node->data = data;
     new_node->next = (*head);
     new_node->prev = NULL;
-    if((*head) != NULL)
+    if ((*head) != NULL)
         (*head)->prev = new_node;
     (*head) = new_node;
 }
-void InsertionMidBehindDNode(DNode* prev, int data){
-    if(prev == NULL)
+void InsertionMidBehindDNode(DNode *prev, int data)
+{
+    if (prev == NULL)
         return;
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
     new_node->data = data;
     new_node->next = prev->next;
     prev->next = new_node;
     new_node->prev = prev;
-    if(new_node->next !=NULL)
+    if (new_node->next != NULL)
         new_node->next->prev = new_node;
 }
-void InsetionMidFrontDNode(DNode* next, int data, DNode* head){
-    if(next == NULL)
+void InsetionMidFrontDNode(DNode *next, int data, DNode *head)
+{
+    if (next == NULL)
         return;
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
     new_node->data = data;
     new_node->prev = next->prev;
     next->prev = new_node;
     new_node->next = next;
-    if(new_node->prev != NULL)
+    if (new_node->prev != NULL)
         new_node->prev->next = new_node;
     else
         head = new_node;
 }
-void InsertionEndDNode(DNode** head, int data){
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
-    DNode* last = *head;
+void InsertionEndDNode(DNode **head, int data)
+{
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
+    DNode *last = *head;
     new_node->data = data;
     new_node->next = NULL;
-    if(*head == NULL){
+    if (*head == NULL)
+    {
         new_node->prev = NULL;
         *head = new_node;
         return;
     }
-    while(last->next != NULL)
+    while (last->next != NULL)
         last = last->next;
     last->next = new_node;
     new_node->prev = last;
 }
-void DeletionEndDNode(DNode** head, DNode* del){
-    DNode* cur = *head;
+void DeletionEndDNode(DNode **head, DNode *del)
+{
+    DNode *cur = *head;
     int i;
-    
-    if(*head == NULL || del == NULL)
+
+    if (*head == NULL || del == NULL)
         return;
-    if(*head == del)
+    if (*head == del)
         *head = del->next;
-    if(del->next != NULL)
+    if (del->next != NULL)
         del->next->prev = del->prev;
-    if(del->prev != NULL)
+    if (del->prev != NULL)
         del->prev->next = del->next;
     free(del);
     return;
 }
-void DeletionPosDNode(DNode** head, int pos){
-    if(*head == NULL || pos<=0)
+void DeletionPosDNode(DNode **head, int pos)
+{
+    if (*head == NULL || pos <= 0)
         return;
-    DNode* cur = *head;
+    DNode *cur = *head;
     int i;
-    for(i=1; cur!=NULL && i<pos; i++)
+    for (i = 1; cur != NULL && i < pos; i++)
         cur = cur->next;
-    if(cur == NULL)
+    if (cur == NULL)
         return;
     DeletionEndDNode(head, cur);
 }
 
-void InsertionEmptyCNode(SNode* last, int data){
-    if(last != NULL)
+void InsertionEmptyCNode(SNode *last, int data)
+{
+    if (last != NULL)
         return;
-    SNode* temp = (SNode*)malloc(sizeof(SNode));
+    SNode *temp = (SNode *)malloc(sizeof(SNode));
     temp->data = data;
     last = temp;
     temp->next = last;
 }
-void InsertionFrontCNode(SNode* last, int data){
-    if(last ==NULL)
+void InsertionFrontCNode(SNode *last, int data)
+{
+    if (last == NULL)
         return InsertionEmptyCNode(last, data);
-    SNode* temp = (SNode*)malloc(sizeof(SNode));
+    SNode *temp = (SNode *)malloc(sizeof(SNode));
     temp->data = data;
     temp->next = last->next;
     last->next = temp;
 }
-void InsertionEndCNode(SNode* last, int data){
-    if(last == NULL)
+void InsertionEndCNode(SNode *last, int data)
+{
+    if (last == NULL)
         return InsertionEmptyCNode(last, data);
-    SNode* temp = (SNode*)malloc(sizeof(SNode));
+    SNode *temp = (SNode *)malloc(sizeof(SNode));
     temp->data = data;
     temp->next = last->next;
     last->next = temp;
     last = temp;
 }
-void InsertionMidCNode(SNode* last, int data, int item){
-    if(last == NULL)
+void InsertionMidCNode(SNode *last, int data, int item)
+{
+    if (last == NULL)
         return;
-    SNode* temp, *p;
+    SNode *temp, *p;
     p = last->next;
-    do{
-        if(p->data == item){
-            temp = (SNode*)malloc(sizeof(SNode));
+    do
+    {
+        if (p->data == item)
+        {
+            temp = (SNode *)malloc(sizeof(SNode));
             temp->data = data;
             temp->next = p->next;
             p->next = temp;
-            if(p == last)
+            if (p == last)
                 last = temp;
             return;
         }
         p = p->next;
-    }while(p!= last->next);
+    } while (p != last->next);
     return;
 }
-void DeletionFrontCNode(SNode** head){
-    SNode* prev = *head, *first = *head;
-    if(*head == NULL)
+void DeletionFrontCNode(SNode **head)
+{
+    SNode *prev = *head, *first = *head;
+    if (*head == NULL)
         return;
-    if(prev->next == prev){
+    if (prev->next == prev)
+    {
         *head = NULL;
         return;
     }
-    while(prev->next != *head)
+    while (prev->next != *head)
         prev = prev->next;
     prev->next = first->next;
     *head = prev->next;
     free(first);
     return;
 }
-void DeletionEndCNode(SNode** head){
-    SNode* cur = *head, *temp = *head, *prev;
-    if(*head == NULL)
+void DeletionEndCNode(SNode **head)
+{
+    SNode *cur = *head, *temp = *head, *prev;
+    if (*head == NULL)
         return;
-    if(cur->next == cur){
+    if (cur->next == cur)
+    {
         *head = NULL;
         return;
     }
-    while(cur->next != *head){
+    while (cur->next != *head)
+    {
         prev = cur;
         cur = cur->next;
     }
@@ -2538,20 +2726,24 @@ void DeletionEndCNode(SNode** head){
     free(cur);
     return;
 }
-void DeletionIdxCNode(SNode** head, int idx){
+void DeletionIdxCNode(SNode **head, int idx)
+{
     int len = SNodeLength(*head);
     int count = 1;
-    SNode* prev = *head, *next = *head;
-    if(*head == NULL)
+    SNode *prev = *head, *next = *head;
+    if (*head == NULL)
         return;
-    if(idx >= len | idx<0)
+    if (idx >= len | idx < 0)
         return;
-    if(idx == 0){
+    if (idx == 0)
+    {
         DeletionFrontCNode(head);
         return;
     }
-    while(len > 0){
-        if(idx == count){
+    while (len > 0)
+    {
+        if (idx == count)
+        {
             prev->next = next->next;
             free(next);
             return;
@@ -2564,54 +2756,60 @@ void DeletionIdxCNode(SNode** head, int idx){
     return;
 }
 
-void InsertEndDCNode(DNode** start, int data){
-    if(*start == NULL){
-        DNode* new_node =(DNode*)malloc(sizeof(DNode));
+void InsertEndDCNode(DNode **start, int data)
+{
+    if (*start == NULL)
+    {
+        DNode *new_node = (DNode *)malloc(sizeof(DNode));
         new_node->data = data;
         new_node->next = new_node->prev = new_node;
         *start = new_node;
         return;
     }
-    DNode* last = (*start)->prev;
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+    DNode *last = (*start)->prev;
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
     new_node->data = data;
     new_node->next = *start;
     (*start)->prev = new_node;
     new_node->prev = last;
     last->next = new_node;
 }
-void InsertionFrontDCNode(DNode** start, int data){
-    DNode* last = (*start)->prev;
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+void InsertionFrontDCNode(DNode **start, int data)
+{
+    DNode *last = (*start)->prev;
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
     new_node->data = data;
     new_node->next = *start;
     new_node->prev = last;
     last->next = (*start)->prev = new_node;
     *start = new_node;
 }
-void InsertionValBehindDCNode(DNode** start, int data, int base_val){
-    DNode* new_node = (DNode*)malloc(sizeof(DNode));
+void InsertionValBehindDCNode(DNode **start, int data, int base_val)
+{
+    DNode *new_node = (DNode *)malloc(sizeof(DNode));
     new_node->data = data;
-    DNode* temp = *start;
-    while(temp->data != base_val)
+    DNode *temp = *start;
+    while (temp->data != base_val)
         temp = temp->next;
-    DNode* next = temp->next;
+    DNode *next = temp->next;
     temp->next = new_node;
     new_node->prev = temp;
     new_node->next = next;
     next->prev = new_node;
 }
-void InsertionIdxDCNode(DNode* start, int data, int idx){
-    DNode* temp, *new_node;
+void InsertionIdxDCNode(DNode *start, int data, int idx)
+{
+    DNode *temp, *new_node;
     int i, count;
-    new_node=(DNode*)malloc(sizeof(DNode));
+    new_node = (DNode *)malloc(sizeof(DNode));
     temp = start;
     count = DNodeLength(start);
-    if(temp == NULL || count < idx)
+    if (temp == NULL || count < idx)
         return;
-    else{
+    else
+    {
         new_node->data = data;
-        for(i=1; i<idx-1; i++)
+        for (i = 1; i < idx - 1; i++)
             temp = temp->next;
         new_node->next = temp->next;
         (temp->next)->prev = new_node;
@@ -2619,59 +2817,70 @@ void InsertionIdxDCNode(DNode* start, int data, int idx){
         new_node->prev = temp;
     }
 }
-void DeletionValDCNode(DNode** start, int val){
-    if(*start == NULL)
+void DeletionValDCNode(DNode **start, int val)
+{
+    if (*start == NULL)
         return;
-    DNode* cur = *start, *prev = NULL;
-    while(cur->data != val){
-        if(cur->next == *start)
+    DNode *cur = *start, *prev = NULL;
+    while (cur->data != val)
+    {
+        if (cur->next == *start)
             return;
         prev = cur;
         cur = cur->next;
     }
-    if(cur == *start){
+    if (cur == *start)
+    {
         prev = (*start)->prev;
         *start = (*start)->next;
         prev->next = *start;
         (*start)->prev = prev;
         free(cur);
     }
-    else if(cur->next == *start){
+    else if (cur->next == *start)
+    {
         prev->next = *start;
         (*start)->prev = prev;
         free(cur);
     }
-    else{
-        DNode* temp = cur->next;
+    else
+    {
+        DNode *temp = cur->next;
         prev->next = temp;
         temp->prev = prev;
         free(cur);
     }
 }
-void ReverseDCNode(DNode** head){
-    if(*head == NULL)
+void ReverseDCNode(DNode **head)
+{
+    if (*head == NULL)
         return;
-    DNode* cur = *head;
-    while(cur->next != *head){
-        DNode* temp = cur->next;
+    DNode *cur = *head;
+    while (cur->next != *head)
+    {
+        DNode *temp = cur->next;
         cur->next = cur->prev;
         cur->prev = temp;
         cur = temp;
     }
-    DNode* temp = cur->next;
+    DNode *temp = cur->next;
     cur->next = cur->prev;
     cur->prev = temp;
     *head = cur;
 }
-void SearchDCNode(DNode* start, int val){
-    DNode* temp = start;
-    int count=0;
-    bool flag=false;
-    if(temp == NULL)
+void SearchDCNode(DNode *start, int val)
+{
+    DNode *temp = start;
+    int count = 0;
+    bool flag = false;
+    if (temp == NULL)
         return;
-    else{
-        while(temp->next != start){
-            if(temp->data == val){
+    else
+    {
+        while (temp->next != start)
+        {
+            if (temp->data == val)
+            {
                 flag = true;
                 count++;
                 break;
@@ -2679,24 +2888,27 @@ void SearchDCNode(DNode* start, int val){
             count++;
             temp = temp->next;
         }
-        if(temp->data == val){
+        if (temp->data == val)
+        {
             count++;
             flag = true;
         }
-        if(flag)
+        if (flag)
             printf("%d found at index %d\n", val, count);
         else
             printf("There is no %d in Doubly Circular Linked List\n", val);
     }
 }
-DNode* BinaryTree2DNode(DNode* root, DNode** head){
-    if(root == NULL)
+DNode *BinaryTree2DNode(DNode *root, DNode **head)
+{
+    if (root == NULL)
         return root;
-    static DNode* prev = NULL;
+    static DNode *prev = NULL;
     BinaryTree2DNode(root->prev, head);
-    if(prev == NULL)
+    if (prev == NULL)
         *head = root;
-    else{
+    else
+    {
         root->prev = prev;
         prev->next = root;
     }
@@ -2704,26 +2916,31 @@ DNode* BinaryTree2DNode(DNode* root, DNode** head){
     BinaryTree2DNode(root->next, head);
     return prev;
 }
-DNode* BinaryTree2DCNode(DNode* root){
-    DNode* head = NULL;
-    DNode* tail = BinaryTree2DNode(root, &head);
+DNode *BinaryTree2DCNode(DNode *root)
+{
+    DNode *head = NULL;
+    DNode *tail = BinaryTree2DNode(root, &head);
 
     tail->next = head;
     head->prev = tail;
     return head;
 }
-void Array2DCLL(int* arr, int size, DNode** start){
-    DNode* new_node, *temp;
+void Array2DCLL(int *arr, int size, DNode **start)
+{
+    DNode *new_node, *temp;
     int i;
-    for(i=0; i<size; i++){
-        new_node = (DNode*)malloc(sizeof(DNode));
+    for (i = 0; i < size; i++)
+    {
+        new_node = (DNode *)malloc(sizeof(DNode));
         new_node->data = arr[i];
-        if(i==0){
+        if (i == 0)
+        {
             *start = new_node;
             new_node->prev = *start;
             new_node->next = *start;
         }
-        else{
+        else
+        {
             temp = (*start)->prev;
             temp->next = new_node;
             new_node->next = *start;
@@ -2735,7 +2952,7 @@ void Array2DCLL(int* arr, int size, DNode** start){
 }
 
 //----------------------------------------
-//----------------- Stack ---------------- 
+//----------------- Stack ----------------
 //----------------------------------------
 typedef struct LLStack
 {
@@ -2808,97 +3025,114 @@ void PrintLLStack(LLStack *s)
     printf("\n");
 }
 
-typedef struct Stack{
+typedef struct Stack
+{
     int top;
     unsigned int cap;
-    int* arr;
-}Stack;
-Stack* CreateStack(unsigned cap){
-    Stack* st = (Stack*)malloc(sizeof(Stack));
+    int *arr;
+} Stack;
+Stack *CreateStack(unsigned cap)
+{
+    Stack *st = (Stack *)malloc(sizeof(Stack));
     st->cap = cap;
     st->top = -1;
-    st->arr = (int*)malloc(st->cap * sizeof(int));
+    st->arr = (int *)malloc(st->cap * sizeof(int));
     return st;
 }
-bool IsFullStack(Stack* st){
-    return st->top == st->cap-1;
+bool IsFullStack(Stack *st)
+{
+    return st->top == st->cap - 1;
 }
-bool IsEmptyStack(Stack* st){
+bool IsEmptyStack(Stack *st)
+{
     return st->top == -1;
 }
-void PushStack(Stack* st, int data){
-    if(IsFullStack(st))
+void PushStack(Stack *st, int data)
+{
+    if (IsFullStack(st))
         return;
     st->arr[++st->top] = data;
 }
-int PopStack(Stack* st){
-    if(IsEmptyStack(st))
+int PopStack(Stack *st)
+{
+    if (IsEmptyStack(st))
         return INT_MIN;
     return st->arr[st->top--];
 }
-int PeekStack(Stack* st){
-    if(IsEmptyStack(st))
+int PeekStack(Stack *st)
+{
+    if (IsEmptyStack(st))
         return INT_MIN;
     return st->arr[st->top];
 }
-void DecMonotonicStack(int* arr, int n){
-    Stack* st = CreateStack(n);
+void DecMonotonicStack(int *arr, int n)
+{
+    Stack *st = CreateStack(n);
     int i;
-    for(i=0; i<n; i++){
-        while(!IsEmptyStack(st) && arr[i] > PeekStack(st))
+    for (i = 0; i < n; i++)
+    {
+        while (!IsEmptyStack(st) && arr[i] > PeekStack(st))
             PopStack(st);
         PushStack(st, arr[i]);
     }
-    int n2 = st->top+1;
-    int* ans = (int*)malloc(n2 * sizeof(int));
-    int j = n2-1;
-    while(!IsEmptyStack(st)){
+    int n2 = st->top + 1;
+    int *ans = (int *)malloc(n2 * sizeof(int));
+    int j = n2 - 1;
+    while (!IsEmptyStack(st))
+    {
         ans[j] = PopStack(st);
         j--;
     }
-    for(i=0; i<n2; i++)
+    for (i = 0; i < n2; i++)
         printf("%d ", ans[i]);
-    
+
     free(st->arr);
-    //free(st);
+    // free(st);
     free(ans);
 }
-void IncMonotonicStack(int* arr, int n){
-    Stack* st = CreateStack(n);
+void IncMonotonicStack(int *arr, int n)
+{
+    Stack *st = CreateStack(n);
     int i;
-    for(i=0; i<n; i++){
-        while(!IsEmptyStack(st) && arr[i] < PeekStack(st))
+    for (i = 0; i < n; i++)
+    {
+        while (!IsEmptyStack(st) && arr[i] < PeekStack(st))
             PopStack(st);
         PushStack(st, arr[i]);
     }
-    int n2 = st->top+1;
-    int* ans = (int*)malloc(n2 * sizeof(int));
-    int j = n2-1;
-    while(!IsEmptyStack(st)){
+    int n2 = st->top + 1;
+    int *ans = (int *)malloc(n2 * sizeof(int));
+    int j = n2 - 1;
+    while (!IsEmptyStack(st))
+    {
         ans[j] = PopStack(st);
         j--;
     }
-    for(i=0; i<n2; i++)
+    for (i = 0; i < n2; i++)
         printf("%d ", ans[i]);
-    
+
     free(st->arr);
-    //free(st);
+    // free(st);
     free(ans);
 }
 
-typedef struct QueueByStack{
-    LLStack* st1;
-    LLStack* st2;
-}SQue;
-void EnqueueByStack(SQue* q, int x){
+typedef struct QueueByStack
+{
+    LLStack *st1;
+    LLStack *st2;
+} SQue;
+void EnqueueByStack(SQue *q, int x)
+{
     PushLLStack(&q->st1, x);
 }
-int DequeueByStack(SQue* q){
+int DequeueByStack(SQue *q)
+{
     int x;
-    if(q->st1 == NULL && q->st2 == NULL)
+    if (q->st1 == NULL && q->st2 == NULL)
         return -1;
-    if(q->st2 == NULL)
-        while(q->st1 != NULL){
+    if (q->st2 == NULL)
+        while (q->st1 != NULL)
+        {
             x = PopLLStack(&q->st1);
             PushLLStack(&q->st2, x);
         }
@@ -2906,83 +3140,98 @@ int DequeueByStack(SQue* q){
     return x;
 }
 
-typedef struct SpecialStack{
+typedef struct SpecialStack
+{
     int min;
     int demo_val;
-    int* arr;
+    int *arr;
     int top;
-}SStack;
+} SStack;
 #define DEMO_VAL 9999
-SStack* CreateSStack(){
-    SStack* s = (SStack*)malloc(sizeof(SStack));
+SStack *CreateSStack()
+{
+    SStack *s = (SStack *)malloc(sizeof(SStack));
     s->min = -1;
     s->demo_val = DEMO_VAL;
     s->arr = NULL;
     s->top = -1;
     return s;
 }
-void GetMinSStack(SStack* s){
+void GetMinSStack(SStack *s)
+{
     printf("Min: %d\n", s->min);
 }
-void PushSStack(SStack* s, int val){
-    if(s->arr == NULL || val < s->min)
+void PushSStack(SStack *s, int val)
+{
+    if (s->arr == NULL || val < s->min)
         s->min = val;
     s->top++;
-    s->arr = (int*)realloc(s->arr, (s->top+1)*sizeof(int));
+    s->arr = (int *)realloc(s->arr, (s->top + 1) * sizeof(int));
     s->arr[s->top] = val * s->demo_val + s->min;
 }
-int PopSStack(SStack* s){
-    if(s->top == -1)
+int PopSStack(SStack *s)
+{
+    if (s->top == -1)
         return -1;
     int val = s->arr[s->top];
     s->top--;
-    if(s->top != -1)
+    if (s->top != -1)
         s->min = s->arr[s->top] % s->demo_val;
     else
         s->min = -1;
-    s->arr = (int*)realloc(s->arr, (s->top+1)*sizeof(int));
+    s->arr = (int *)realloc(s->arr, (s->top + 1) * sizeof(int));
     return val / s->demo_val;
 }
-int PeekSStack(SStack* s){
+int PeekSStack(SStack *s)
+{
     return s->arr[s->top] / s->demo_val;
 }
-void DestroySStack(SStack* s){
+void DestroySStack(SStack *s)
+{
     free(s->arr);
     free(s);
 }
 
-typedef struct TwoStack{
-    int* arr;
+typedef struct TwoStack
+{
+    int *arr;
     int size;
     int top1;
     int top2;
-}TStack;
-TStack* CreateTStack(int n){
-    TStack* ts = (TStack*)malloc(sizeof(TStack));
+} TStack;
+TStack *CreateTStack(int n)
+{
+    TStack *ts = (TStack *)malloc(sizeof(TStack));
     ts->size = n;
-    ts->arr = (int*)malloc(n * sizeof(int));
+    ts->arr = (int *)malloc(n * sizeof(int));
     ts->top1 = -1;
     ts->top2 = n;
     return ts;
 }
-void Push1TStack(TStack* ts, int x){
-    if(ts->top1 < ts->top2 - 1){
+void Push1TStack(TStack *ts, int x)
+{
+    if (ts->top1 < ts->top2 - 1)
+    {
         ts->top1++;
         ts->arr[ts->top1] = x;
     }
     else
         exit(1);
 }
-void Push2TStack(TStack* ts){
-    if(ts->top1 < ts->top2 -1){
+void Push2TStack(TStack *ts, int x)
+{
+    if (ts->top1 < ts->top2 - 1)
+    {
         ts->top2--;
         ts->arr[ts->top2] = x;
     }
     else
         exit(1);
 }
-int Pop1TStack(TStack* ts){
-    if(ts->top1 >= 0){
+int Pop1TStack(TStack *ts)
+{
+    if (ts->top1 >= 0)
+    {
         int x = ts->arr[ts->top1];
         ts->top1--;
         return x;
@@ -2990,8 +3239,10 @@ int Pop1TStack(TStack* ts){
     else
         exit(1);
 }
-int Pop2TStack(TStack* ts){
-    if(ts->top2 < ts->size){
+int Pop2TStack(TStack *ts)
+{
+    if (ts->top2 < ts->size)
+    {
         int x = ts->arr[ts->top2];
         ts->top2++;
         return x;
@@ -2999,124 +3250,515 @@ int Pop2TStack(TStack* ts){
     else
         exit(1);
 }
-void DestroyTStack(TStack* ts){
+void DestroyTStack(TStack *ts)
+{
     free(ts->arr);
     free(ts);
 }
 
-typedef struct{
-    int* arr;
+typedef struct
+{
+    int *arr;
     int front;
     int rear;
     int cap;
-}Queue;
-typedef struct StackByQueue{
-    Queue q1, q2;
-}QStack;
-Queue* CreateQueue(int cap){
-    Queue* q = (Queue*)malloc(sizeof(Queue));
-    q->arr = (int*)malloc(cap * sizeof(int));
+} Que;
+typedef struct StackByQueue
+{
+    Que q1, q2;
+} QStack;
+Que *CreateQue(int cap)
+{
+    Que *q = (Que *)malloc(sizeof(Que));
+    q->arr = (int *)malloc(cap * sizeof(int));
     q->front = q->rear = -1;
     q->cap = cap;
     return q;
 }
-bool IsEmptyQueue(Queue* q){
-    return q->front == -1;
+bool IsEmptyQue(Que *q)
+{
+    return (q->front == -1);
 }
-bool IsFullQueue(Queue* q){
-    return (q->rear+1) % q->cap == q->front;
+bool IsFullQue(Que *q)
+{
+    return (q->rear + 1) % q->cap == q->front;
 }
-void Enqueue(Queue* q, int x){
-    if(IsFullQueue(q))
-        exit(1);
-    if(IsEmptyQueue(q))
+void EnqueueQue(Que *q, int x)
+{
+    if (IsFullQue(q))
+        return;
+    if (IsEmptyQue(q))
         q->front = q->rear = 0;
     else
-        q->rear = (q->rear+1) % q->cap;
+        q->rear = (q->rear + 1) % q->cap;
     q->arr[q->rear] = x;
 }
-int Dequeue(Queue* q){
-    if(IsEmptyQueue(q))
-        exit(1);
+int DequeueQue(Que *q)
+{
+    if (IsEmptyQue(q))
+        return INT_MIN;
     int x = q->arr[q->front];
-    if(q->front == q->rear)
+    if (q->front == q->rear)
         q->front = q->rear = -1;
     else
-        q->front = (q->front+1) % q->cap;
+        q->front = (q->front + 1) % q->cap;
     return x;
 }
-QStack* CreateQStack(int cap){
-    QStack* s = (QStack*)malloc(sizeof(QStack));
-    s->q1 = *CreateQueue(cap);
-    s->q2 = *CreateQueue(cap);
+
+QStack *CreateQStack(int cap)
+{
+    QStack *s = (QStack *)malloc(sizeof(QStack));
+    s->q1 = *CreateQue(cap);
+    s->q2 = *CreateQue(cap);
     return s;
 }
-void PushQStack(QStack* s, int x){
-    Enqueue(&(s->q2), x);
-    while(!IsEmptyQueue(&(s->q1)))
-        Enqueue(&(s->q2), Dequeue(&(s->q1)));
-    Queue temp = s->q1;
+void PushQStack(QStack *s, int x)
+{
+    EnqueueQue(&(s->q2), x);
+    while (!IsEmptyQue(&(s->q1)))
+        EnqueueQue(&(s->q2), DequeueQue(&(s->q1)));
+    Que temp = s->q1;
     s->q1 = s->q2;
     s->q2 = temp;
 }
-void PopQStack(QStack* s){
-    if(IsEmptyQueue(&(s->q1)))
+void PopQStack(QStack *s)
+{
+    if (IsEmptyQue(&(s->q1)))
         exit(1);
-    Dequeue(&(s->q1));
+    DequeueQue(&(s->q1));
 }
-int TopQStack(QStack* s){
-    if(IsEmptyQueue(&(s->q1)))
+int TopQStack(QStack *s)
+{
+    if (IsEmptyQue(&(s->q1)))
         return -1;
     return s->q1.arr[s->q1.front];
 }
-int size(QStack* s){
-    return IsEmptyQueue(&(s->q1)) ? 0 :s->q1.cap;
+int size(QStack *s)
+{
+    return IsEmptyQue(&(s->q1)) ? 0 : s->q1.cap;
+}
+
+typedef struct DequeNode
+{
+    int val;
+    struct DequeNode *next;
+    struct DequeNode *prev;
+} DQNode;
+typedef struct Deque
+{
+    DQNode *head;
+    DQNode *tail;
+} DQ;
+DQ *CreateDeque()
+{
+    DQ *dq = (DQ *)malloc(sizeof(DQ));
+    dq->head = dq->tail = NULL;
+    return dq;
+}
+int IsEmptyDeque(DQ *dq)
+{
+    return (dq->head == NULL);
+}
+int SizeDeque(DQ *dq)
+{
+    if (IsEmptyDeque(dq))
+    {
+        DQNode *temp = dq->head;
+        int len = 0;
+        while (temp != NULL)
+        {
+            len++;
+            temp = temp->next;
+        }
+        return len;
+    }
+    return 0;
+}
+void InsertFisrtDeque(DQ *dq, int val)
+{
+    DQNode *temp = (DQNode *)malloc(sizeof(DQNode));
+    temp->val = val;
+    if (IsEmptyDeque(dq))
+    {
+        dq->head = dq->tail = temp;
+        temp->next = temp->prev = NULL;
+    }
+    else
+    {
+        dq->head->prev = temp;
+        temp->next = dq->head;
+        temp->prev = NULL;
+        dq->head = temp;
+    }
+}
+void InsertLastDeque(DQ *dq, int val)
+{
+    DQNode *temp = (DQNode *)malloc(sizeof(DQNode));
+    temp->val = val;
+    if (IsEmptyDeque(dq))
+    {
+        dq->head = dq->tail = temp;
+        temp->next = temp->prev = NULL;
+    }
+    else
+    {
+        dq->tail->next = temp;
+        temp->next = NULL;
+        temp->prev = dq->tail;
+        dq->tail = temp;
+    }
+}
+void RemoveFirstDeque(DQ *dq)
+{
+    if (!IsEmptyDeque(dq))
+    {
+        DQNode *temp = dq->head;
+        dq->head = dq->head->next;
+        if (dq->head)
+            dq->head->prev = NULL;
+        free(temp);
+        if (dq->head == NULL)
+            dq->tail = NULL;
+        return;
+    }
+}
+void RemoveLastDeque(DQ *dq)
+{
+    if (!IsEmptyDeque(dq))
+    {
+        DQNode *temp = dq->tail;
+        dq->tail = dq->tail->prev;
+        if (dq->tail)
+            dq->tail->next = NULL;
+        free(temp);
+        if (dq->tail == NULL)
+            dq->head = NULL;
+        return;
+    }
+}
+typedef struct StackByDeque
+{
+    DQ *dq;
+} DStack;
+void PushDStack(DStack *st, int val)
+{
+    InsertLastDeque(st->dq, val);
+}
+void PopDStack(DStack *st)
+{
+    RemoveLastDeque(st->dq);
+}
+typedef struct QueueByDeque
+{
+    DQ *dq;
+} DQue;
+void EnqueueDQue(DQue *q, int val)
+{
+    InsertLastDeque(q->dq, val);
+}
+void DequeueDQue(DQue *q)
+{
+    RemoveFirstDeque(q->dq);
+}
+
+//----------------------------------------
+//----------------- Queue ----------------
+//----------------------------------------
+typedef struct
+{
+    int *arr;
+    int front;
+    int rear;
+    unsigned int cap;
+    int size;
+} Queue;
+Queue *CreateQueue(unsigned int cap)
+{
+    Queue *q = (Queue *)malloc(sizeof(Queue));
+    q->arr = (int *)malloc(cap * sizeof(int));
+    q->front = q->size = 0;
+    q->cap = cap;
+    q->rear = cap - 1;
+    q->arr = (int *)malloc(sizeof(int));
+    return q;
+}
+bool IsEmptyQueue(Queue *q)
+{
+    return (q->size == 0);
+}
+bool IsFullQueue(Queue *q)
+{
+    return (q->size == q->cap);
+}
+void EnqueueQueue(Queue *q, int x)
+{
+    if (IsFullQueue(q))
+        return;
+    q->rear = (q->rear + 1) % q->cap;
+    q->arr[q->rear] = x;
+    q->size = q->size + 1;
+}
+int DequeueQueue(Queue *q)
+{
+    if (IsEmptyQueue(q))
+        return INT_MIN;
+    int x = q->arr[q->front];
+    q->front = (q->front + 1) % q->cap;
+    q->size = q->size - 1;
+    return x;
+}
+int FrontQueue(Queue *q)
+{
+    if (IsEmptyQueue(q))
+        return INT_MIN;
+    return q->arr[q->front];
+}
+int RearQueue(Queue *q)
+{
+    if (IsEmptyQueue(q))
+        return INT_MIN;
+    return q->arr[q->rear];
+}
+int SizeQueue(Queue *q)
+{
+    return q->size;
+}
+
+// Priority Queue using Max Heap
+int PQH[50];
+int PQsize = -1;
+int PQParentNode(int i)
+{
+    return (i - 1) >> 1;
+}
+int PQLeftChild(int i)
+{
+    return ((i << 1) + 1);
+}
+int PQRightChild(int i)
+{
+    return ((i << 1) + 2);
+}
+void PQShiftUp(int i)
+{
+    while (i > 0 && PQH[PQParentNode(i)] < PQH[i])
+    {
+        Swap(&PQH[PQParentNode(i)], &PQH[i]);
+        i = PQParentNode(i);
+    }
+}
+void PQShiftDown(int i)
+{
+    int max_idx = i;
+    int l = PQLeftChild(i);
+    if (l <= PQsize && PQH[l] > PQH[max_idx])
+        max_idx = l;
+    int r = PQRightChild(i);
+    if (r <= PQsize && PQH[r] > PQH[max_idx])
+        max_idx = r;
+    if (i != max_idx)
+    {
+        Swap(&PQH[i], &PQH[max_idx]);
+        PQShiftDown(max_idx);
+    }
+}
+void PQInsert(int p)
+{
+    PQsize = PQsize + 1;
+    PQH[PQsize] = p;
+    PQShiftUp(PQsize);
+}
+int PQGetMaxPriorityElement()
+{
+    int result = PQH[0];
+    PQH[0] = PQH[PQsize];
+    PQsize = PQsize - 1;
+    PQShiftDown(0);
+    return result;
+}
+void PQChangePriority(int i, int p)
+{
+    int oldp = PQH[i];
+    PQH[i] = p;
+    if (p > oldp)
+        PQShiftUp(i);
+    else
+        PQShiftDown(i);
+}
+int PQGetMaxValue()
+{
+    return PQH[0];
+}
+void PQRemove(int i)
+{
+    PQH[i] = PQGetMaxValue() + 1;
+    PQShiftUp(i);
+    PQGetMaxPriorityElement();
+}
+// Priority Queue using Max Heap Template
+template <typename T>
+class PriorityQueue
+{
+private:
+    vector<T> data;
+
+public:
+    PriorityQueue() {}
+    void EnqueueTemplate(T item)
+    {
+        data.push_back(item);
+        int ci = data.size() - 1;
+        while (ci > 0)
+        {
+            int pi = (ci - 1) >> 1;
+            if (data[ci] <= data[pi])
+                break;
+            T temp = data[ci];
+            data[ci] = data[pi];
+            data[pi] = temp;
+            ci = pi;
+        }
+    }
+    T Dequeue()
+    {
+        int li = data.size() - 1;
+        T front_item = data[0];
+        data[0] = data[li];
+        data.pop_back();
+        --li;
+        int pi = 0;
+        while (true)
+        {
+            int ci = pi * 2 + 1;
+            if (ci > li)
+                break;
+            int rc = ci + 1;
+            if (rc <= li && data[rc] < data[ci])
+                ci = rc;
+            if (data[pi] >= data[ci])
+                break;
+            T tmp = data[pi];
+            data[pi] = data[ci];
+            data[ci] = tmp;
+            pi = ci;
+        }
+        return frontItem;
+    }
+    T Peek()
+    {
+        T frontItem = data[0];
+        return frontItem;
+    }
+
+    int Count()
+    {
+        return data.size();
+    }
+};
+
+typedef struct CharLLNode{
+    char* data;
+    struct CharLLNode* next;
+}CNode;
+typedef struct {
+    CNode* front;
+    CNode* rear;
+}LLQue;
+CNode* CreateCNode(char* data){
+    CNode* newNode = (CNode*)malloc(sizeof(CNode));
+    newNode->data = strdup(data);
+    newNode->next = NULL;
+    return newNode;
+}
+void InitLLQ(LLQue* q){
+    q->front = q->rear = NULL;
+}
+bool IsEmptyLLQ(LLQue* q){
+    return q->front == NULL;
+}
+void EnqueueLLQ(LLQue* q, char* data){
+    CNode* newNode = CreateCNode(data);
+    if (IsEmptyLLQ(q))
+        q->front = q->rear = newNode;
+    else {
+        q->rear->next = newNode;
+        q->rear = newNode;
+    }
+}
+char* DequeueLLQ(LLQue* q){
+    if (IsEmptyLLQ(q))
+        return NULL;
+    CNode* fnode = q->front;
+    char* data = fnode->data;
+    q->front = fnode->next;
+    free(fnode);
+    if (q->front == NULL)
+        q->rear = NULL;
+    return data;
+}
+void DecimalN2BinaryF0TN(int n){
+    LLQue q;
+    InitLLQ(&q);
+    EnqueueLLQ(&q, "1");
+    while (n--) {
+        char* s1 = DequeueLLQ(&q);
+        printf("%s\n", s1);
+        free(s1);
+        char* s2 = strdup(s1);
+        strcat(s1, "0");
+        EnqueueLLQ(&q, s1);
+        strcat(s2, "1");
+        EnqueueLLQ(&q, s2);
+    }
 }
 
 
 
 
-int main()
-{
-    SStack* s = CreateSStack();
+
+//Queue Using Linked List and data type is char
+int main(){
+    SStack *s = CreateSStack();
     int arr[] = {3, 2, 6, 1, 8, 5, 5, 5, 5};
     int n = sizeof(arr) / sizeof(arr[0]);
-    for(int i=0; i<n; i++){
+    for (int i = 0; i < n; i++)
+    {
         PushSStack(s, arr[i]);
         GetMinSStack(s);
     }
     printf("\n");
-    for(int i=0; i<n; i++){
+    for (int i = 0; i < n; i++)
+    {
         PopSStack(s);
         GetMinSStack(s);
     }
     DestroySStack(s);
     return 0;
 }
-    /* char str1[] = "AGGTAB";//AGGTAB ,geek
-    char str2[] = "GXTXAYB";//GXTXAYB , eke
-    char str3[] = "axxxy";
-    char str4[] = "geeksforgeeks";//forgeeksskeegfor, geeksforgeeks, abcde
-    char str5[] = "baaabab";// AAAAAAAAAAAAAAAAAB, AABAACAADAABAAABAA
-    char str6[] = "GEEKS FOR GEEKS";// AAAAB, AABA,
-    char dic[5][5] = {"abb", "abc", "xyz", "xyy", "bbb"};
-    char pat[] = "GEEK";
-    int arr[] = {1, 4, 5, 3, 12, 10};
-    int n = sizeof(arr)/sizeof(arr[0]);
-    IncMonotonicStack(arr, n); */
-    /* char *r1 = PrintLongestPalindromicSubsequence(str4);
-    int r2 = CountLongestCommonSubsequence(str1, str2);
-    printf("%s\n", r1);
-    printf("\n\n%d\n", r2);
-    PatternSearchingWithZ(str5, str6);
-    
-    printf("r2 %d\n", r2);
-    
-    free(r2); */
+/* char str1[] = "AGGTAB";//AGGTAB ,geek
+char str2[] = "GXTXAYB";//GXTXAYB , eke
+char str3[] = "axxxy";
+char str4[] = "geeksforgeeks";//forgeeksskeegfor, geeksforgeeks, abcde
+char str5[] = "baaabab";// AAAAAAAAAAAAAAAAAB, AABAACAADAABAAABAA
+char str6[] = "GEEKS FOR GEEKS";// AAAAB, AABA,
+char dic[5][5] = {"abb", "abc", "xyz", "xyy", "bbb"};
+char pat[] = "GEEK";
+int arr[] = {1, 4, 5, 3, 12, 10};
+int n = sizeof(arr)/sizeof(arr[0]);
+IncMonotonicStack(arr, n); */
+/* char *r1 = PrintLongestPalindromicSubsequence(str4);
+int r2 = CountLongestCommonSubsequence(str1, str2);
+printf("%s\n", r1);
+printf("\n\n%d\n", r2);
+PatternSearchingWithZ(str5, str6);
+
+printf("r2 %d\n", r2);
+
+free(r2); */
 /*     int temp = 0;
     int arr[] = {11, 12, 11, 50, 8, 30, 1, 60, 2, 80, 0, 50, 5, 108};
     char arr2[][20] = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
-    
+
     int n = sizeof(arr) / sizeof(int);
     int m = sizeof(arr2) / sizeof(arr2[0]);
      int arr[] = { 0, 1, 1, 0, 1, 2, 1, 2, 0, 0, 0, 1 };
