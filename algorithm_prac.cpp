@@ -6,11 +6,13 @@
 #include <algorithm>
 #include <ctype.h>
 #include <iostream>
-
+#include <queue>
+using namespace std;
+//#include <bits/stdc++.h>
 // 자동 정렬 shift + alt + F
 // 커서영역 선택 Shft + alt + left 
-// 1수준 접기 ctrl z x  --> 모든 수준 ( 모든 커서 닫기 ctrl z c)
-// 모두 펼치기 ctrl shift z x
+// 1수준 접기 ctrl shift alt a  --> 모든 수준 ( 모든 커서 닫기 ctrl shift alt s)
+// 모두 펼치기 ctrl shift alt d
 #define INTPRINT(x)               \
     do                            \
     {                             \
@@ -100,41 +102,7 @@ typedef struct DNode // Double Linked List Node
     struct DNode *prev;
 } DNode;
 
-Tree *createTreeNode(int key)
-{
-    Tree *newNode = (Tree *)malloc(sizeof(Tree));
-    newNode->key = key;
-    newNode->left = newNode->right = NULL;
-    return newNode;
-}
-Tree *InsertTree(Tree *root, int key)
-{
-    if (root == NULL)
-        return createTreeNode(key);
-    if (key < root->key)
-        root->left = InsertTree(root->left, key);
-    else if (key > root->key)
-        root->right = InsertTree(root->right, key);
-    return root;
-}
-void InorderTraversal(Tree *root, int *arr, int *idx)
-{
-    if (root != NULL)
-    {
-        // 1) printf() 없이 array에 정렬된 배열 저장
 
-        InorderTraversal(root->left, arr, idx);
-        arr[(*idx)++] = root->key;
-        InorderTraversal(root->right, arr, idx);
-
-        /* 2) pritnf()를 이용하여 정렬된 배열 출력
-
-        InorderTraversal(root->left);
-        printf("%d ", root->key);
-        InorderTraversal(root->right);
-        */
-    }
-}
 //----------------------------------------
 //----------------- Sort -----------------
 //----------------------------------------
@@ -789,14 +757,7 @@ void BitonicSort(int *arr, int low, int cnt, int dir)
     }
 }
 
-void TreeSort(int *arr, int size)
-{
-    int i = 0, index = 0;
-    Tree *root = NULL;
-    for (i = 0; i < size; i++)
-        root = InsertTree(root, arr[i]);
-    InorderTraversal(root, arr, &index);
-}
+
 
 //----------------------------------------
 //----------------- Array ----------------
@@ -3711,6 +3672,270 @@ void DecimalN2BinaryF0TN(int n){
         EnqueueLLQ(&q, s2);
     }
 }
+
+//----------------------------------------
+//----------------- Tree -----------------
+//----------------------------------------
+
+Tree* CreateTree(int data){
+    Tree* newNode = (Tree*)malloc(sizeof(Tree));
+    newNode->key = data;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+ }
+void PreorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
+    if(t == NULL)
+        return;
+    if(option){
+        arr[(*idx)++] = t->key;
+        PreorderTree(t->left);
+        PreorderTree(t->right);
+    }
+    if(!option){
+        printf("%d ", t->key);
+        PreorderTree(t->left);
+        PreorderTree(t->right);
+    }
+ }
+void InorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
+    if(t == NULL)
+        return;
+    // 1) printf() 없이 array에 정렬된 배열 저장
+    if(option){
+        InorderTree(t->left, arr, idx, true);
+        arr[(*idx)++] = t->key;
+        InorderTree(t->right, arr, idx, true);
+    }
+    //2) pritnf()를 이용하여 정렬된 배열 출력
+    if(!option){
+        InorderTree(t->left, arr, idx, false);
+        printf("%d ", t->key);
+        InorderTree(t->right, arr, idx, false);
+    }
+}
+void PostorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
+    if(t == NULL)
+        return;
+    if(option){
+        PostorderTree(t->left, arr, idx, true);
+        PostorderTree(t->right, arr, idx, true);
+        arr[(*idx)++] = t->key;
+    }
+    if(!option){
+        PostorderTree(t->left, arr, idx, true);
+        PostorderTree(t->right, arr, idx, true);
+        printf("%d ", t->key);
+    }
+}
+void LevelorderTree(Tree* t){
+    if(t == NULL)
+        return;
+    queue<Tree*> q;
+    q.push(t);
+    while(!q.empty()){
+        Tree* node = q.front();
+        cout << node->key << " ";
+        q.pop();
+        if(node->left != NULL)
+            q.push(node->left);
+        if(node->right != NULL)
+            q.push(node->right);
+    }
+}
+int SizeRecursiveTree(Tree* t){
+    if(t==NULL)
+        return 0;
+    else
+        return (SizeRecursiveTree(t->left)+1+SizeRecursiveTree(t->right));
+}
+//Inorder Traversal without recursion and stack
+int SizeMorrisTree(Tree* t){
+    int count = 0;
+    Tree* cur = t;
+    while(cur != NULL){
+        if(cur->left == NULL){
+            count++;
+            cur = cur->right;
+        }
+        else{
+            Tree* child = cur->left;
+            while(child->right != NULL && child->right != cur)
+                child = child->right;
+            if(child->right == NULL){
+                child->right = cur;
+                cur = cur->left;
+            }
+            else{
+                child->right = NULL;
+                count++;
+                cur = cur->right;
+            }
+        }
+    }
+    return count;
+}
+int GetDiameterTree(Tree* t){
+    // Diameter is the longest distance between nodes 
+     int result = 0;
+    Tree* cur = t;
+    while(cur != NULL){
+        if(cur->left == NULL)
+            cur = cur->right;
+        else{
+            Tree* child = cur->left;
+            while(child->right != NULL && child->right != cur)
+                child = child->right;
+            if(child->right == NULL){
+                child->right = cur;
+                cur = cur->left;
+            }
+            else{
+                child->right = NULL;
+                int lh = 0 , rh = 0;
+                Tree* temp = cur->left;
+                while(temp != NULL){
+                    lh++;
+                    temp = temp->right;
+                }
+                temp = cur->right;
+                while(temp != NULL){
+                    rh++;
+                    temp = temp->left;
+                }
+                result = __max(result, lh+rh+1);
+                cur = cur->right;
+            }
+        }
+    }
+    return result;
+}
+int GetMaxValTree(Tree* t){
+    if(t == NULL)
+        return INT_MIN;
+    int max = t->key;
+    int lmax = GetMaxValTree(t->left);
+    int rmax = GetMaxValTree(t->right);
+    if(lmax > max)
+        max = lmax;
+    if(rmax > max)
+        max = rmax;
+    return max;
+}
+int GetMinValTree(Tree* t){
+    if(t == NULL)
+        return INT_MAX;
+    int min = t->key;
+    int lmin = GetMinValTree(t->left);
+    int rmin = GetMinValTree(t->right);
+    if(lmin < min)
+        min = lmin;
+    if(rmin < min)
+        min = rmin;
+    return min;
+}
+int GetDepthTree(Tree* t){
+    if(t == NULL)
+        return 0;
+    else{
+        int ldepth = GetDepthTree(t->left);
+        int rdepth = GetDepthTree(t->right);
+        if(ldepth > rdepth)
+            return ldepth+1;
+        else
+            return rdepth+1;
+    }
+}
+int GetIndexTree(char* arr, int sidx, int eidx, char val){
+    int i;
+    for(i=sidx; i<=eidx; i++)
+        if(arr[i] == val)
+            return i;
+}
+Tree* CompoundInPreTree(char* in, char* pre, int sidx, int eidx){
+    // Compound Inorder-Preorder Traversal Trees to 1 tree
+    static int preidx = 0;
+    if(sidx > eidx)
+        return NULL;
+    Tree* t = CreateTree(pre[preidx++]);
+    if(sidx == eidx)
+        return t;
+    int inidx = GetIndexTree(in, sidx, eidx, t->key);
+    t->left = CompoundInPreTree(in, pre, sidx, inidx-1);
+    t->right = CompoundInPreTree(in, pre, inidx+1, eidx);
+    return t;
+}
+int GetWidthTree(Tree* t, int level){
+    if(t == NULL)
+        return 0;
+    if(level == 1)
+        return 1;
+    if(level > 1)
+        return GetWidthTree(t->left, level-1)+GetWidthTree(t->right, level 1);
+}
+void GetMaxWidthRecursionTree(Tree* t, int count[], int level){
+
+}
+int GetMaxWidthTree(Tree* t){
+    int level = 0;
+    int width;
+    int h = GetDepthTree(t);
+    int* count = (int*)calloc(sizeof(int), h);
+    maxvalaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    return max;
+}
+
+
+
+
+Tree* InsertTree(Tree *root, int key)
+{
+    if (root == NULL)
+        return CreateTree(key);
+    if (key < root->key)
+        root->left = InsertTree(root->left, key);
+    else if (key > root->key)
+        root->right = InsertTree(root->right, key);
+    return root;
+}
+void TreeSort(int *arr, int size)
+{
+    int i = 0, index = 0;
+    Tree *root = NULL;
+    for (i = 0; i < size; i++)
+        root = InsertTree(root, arr[i]);
+    InorderTree(root, arr, &index, true);
+}
+
+//Threaded Binary Tree
+/* 장점
+ * - 메모리 절약, NULL 포인터 없음
+ * 단점
+ * - 삽입/삭제 복잡성, 디버깅 어려움, 균형이 안잡히면 메모리 사용량 증가
+*/ 
+typedef struct ThreadedBinaryTree{
+    int data;
+    struct ThreadedBinaryTree* left;
+    struct ThreadedBinaryTree* right;
+    bool rightTread;
+}TBTree;
+TBTree* LeftMostTBTree(TBTree* t){
+    if(t == NULL)
+        return NULL;
+    while(t->left != NULL)
+        t = t->left;
+    return t;
+}
+void InorderTBTree(TBTree* t){
+    TBTree* cur = LeftMostTBTree(t);
+    while(cur != NULL){
+        printf("%d ", cur->data);
+        if(cur->rightTread)
+            cur = cur->right;
+        else
+            cur = LeftMostTBTree(cur->right);
+    }
+}
+
 
 
 
