@@ -94,6 +94,7 @@ typedef struct Tree
     int key;
     struct Tree *left;
     struct Tree *right;
+    struct Tree *nextRight;
 } Tree;
 typedef struct DNode // Double Linked List Node
 {
@@ -3728,6 +3729,14 @@ void PostorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
     }
 }
 void LevelorderTree(Tree* t){
+    int h = GetDepthTree(t);
+    int i;
+    for(i=1; i<=h; i++){
+        GetAllNodeAtSameLevelTree(t, i);
+        printf("\n");
+    }
+}
+void LevelorderTreeUsingQueue(Tree* t){
     if(t == NULL)
         return;
     queue<Tree*> q;
@@ -3773,6 +3782,26 @@ int SizeMorrisTree(Tree* t){
         }
     }
     return count;
+}
+void ViewRightNodeTree(Tree* t, int level, int* max_level){
+    if(t == NULL)
+        return;
+    if(*max_level < level){
+        printf("%d ", t->key);
+        *max_level = level;
+    }
+    ViewRightNodeTree(t->right, level+1, max_level);
+    ViewRightNodeTree(t->left, level+1, max_level);
+}
+void ViewLeftNodeTree(Tree* t, int level, int* max_level){
+    if(t == NULL)
+        return;
+    if(*max_level < level){
+        printf("%d ", t->key);
+        *max_level = level;
+    }
+    ViewLeftNodeTree(t->left, level+1, max_level);
+    ViewLeftNodeTree(t->right, level+1, max_level);
 }
 int GetDiameterTree(Tree* t){
     // Diameter is the longest distance between nodes 
@@ -3833,23 +3862,62 @@ int GetMinValTree(Tree* t){
         min = rmin;
     return min;
 }
+Tree* GetMinValNodeBinaryTree(Tree* t){
+    Tree* cur = t;
+    while(cur && cur->left != NULL)
+        cur = cur->left;
+    return cur;
+}
 int GetDepthTree(Tree* t){
     if(t == NULL)
         return 0;
     else{
         int ldepth = GetDepthTree(t->left);
         int rdepth = GetDepthTree(t->right);
-        if(ldepth > rdepth)
-            return ldepth+1;
-        else
-            return rdepth+1;
+        return (ldepth > rdepth) ? ldepth+1 : rdepth+1;  
     }
+}
+void GetAllNodeAtSameLevelTree(Tree* t, int level){
+    if(t == NULL)
+        return;
+    if(level == 1)
+        printf("%d ", t->key);
+    if(level > 1){
+        GetAllNodeAtSameLevelTree(t->left, level-1);
+        GetAllNodeAtSameLevelTree(t->right, level-1);
+    }
+}
+void GetAllLeafNodeTree(Tree* t){
+    if(!t)
+        return;
+    if(!t->left && !t->right){
+        printf("%d ", t->key);
+        return;
+    }
+    if(t->left)
+        GetAllLeafNodeTree(t->left);
+    if(t->right)
+        GetAllLeafNodeTree(t->right);
+}
+void GetAllInternalNodeTree(Tree* t){
+    if(t == NULL || (t->left == NULL && t->right == NULL))
+        return;
+    if(t->left != NULL|| t->right != NULL)
+        printf("%d ", t->key);
+    GetAllInternalNodeTree(t->left);
+    GetAllInternalNodeTree(t->right);
 }
 int GetIndexTree(char* arr, int sidx, int eidx, char val){
     int i;
     for(i=sidx; i<=eidx; i++)
         if(arr[i] == val)
             return i;
+}
+int GetNumNodeTree(Tree* t){
+    if(t == NULL)
+        return 0;
+    else
+        return GetNumNodeTree(t->left) + GetNumNodeTree(t->right) + 1;
 }
 Tree* CompoundInPreTree(char* in, char* pre, int sidx, int eidx){
     // Compound Inorder-Preorder Traversal Trees to 1 tree
@@ -3870,42 +3938,212 @@ int GetWidthTree(Tree* t, int level){
     if(level == 1)
         return 1;
     if(level > 1)
-        return GetWidthTree(t->left, level-1)+GetWidthTree(t->right, level 1);
+        return GetWidthTree(t->left, level-1)+GetWidthTree(t->right, level-1);
 }
-void GetMaxWidthRecursionTree(Tree* t, int count[], int level){
-
+int GetMaxValArray(int* arr, int n){
+    int max = arr[0];
+    int i;
+    for(i=0; i<n; i++)
+        if(arr[i] > max)
+            max = arr[i];
+    return max;
+}
+void GetMaxWidthRecursionTree(Tree* t, int* count, int level){
+    if(t){
+        count[level]++;
+        GetMaxWidthRecursionTree(t->left, count, level+1);
+        GetMaxWidthRecursionTree(t->right, count, level+1);
+    }
 }
 int GetMaxWidthTree(Tree* t){
     int level = 0;
     int width;
     int h = GetDepthTree(t);
     int* count = (int*)calloc(sizeof(int), h);
-    maxvalaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    return max;
+    GetMaxWidthRecursionTree(t, count, level);
+    return GetMaxValArray(count, h);
 }
-
-
-
-
-Tree* InsertTree(Tree *root, int key)
+void GetDistFromRootTree(Tree* t, int dist){
+    if(t == NULL || dist < 0)
+        return;
+    if(dist == 0){
+        printf("%d ", t->key);
+        return;
+    }
+    GetDistFromRootTree(t->left, dist-1);
+    GetDistFromRootTree(t->right, dist-1);
+}
+bool GetAncestorsFromKey(Tree* t, int key){
+    if(t == NULL)
+        return false;
+    if(t->key == key)
+        return true;
+    if(GetAncestorsFromKey(t->left, key)|| GetAncestorsFromKey(t->right, key) ){
+        printf("%d ", t->key);
+        return true;
+    }
+    return false;
+}
+bool IsIdenticalTree(Tree* t1, Tree* t2){
+    if(t1 == NULL && t2 == NULL)
+        return true;
+    if(t1 == NULL || t2 == NULL)
+        return false;
+    return (t1->key == t2->key && IsIdenticalTree(t1->left, t2->left) && IsIdenticalTree(t1->right, t2->right));
+}
+bool IsSubTree(Tree* t1, Tree* t2){
+    if(t2 == NULL)//Subtree
+        return true;
+    if(t1 == NULL)//Tree
+        return false;
+    if(IsIdenticalTree(t1, t2))
+        return true;
+    return IsSubTree(t1->left, t2) || IsSubTree(t1->right, t2);
+}
+void ConnectSameLevelNodeTree(Tree* t){
+    if(t == NULL)
+        return;
+    queue<Tree*> q;
+    q.push(t);
+    while(!q.empty()){
+        int size = q.size();
+        Tree* prev = NULL;
+        while(size--){
+            Tree* temp = q.front();
+            q.pop();
+            if(temp->left)
+                q.push(temp->left);
+            if(temp->right)
+                q.push(temp->right);
+            if(prev != NULL)
+                prev->nextRight = temp;
+            prev = temp;
+        }
+        prev->nextRight = NULL;
+    }
+}
+Tree* DeletionTree(Tree* t, int key){
+    if(t == NULL)
+        return NULL;
+    if(t->left == NULL && t->right == NULL){
+        if(t->key == key)
+            return NULL;
+        else
+            return t;
+    }
+    Tree* key_node = NULL;
+    Tree* temp = NULL;
+    Tree* last = NULL;
+    Tree* q[100];
+    int front = 0, rear = 0;
+    q[rear++] = t;
+    while(front < rear){
+        temp = q[front++];
+        if(temp->key == key)
+            key_node = temp;
+        if(temp->left){
+            last = temp;
+            q[rear++] = temp->left;
+        }
+        if(temp->right){
+            last = temp;
+            q[rear++] = temp->right;
+        }
+    }
+    if(key_node != NULL){
+        key_node->key = temp->key;
+        if(last->right == temp)
+            last->right = NULL;
+        else
+            last->left = NULL;
+        free(temp);
+    }
+    return t;
+}
+Tree* DeletionBinaryTree(Tree* t, int key){
+    if(t == NULL)
+        return t;
+    if(t->key > key)
+        t->left = DeletionBinaryTree(t->left, key);
+    else if(t->key < key)
+        t->right = DeletionBinaryTree(t->right, key);
+    else{
+        if(t->left == NULL){
+            Tree* temp = t->right;
+            free(t);
+            return temp;
+        }
+        else if(t->right == NULL){
+            Tree* temp = t->left;
+            free(t);
+            return temp;
+        }
+        Tree* temp = GetMinValNodeBinaryTree(t->right);
+        t->key = temp->key;
+        t->right = DeletionBinaryTree(t->right, temp->key);
+    }
+    return t;
+}
+Tree* DeletionAllBinaryTree(Tree* t){
+    Tree* temp;
+    if(t != NULL){
+        DeletionAllBinaryTree(t->left);
+        DeletionAllBinaryTree(t->right);
+        temp = t;
+        free(temp);
+    }
+    return t;
+}
+Tree* InsertBinaryTree(Tree *root, int key)
 {
     if (root == NULL)
         return CreateTree(key);
     if (key < root->key)
-        root->left = InsertTree(root->left, key);
+        root->left = InsertBinaryTree(root->left, key);
     else if (key > root->key)
-        root->right = InsertTree(root->right, key);
+        root->right = InsertBinaryTree(root->right, key);
     return root;
+}
+void InsertBinaryTreeByIterative(Tree* t, int key){
+    Tree* node = (Tree*)malloc(sizeof(Tree));
+    node->key = key;
+    node->left = node->right = NULL;
+    if(!t){
+        t = node;
+        return;
+    }
+    Tree* prev = NULL;
+    Tree* temp = t;
+    while(temp){
+        if(temp->key > key){
+            prev = temp;
+            temp = temp->left;
+        }
+        else if(temp->key < key){
+            prev = temp;
+            temp = temp->right;
+        }
+    }
+    if(prev->key > key)
+        prev->left = node;
+    else
+        prev->right = node;
 }
 void TreeSort(int *arr, int size)
 {
     int i = 0, index = 0;
     Tree *root = NULL;
     for (i = 0; i < size; i++)
-        root = InsertTree(root, arr[i]);
+        root = InsertBinaryTree(root, arr[i]);
     InorderTree(root, arr, &index, true);
 }
-
+Tree* SearchNodeBinaryTree(Tree* t, int key){
+    if(t == NULL || t->key == key)
+        return t;
+    if(t->key < key)
+        return SearchNodeBinaryTree(t->right, key);
+    return SearchNodeBinaryTree(t->left, key);
+}
 //Threaded Binary Tree
 /* 장점
  * - 메모리 절약, NULL 포인터 없음
@@ -3936,9 +4174,113 @@ void InorderTBTree(TBTree* t){
     }
 }
 
-
-
-
+//Ternary Search Tree
+// Trie 의 자식 노드가 이진 검색 트리로 정렬되는 트리
+typedef struct TernarySearchTree{
+    char data;
+    int end;
+    int isleaf;
+    unsigned int isEndofString = 1;
+    TSTree* left, *eq, *right;
+}TSTree;
+TSTree* CreateTSTree(char data){
+    TSTree* temp = (TSTree*)malloc(sizeof(TSTree));
+    temp->data = data;
+    temp->isEndofString = 0;
+    temp->end = 0;
+    temp->isleaf = 0;
+    temp->left = temp->eq = temp->right = NULL;
+    return temp;
+}
+void InsertTSTree(TSTree** tst, char* str){
+    if(!(*tst))
+        *tst = CreateTSTree(*str);
+    if((*str) < (*tst)->data)
+        InsertTSTree(&((*tst)->left), str);
+    else if((*str) > (*tst)->data)
+        InsertTSTree(&((*tst)->right), str);
+    else{// if((*str) == (*tst)->data)
+        if(*(str+1))
+            InsertTSTree(&((*tst)->eq), str+1);
+        else{
+            (*tst)->isEndofString = 1;
+            (*tst)->isleaf = 1;
+        }
+    }
+}
+int IsLeafTSTree(TSTree* tst){
+    return tst->isleaf == 1;
+}
+int IsFreeNodeTSTree(TSTree* tst){
+    if(tst->left || tst->eq || tst->right)
+        return 0;
+    return 1;
+}
+int DeletionNodeTSTree(TSTree* tst, char* str, int level, int n){
+    if(tst == NULL)
+        return 0;
+    if(str[level+1] == '\0'){
+        if(IsLeafTSTree(tst)){
+            tst->isleaf = 0;
+            return IsFreeNodeTSTree(tst);
+        }
+        else
+            return 0;
+    }
+    else{
+        if(str[level] < tst->data)
+            DeletionNodeTSTree(tst->left, str, level, n);
+        else if(str[level] > tst->data)
+            DeletionNodeTSTree(tst->right,str, level, n);
+        else if(str[level] == tst->data){
+            if(DeletionNodeTSTree(tst->eq, str, level+1, n)){
+                free(tst->eq);
+                return !IsLeafTSTree(tst) && IsFreeNodeTSTree(tst);
+            }
+        }
+    }
+    return 0;
+}
+void PrintAllDataTSTRee(TSTree* tst, char* str, int level){
+    if(!tst)
+        return;
+    PrintAllDataTSTRee(tst->left, str, level);
+    str[level] = tst->data;
+    if(tst->isleaf == 1){
+        str[level+1] = '\0';
+        printf("%s\n", str);
+    }
+    PrintAllDataTSTRee(tst->eq, str, level+1);
+    PrintAllDataTSTRee(tst->right, str, level);
+}
+void TraversalTSTree(TSTree* tst, char* buffer, int depth){
+    if(tst){
+        TraversalTSTree(tst->left, buffer, depth);
+        buffer[depth] = tst->data;
+        if(tst->isEndofString){
+            buffer[depth+1] = '\0';
+            printf("%s\n", buffer);
+        }
+        TraversalTSTree(tst->eq, buffer, depth+1);
+        TraversalTSTree(tst->right, buffer, depth);
+    }
+}
+int SearchTSTree(TSTree* tst, char* str){
+    if(!tst)
+        return 0;
+    if(*str < tst->data)
+        return SearchTSTree(tst->left, str);
+    else if(*str > tst->data)
+        return SearchTSTree(tst->right, str);
+    else{
+        if(*(str+1) == '\0')
+            return tst->isEndofString;
+        return SearchTSTree(tst->eq, str+1);
+    }
+}
+void TextAutoCompleteFeatureTSTree(TSTree* tst){
+    //Writing...
+}
 
 
 //Queue Using Linked List and data type is char
