@@ -4208,6 +4208,20 @@ void InsertTSTree(TSTree** tst, char* str){
         }
     }
 }
+void InsertPosTSTree(TSTree** tst, char* str, int pos=0){
+    if(!(*tst))
+        *tst = CreateTSTree(str[pos]);
+    if((str[pos]) < (*tst)->data)
+        InsertPosTSTree(&((*tst)->left), str, pos);
+    else if((str[pos]) > (*tst)->data)
+        InsertPosTSTree(&((*tst)->right), str, pos);
+    else{// if((*str) == (*tst)->data)
+        if(str[pos+1] == '\0')
+            (*tst)->end = 1;
+        else
+            InsertPosTSTree(&((*tst)->eq), str, pos+1);
+    }
+}
 int IsLeafTSTree(TSTree* tst){
     return tst->isleaf == 1;
 }
@@ -4253,17 +4267,40 @@ void PrintAllDataTSTRee(TSTree* tst, char* str, int level){
     PrintAllDataTSTRee(tst->eq, str, level+1);
     PrintAllDataTSTRee(tst->right, str, level);
 }
-void TraversalTSTree(TSTree* tst, char* buffer, int depth){
+void PrintAllCharTSTree(char** sug, int size, char* pat){
+    if(size == 0)
+        printf("None\n");
+    else{
+        for(int i =0; i<size; i++){
+            printf("%s%s\n", pat, sug[i]);
+            free(sug[i]);
+        }
+    }
+    free(sug);
+}
+void TraversalTSTree(TSTree* tst, char* buffer, int depth, char* ret[], int* count){
     if(tst){
-        TraversalTSTree(tst->left, buffer, depth);
+        TraversalTSTree(tst->left, buffer, depth, ret, count);
         buffer[depth] = tst->data;
-        if(tst->isEndofString){
+        if(tst->end || tst->isEndofString){
             buffer[depth+1] = '\0';
+            ret[*count] = strdup(buffer);
+            (*count)++;
             printf("%s\n", buffer);
         }
-        TraversalTSTree(tst->eq, buffer, depth+1);
-        TraversalTSTree(tst->right, buffer, depth);
+        TraversalTSTree(tst->eq, buffer, depth+1, ret, count);
+        TraversalTSTree(tst->right, buffer, depth, ret, count);
     }
+}
+char** TraversalUtilTSTree(TSTree* tst, char* pat, int* count){
+    char buffer[1001];
+    char** ret = (char**)malloc(1000 * sizeof(char*));
+    TraversalTSTree(tst, buffer, 0, ret, count);
+    if(tst->end == 1){
+        ret[*count] = strdup(pat);
+        (*count)++;
+    }
+    return ret;
 }
 int SearchTSTree(TSTree* tst, char* str){
     if(!tst)
@@ -4278,9 +4315,206 @@ int SearchTSTree(TSTree* tst, char* str){
         return SearchTSTree(tst->eq, str+1);
     }
 }
-void TextAutoCompleteFeatureTSTree(TSTree* tst){
-    //Writing...
+char** TextAutoCompleteFeatureTSTree(TSTree* tst, char* pat, int* count){
+    char** words;
+    int pos;
+    if(strlen(pat) == 0)
+        return NULL;
+    while(tst && pos < strlen(pat)){
+        if(tst->data > pat[pos])
+            tst = tst->left;
+        else if(tst->data < pat[pos])
+            tst = tst->right;
+        else if(tst->data == pat[pos]){
+            tst = tst->eq;
+            pos++;
+        }
+        else
+            return NULL;
+    }
+    words = TraversalUtilTSTree(tst, pat, count);
+    return words;
 }
+int MaxValAmongThreeVal(int a, int b, int c){
+    int max;
+    if(a >= b && a >= c)
+        max = a;
+    else if( b >= a && b >= c)
+        max = b;
+    else
+        max = c;
+}
+int MaxlengthWordTSTree(TSTree* tst){
+    if(tst == NULL)
+        return 0;
+    return MaxValAmongThreeVal(MaxlengthWordTSTree(tst->left), MaxlengthWordTSTree(tst->eq), MaxlengthWordTSTree(tst->right));
+}
+
+typedef struct AVLTree{
+    int key, height; 
+    struct AVLTree *left;
+    struct AVLTree *right; 
+}AVL; 
+int GetHeightAVLTree(AVL* avl){ 
+    if (avl == NULL) 
+        return 0; 
+    return avl->height; 
+} 
+AVL* CreateAVLTree(int key){
+    AVL* avl = (AVL*)malloc(sizeof(AVL)); 
+    avl->key = key;
+    avl->height = 1; 
+    avl->left = avl->right = NULL;
+    return(avl); 
+}
+AVL* RRotateAVLTree(AVL* avl){
+    AVL* internal = avl->left; 
+    AVL* leaf = internal->right;
+    internal->right = avl;
+    avl->left = leaf; 
+    avl->height = __max(GetHeightAVLTree(avl->left), GetHeightAVLTree(avl->right)) + 1;
+    internal->height = __max(GetHeightAVLTree(internal->left), GetHeightAVLTree(internal->right)) + 1;
+    return internal;
+} 
+AVL* LRotateAVLTree(AVL* avl){
+    AVL* internal = avl->right;
+    AVL* terminal = internal->left;
+    internal->left = avl;
+    avl->right = terminal;
+    avl->height = __max(GetHeightAVLTree(avl->left), GetHeightAVLTree(avl->right)) + 1;
+    internal->height = __max(GetHeightAVLTree(internal->left), GetHeightAVLTree(internal->right)) + 1;
+    return internal;
+}
+int GetBalanceAVLTree(AVL* avl){
+    if (avl == NULL)
+        return 0;
+    return GetHeightAVLTree(avl->left) - GetHeightAVLTree(avl->right);
+} 
+AVL* InsertAVLTree(AVL* avl, int key){
+    if (avl == NULL)
+        return CreateAVLTree(key);
+    if (key < avl->key)
+        avl->left  = InsertAVLTree(avl->left, key);
+    else if (key > avl->key)
+        avl->right = InsertAVLTree(avl->right, key);
+    else
+        return avl;
+    avl->height = 1 + __max(GetHeightAVLTree(avl->left), GetHeightAVLTree(avl->right));
+    int bal = GetBalanceAVLTree(avl);
+    if (bal > 1 && key < avl->left->key)
+        return RRotateAVLTree(avl);
+    if (bal < -1 && key > avl->right->key)
+        return LRotateAVLTree(avl);
+    if (bal > 1 && key > avl->left->key){
+        avl->left =  LRotateAVLTree(avl->left); 
+        return RRotateAVLTree(avl); 
+    }
+    if (bal < -1 && key < avl->right->key){ 
+        avl->right = RRotateAVLTree(avl->right);
+        return LRotateAVLTree(avl);
+    }
+    return avl;
+}
+AVL* GetMinValNodeAVLTree(AVL* avl){
+    AVL* cur = avl;
+    while(cur->left != NULL)
+        cur = cur->left;
+    return cur;
+}
+AVL* DeletionAVLTree(AVL* avl, int key){
+    if(avl == NULL)
+        return avl;
+    if(avl->key > key)
+        avl->left = DeletionAVLTree(avl->left, key);
+    else if(avl->key < key)
+        avl->right = DeletionAVLTree(avl->right, key);
+    else{
+        if(avl->left == NULL || avl->right == NULL){
+            AVL* temp = avl->left ? avl->left : avl->right;
+            if(temp == NULL){
+                temp = avl;
+                avl = NULL;
+            }
+            else
+                *avl = *temp;
+            free(temp);
+        }
+        else{
+            AVL* temp = GetMinValNodeAVLTree(avl->right);
+            avl->key = temp->key;
+            avl->right = DeletionAVLTree(avl->right, temp->key);
+        }
+    }
+    if(avl == NULL)
+        return avl;
+    avl->height = 1+ __max(GetHeightAVLTree(avl->left), GetHeightAVLTree(avl->right));
+    int bal = GetBalanceAVLTree(avl);
+    if(bal > 1 && GetBalanceAVLTree(avl->left) >= 0)
+        return RRotateAVLTree(avl);
+    if(bal > 1 && GetBalanceAVLTree(avl->left) < 0){
+        avl->left = LRotateAVLTree(avl->left);
+        return RRotateAVLTree(avl);
+    }
+    if(bal < -1 && GetBalanceAVLTree(avl->right) <= 0)
+        return LRotateAVLTree(avl);
+    if(bal < -1 && GetBalanceAVLTree(avl->right) > 0){
+        avl->right = RRotateAVLTree(avl->right);
+        return LRotateAVLTree(avl);
+    }
+    return avl;
+}
+void PreorderAVLTree(AVL* avl){
+    if(avl != NULL){
+        printf("%d ", avl->key);
+        PreorderAVLTree(avl->left);
+        PreorderAVLTree(avl->right);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //Queue Using Linked List and data type is char

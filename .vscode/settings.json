@@ -15,6 +15,11 @@
         "type_traits": "cpp",
         "cmath": "cpp",
         "limits": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp"
     }
 }
