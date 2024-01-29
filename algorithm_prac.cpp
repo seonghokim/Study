@@ -9,10 +9,13 @@
 #include <queue>
 using namespace std;
 //#include <bits/stdc++.h>
+
 // 자동 정렬 shift + alt + F
 // 커서영역 선택 Shft + alt + left 
 // 1수준 접기 ctrl shift alt a  --> 모든 수준 ( 모든 커서 닫기 ctrl shift alt s)
 // 모두 펼치기 ctrl shift alt d
+
+#define null NULL
 #define INTPRINT(x)               \
     do                            \
     {                             \
@@ -313,38 +316,6 @@ void QuickSort(int *arr, int low, int high)
      if( i < high)
          QuickSort(arr, i, high);
     */
-}
-
-/* 1) Build Heap by Heapify()
- * 2) In Heapify(), current element is lower than child Tree, swap value
- * 3) Repeat 2) by recursion
- * 4) Extract root element(max value) by swap root Tree and last Tree, and execute heapify() except last element.
- */
-void Heapify(int *arr, int size, int cur_idx)
-{
-    int max = cur_idx;
-    int left = 2 * cur_idx + 1;
-    int right = 2 * cur_idx + 2;
-    if (left < size && arr[left] > arr[max])
-        max = left;
-    if (right < size && arr[right] > arr[max])
-        max = right;
-    if (max != cur_idx)
-    {
-        Swap(&arr[cur_idx], &arr[max]);
-        Heapify(arr, size, max);
-    }
-}
-void HeapSort(int *arr, int size)
-{
-    int i;
-    for (i = size / 2 - 1; i >= 0; i--)
-        Heapify(arr, size, i);
-    for (i = size - 1; i > 0; i--)
-    {
-        Swap(&arr[0], &arr[i]);
-        Heapify(arr, i, 0);
-    }
 }
 
 /* 1) Find max value in array
@@ -923,6 +894,22 @@ void RotateArrayReversal(int *arr, int dist, int size, bool dir)
     }
 }
 
+
+bool IsSubset(int* arr, int m, int* arr2, int n){
+    int max = 0;
+    int i;
+    int freq[m];
+    memset(freq, 0, sizeof(freq));
+    for(i=0; i<m; i++)
+        freq[arr[i]]++;
+    for(i=0; i<n; i++){
+        if(freq[arr2[i]] > 0)
+            freq[arr2[i]]--;
+        else
+            return false;
+    }
+    return true;
+}
 // Even element is bigger than adjacent odd element
 void WaveSort(int *arr, int size)
 {
@@ -4471,18 +4458,440 @@ void PreorderAVLTree(AVL* avl){
     }
 }
 
+//----------------------------------------
+//----------------- Heap -----------------
+//----------------------------------------
+/* 1) Build Heap by Heapify()
+ * 2) In Heapify(), current element is lower than child Tree, swap value
+ * 3) Repeat 2) by recursion
+ * 4) Extract root element(max value) by swap root Tree and last Tree, and execute heapify() except last element.
+ */
+typedef struct MinHeap{
+    int *arr;
+    int cap;
+    int size;
+}MinHeap;
+MinHeap* CreateMinHeap(int cap){
+    MinHeap* h = (MinHeap*)malloc(sizeof(MinHeap));
+    h->size = 0;
+    h->cap = cap;
+    h->arr = (int*)malloc(cap * sizeof(int));
+    return h;
+}
+void InsertMinHeap(MinHeap* h, int key){
+    if(h->size == h->cap)
+        return;
+    h->size++;
+    int i = h->size-1;
+    h->arr[i] = key;
+    while(i != 0 && h->arr[(i-1)/2] > h->arr[i]){
+        Swap(&h->arr[i], &h->arr[(i-1)>>1]);
+        i = (i-1)>>1;
+    }
+}
+void DecreaseKeyMinHeap(MinHeap* h, int i, int val){
+    h->arr[i] = val;
+    while(i != 0 && h->arr[(i-1)>>1] > h->arr[i]){
+        Swap(&h->arr[i], &h->arr[(i-1)>>1]);
+        i = (i-1)>>1;
+    }
+}
+int ExtractMinHeap(MinHeap* h){
+    if(h->size <= 0)
+        return INT_MAX;
+    if(h->size == 1){
+        h->size--;
+        return h->arr[0];
+    }
+    int root = h->arr[0];
+    h->arr[0] = h->arr[h->size-1];
+    h->size--;
+    MinHeapify(h, 0);
+    return root;
+}
+void MinHeapify(MinHeap* h, int idx){
+    int l = (idx<<1) + 1;
+    int r = (idx<<1) + 2;
+    int smallest = idx;
+    if(l < h->size && h->arr[l] < h->arr[idx])
+        smallest = l;
+    if(r < h->size && h->arr[r] < h->arr[smallest])
+        smallest = r;
+    if(smallest != idx){
+        Swap(&h->arr[idx], &h->arr[smallest]);
+        MinHeapify(h, smallest);
+    }
+}
+void DeletionKeyMinHeap(MinHeap* h, int idx){
+    DecreaseKeyMinHeap(h, idx, INT_MIN);
+    ExtractMinHeap(h);
+}
+void Heapify(int *arr, int size, int cur_idx)
+{
+    int max = cur_idx;
+    int left = 2 * cur_idx + 1;
+    int right = 2 * cur_idx + 2;
+    if (left < size && arr[left] > arr[max])
+        max = left;
+    if (right < size && arr[right] > arr[max])
+        max = right;
+    if (max != cur_idx)
+    {
+        Swap(&arr[cur_idx], &arr[max]);
+        Heapify(arr, size, max);
+    }
+}
+void HeapSort(int *arr, int size)
+{
+    int i;
+    for (i = size / 2 - 1; i >= 0; i--)
+        Heapify(arr, size, i);
+    for (i = size - 1; i > 0; i--)
+    {
+        Swap(&arr[0], &arr[i]);
+        Heapify(arr, i, 0);
+    }
+}
 
+//Binomial Heap
+typedef struct BinomialHeapNode {
+    int value;
+    struct BinomialHeapNode* parent;
+    struct BinomialHeapNode** children;
+    int degree;
+    int marked;
+}BHeapNode;
+typedef struct BinomialHeap{
+    BHeapNode** trees;
+    BHeapNode* min_node;
+    int count;
+}BHeap;
+BHeapNode* CreateBHeapNode(int value){
+    BHeapNode* newNode = (BHeapNode*)malloc(sizeof(BHeapNode));
+    newNode->value = value;
+    newNode->parent = NULL;
+    newNode->children = NULL;
+    newNode->degree = 0;
+    newNode->marked = 0;
+    return newNode;
+}
+BHeap* CreateBinomialHeap(){
+    BHeap* bh = (BHeap*)malloc(sizeof(BHeap));
+    bh->trees = NULL;
+    bh->min_node = NULL;
+    bh->count = 0;
+    return bh;
+}
+int IsEmptyBHeap(BHeap* bh) {
+    return bh->min_node == NULL;
+}
+void InsertBHeap(BHeap* bh, int value) {
+    BHeapNode* node = CreateBHeapNode(value);
+    BHeap* tempHeap = CreateBinomialHeap();
+    tempHeap->trees = (BHeapNode**)malloc(sizeof(BHeapNode*));
+    tempHeap->trees[0] = node;
+    tempHeap->count = 1;
+    MergeBHeap(bh, tempHeap);
+}
+int GetMinValBHeap(BHeap* bh){
+    return bh->min_node->value;
+}
+int ExtractMinValBHeap(BHeap* bh){
+    BHeapNode* minNode = bh->min_node;
+    RemoveTreeBHeap(bh->trees, minNode);
+    BHeap* tempHeap = CreateBinomialHeap();
+    tempHeap->trees = minNode->children;
+    tempHeap->count = minNode->degree;
+    MergeBHeap(bh, tempHeap);
+    FindMinValNodeBHeap(bh);
+    bh->count -= 1;
+    int minValue = minNode->value;
+    free(minNode);
+    return minValue;
+}
+void MergeBHeap(BHeap* bh, BHeap* otherHeap) {
+    bh->trees = (BHeapNode**)realloc(bh->trees, (bh->count + otherHeap->count) * sizeof(BHeapNode*));
+    for (int i = 0; i < otherHeap->count; i++) {
+        bh->trees[bh->count + i] = otherHeap->trees[i];
+    }
+    bh->count += otherHeap->count;
+    FindMinValNodeBHeap(bh);
+}
+void FindMinValNodeBHeap(BHeap* heap) {
+    heap->min_node = NULL;
+    for (int i = 0; i < heap->count; i++) {
+        if (heap->min_node == NULL || heap->trees[i]->value < heap->min_node->value) {
+            heap->min_node = heap->trees[i];
+        }
+    }
+}
+void DecreaseKeyBHeap(BHeap* heap, BHeapNode* node, int newValue) {
+    if (newValue > node->value) {
+        fprintf(stderr, "New value is greater than the current value\n");
+        exit(EXIT_FAILURE);
+    }
+    node->value = newValue;
+    BubbleUpBHeap(heap, node);
+}
+void DeleteNodeBHeap(BHeap* heap, BHeapNode* node) {
+    DecreaseKeyBHeap(heap, node, INT_MIN);
+    ExtractMinValBHeap(heap);
+}
+void BubbleUpBHeap(BHeap* heap, BHeapNode* node) {
+    BHeapNode* parent = node->parent;
+    while (parent != NULL && node->value < parent->value) {
+        SwapValuesBHeap(&node->value, &parent->value);
+        node = parent;
+        parent = node->parent;
+    }
+}
+void LinkBHeap(BHeap* heap, BHeapNode* tree1, BHeapNode* tree2) {
+    if (tree1->value > tree2->value) {
+        SwapNodesBHeap(&tree1, &tree2);
+    }
+    tree2->parent = tree1;
+    tree1->children = (BHeapNode**)realloc(tree1->children, (tree1->degree + 1) * sizeof(BHeapNode*));
+    tree1->children[tree1->degree] = tree2;
+    tree1->degree += 1;
+}
+void RemoveTreeBHeap(BHeapNode** trees, BHeapNode* targetTree) {
+    for (int i = 0; i < targetTree->degree; i++) {
+        RemoveTreeBHeap(trees, targetTree->children[i]);
+    }
+    for (int i = 0; i < targetTree->degree; i++) {
+        targetTree->children[i] = NULL;
+    }
+    free(targetTree->children);
+    targetTree->children = NULL;
+}
+void SwapValuesBHeap(int* x, int* y) {
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
+void SwapNodesBHeap(BHeapNode** x, BHeapNode** y) {
+    BHeapNode* temp = *x;
+    *x = *y;
+    *y = temp;
+}
+void ConsolidateBHeap(BHeap* heap) {
+    int maxDegree = (int)(floor(log2(heap->count))) + 1;
+    BHeapNode** degreeToTree = (BHeapNode**)malloc((maxDegree + 1) * sizeof(BHeapNode*));
+    for (int i = 0; i < maxDegree + 1; i++) {
+        degreeToTree[i] = NULL;
+    }
+    while (heap->count > 0) {
+        BHeapNode* current = heap->trees[0];
+        heap->trees = (BHeapNode**)realloc(heap->trees, (heap->count - 1) * sizeof(BHeapNode*));
+        heap->count -= 1;
+        int degree = current->degree;
+        while (degreeToTree[degree] != NULL) {
+            BHeapNode* other = degreeToTree[degree];
+            degreeToTree[degree] = NULL;
+            if (current->value < other->value) {
+                LinkBHeap(heap, current, other);
+            } else {
+                LinkBHeap(heap, other, current);
+                current = other;
+            }
+            degree++;
+        }
+        degreeToTree[degree] = current;
+    }
+    heap->min_node = NULL;
+    free(heap->trees);
+    heap->trees = NULL;
+    for (int i = 0; i < maxDegree + 1; i++) {
+        if (degreeToTree[i] != NULL) {
+            heap->trees = (BHeapNode**)realloc(heap->trees, (heap->count + 1) * sizeof(BHeapNode*));
+            heap->trees[heap->count] = degreeToTree[i];
+            heap->count += 1;
+            if (heap->min_node == NULL || degreeToTree[i]->value < heap->min_node->value) {
+                heap->min_node = degreeToTree[i];
+            }
+        }
+    }
+    free(degreeToTree);
+}
+int SizeBHeap(BHeap* bh) {
+    return bh->count;
+}
+void FreeNodeBHeap(BHeapNode* node) {
+    if (node != NULL) {
+        for (int i = 0; i < node->degree; i++) {
+            FreeNodeBHeap(node->children[i]);
+        }
+        free(node->children);
+        free(node);
+    }
+}
 
+//----------------------------------------
+//----------------- Hash -----------------
+//----------------------------------------
 
-
-
-
-
-
-
-
-
-
+void PrintPairSum(int* arr, int size, int sum){
+    int i, temp;
+    int s[100] = {0,};
+    for(i=0; i<size; i++){
+        temp = sum - arr[i];
+        if(s[temp] == 1){
+            printf("Pair (%d, %d)\n", arr[i], s[temp]);
+            return;
+        }
+        s[arr[i]] = 1;
+    }
+    printf("No Pair\n");
+}
+typedef struct HashMap{
+    char key[100];
+    char val[100];
+    struct HashMap* next;
+}HMap;
+HMap* CreateHashMap(char* key, char* val){
+    HMap* newNode = (HMap*)malloc(sizeof(HMap));
+    if(newNode != NULL){
+        strcpy(newNode->key, key);
+        strcpy(newNode->val, val);
+        newNode->next = NULL;
+    }
+    return newNode;
+}
+void InsertNodeHash(HMap** head, char* key, char* val){
+    HMap* newNode = CreateHashMap(key, val);
+    if(newNode != NULL){
+        newNode->next = *head;
+        *head = newNode;
+    }
+}
+HMap* FindNodeHash(HMap* head, char* key){
+    HMap* cur = head;
+    while(cur != NULL){
+        if(strcmp(cur->key, key) == 0)
+            return cur;
+        cur = cur->next;
+    }
+    return NULL;
+}
+void PrintItineraryHash(HMap** set) {
+    HMap** revMap = (HMap**)malloc(100 * sizeof(HMap*));
+    for (int i = 0; i < 100; i++) {
+        if (set[i] != NULL) {
+            HMap* cur = set[i];
+            while (cur != NULL) {
+                InsertNodeHash(&revMap[atoi(cur->val)], cur->val, cur->key);// val= destination, key= departure point
+                cur = cur->next;
+            }
+        }
+    }
+    char start[50] = "";
+    bool foundStart = false;
+    for (int i = 0; i < 100; i++) {
+        if (set[i] != NULL && revMap[i] == NULL) {
+            strcpy(start, set[i]->key);
+            foundStart = true;
+            break;
+        }
+    }
+    if (!foundStart) {
+        printf("Invalid Input\n");
+        return;
+    }
+    int index = atoi(start);
+    while (set[index] != NULL) {
+        printf("%s -> %s\n", set[index]->key, set[index]->val);
+        index = atoi(set[index]->val);// val is key in the rev array
+    }
+    for (int i = 0; i < 100; i++) {
+        while (revMap[i] != NULL) {
+            HMap* temp = revMap[i];
+            revMap[i] = revMap[i]->next;
+            free(temp);
+        }
+    }
+    free(revMap);
+}
+//Modifying...
+//-----------------------------------------------------------
+int PopulateResultUtilHash(char* manager, HMap** HM, HMap** result) {
+    int count = 0;
+    if (HM[manager[0] - 'A'] == NULL) {
+        InsertNodeHash(&result[manager[0] - 'A'], manager, "0");
+        return 0;
+    }
+    else {
+        HMap* cur = result[manager[0] - 'A'];
+        while (cur != NULL) {
+            if (strcmp(cur->key, manager) == 0) {
+                count = atoi(cur->val);
+                break;
+            }
+            cur = cur->next;
+        }
+    }
+    if (count == 0) {
+        HMap* directReportEmpList = HM[manager[0] - 'A'];
+        count = 1;
+        HMap* mcur = directReportEmpList;
+        while (mcur != NULL) {
+            count += PopulateResultUtilHash(mcur->val, HM, result);
+            mcur = mcur->next;
+        }
+        char countStr[10];
+        sprintf(countStr, "%d", count);
+        InsertNodeHash(&result[manager[0] - 'A'], manager, countStr);
+    }
+    return count;
+}
+void populateResult(HMap** dataset){
+    HMap** result = (HMap**)malloc(26 * sizeof(HMap*));
+    HMap** HM = (HMap**)malloc(26 * sizeof(HMap*));
+    for (int i = 0; i < 26; i++) {
+        if (dataset[i] != NULL) {
+            char emp = dataset[i]->key[0];
+            char manager = dataset[i]->val[0];
+            if (emp != manager) 
+                if (HM[manager - 'A'] == NULL)
+                    InsertNodeHash(&HM[manager - 'A'], "0", emp);
+                else
+                    InsertNodeHash(&HM[manager - 'A'], "0", emp);
+            }
+        }
+    }
+    for (int i = 0; i < 26; i++) {
+        if (dataset[i] != NULL) {
+            PopulateResultUtilHash(dataset[i]->key, HM, result);
+        }
+    }
+    printf("result = {");
+    for (int i = 0; i < 25; i++) {
+        HMap* currentNode = result[i];
+        while (currentNode != NULL) {
+            printf("%s=%s, ", currentNode->key, currentNode->value
+            currentNode = currentNode->next;
+        }
+    }
+    struct Node* lastNode = result[25];
+    while (lastNode != NULL) {
+        printf("%s=%s", lastNode->key, lastNode->value);
+        lastNode = lastNode->next;
+    }
+    printf("}\n");
+    for (int i = 0; i < 26; i++) {
+        while (HM[i] != NULL) {
+            HMap* temp = HM[i];
+            HM[i] = HM[i]->next;
+            free(temp);
+        }
+        while (result[i] != NULL) {
+            HMap* temp = result[i];
+            result[i] = result[i]->next;
+            free(temp);
+        }
+    }
+    free(HM);
+    free(result);
+}
 
 
 
