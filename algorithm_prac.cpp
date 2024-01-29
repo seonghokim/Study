@@ -15,7 +15,6 @@ using namespace std;
 // 1수준 접기 ctrl shift alt a  --> 모든 수준 ( 모든 커서 닫기 ctrl shift alt s)
 // 모두 펼치기 ctrl shift alt d
 
-#define null NULL
 #define INTPRINT(x)               \
     do                            \
     {                             \
@@ -4811,8 +4810,6 @@ void PrintItineraryHash(HMap** set) {
     }
     free(revMap);
 }
-//Modifying...
-//-----------------------------------------------------------
 int PopulateResultUtilHash(char* manager, HMap** HM, HMap** result) {
     int count = 0;
     if (HM[manager[0] - 'A'] == NULL) {
@@ -4843,37 +4840,37 @@ int PopulateResultUtilHash(char* manager, HMap** HM, HMap** result) {
     }
     return count;
 }
-void populateResult(HMap** dataset){
+void PopulateResultHash(HMap** set){
     HMap** result = (HMap**)malloc(26 * sizeof(HMap*));
     HMap** HM = (HMap**)malloc(26 * sizeof(HMap*));
     for (int i = 0; i < 26; i++) {
-        if (dataset[i] != NULL) {
-            char emp = dataset[i]->key[0];
-            char manager = dataset[i]->val[0];
-            if (emp != manager) 
+        if (set[i] != NULL) {
+            char emp = set[i]->key[0];
+            char manager = set[i]->val[0];
+            if (emp != manager){
                 if (HM[manager - 'A'] == NULL)
-                    InsertNodeHash(&HM[manager - 'A'], "0", emp);
+                    InsertNodeHash(&HM[manager - 'A'], "0", &emp);
                 else
-                    InsertNodeHash(&HM[manager - 'A'], "0", emp);
+                    InsertNodeHash(&HM[manager - 'A'], "0", &emp);
             }
         }
     }
     for (int i = 0; i < 26; i++) {
-        if (dataset[i] != NULL) {
-            PopulateResultUtilHash(dataset[i]->key, HM, result);
+        if (set[i] != NULL) {
+            PopulateResultUtilHash(set[i]->key, HM, result);
         }
     }
     printf("result = {");
     for (int i = 0; i < 25; i++) {
-        HMap* currentNode = result[i];
-        while (currentNode != NULL) {
-            printf("%s=%s, ", currentNode->key, currentNode->value
-            currentNode = currentNode->next;
+        HMap* cur = result[i];
+        while (cur != NULL) {
+            printf("%s=%s, ", cur->key, cur->val);
+            cur = cur->next;
         }
     }
-    struct Node* lastNode = result[25];
+    HMap* lastNode = result[25];
     while (lastNode != NULL) {
-        printf("%s=%s", lastNode->key, lastNode->value);
+        printf("%s=%s", lastNode->key, lastNode->val);
         lastNode = lastNode->next;
     }
     printf("}\n");
@@ -4893,7 +4890,9 @@ void populateResult(HMap** dataset){
     free(result);
 }
 
-
+//----------------------------------------
+//----------------- Graph ----------------
+//----------------------------------------
 
 
 
