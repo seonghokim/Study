@@ -2902,8 +2902,7 @@ void Array2DCLL(int *arr, int size, DNode **start)
 //----------------------------------------
 //----------------- Stack ----------------
 //----------------------------------------
-typedef struct LLStack
-{
+typedef struct LLStack{
     int data;
     struct LLStack *next;
 } LLStack;
@@ -3426,13 +3425,13 @@ Queue *CreateQueue(unsigned int cap)
     q->arr = (int *)malloc(cap * sizeof(int));
     q->front = q->size = 0;
     q->cap = cap;
-    q->rear = cap - 1;
+    q->rear = -1;
     q->arr = (int *)malloc(sizeof(int));
     return q;
 }
 bool IsEmptyQueue(Queue *q)
 {
-    return (q->size == 0);
+    return (q->size == 0 && q->front > q->rear);
 }
 bool IsFullQueue(Queue *q)
 {
@@ -3442,18 +3441,15 @@ void EnqueueQueue(Queue *q, int x)
 {
     if (IsFullQueue(q))
         return;
-    q->rear = (q->rear + 1) % q->cap;
-    q->arr[q->rear] = x;
-    q->size = q->size + 1;
+    q->arr[++q->rear] = x;
+    q->size++;
 }
 int DequeueQueue(Queue *q)
 {
     if (IsEmptyQueue(q))
         return INT_MIN;
-    int x = q->arr[q->front];
-    q->front = (q->front + 1) % q->cap;
-    q->size = q->size - 1;
-    return x;
+    q->size--;
+    return q->arr[q->front++];
 }
 int FrontQueue(Queue *q)
 {
@@ -4894,15 +4890,256 @@ void PopulateResultHash(HMap** set){
 //----------------- Graph ----------------
 //----------------------------------------
 
+//Breadth First Search(BFS)
+#define VMAX 50
+typedef struct Graph{
+    int v;
+    bool adj[VMAX][VMAX];
+}G;
+G* CreateBoolArrGraph(int Vnum){
+    int i, j;
+    G* g = (G*)malloc(sizeof(G));
+    g->v = Vnum;
+    for(i=0; i<Vnum; i++)
+        for(j=0; j<Vnum; j++)
+            g->adj[i][j] = false;
+    return g;
+}
+void AddEdgeGraph(G* g, int s, int e){
+    g->adj[s][e] = true;
+}
+void DestroyGraph(G* g){
+    free(g);
+}
+void BFSGraph(G* g, int v){
+    bool visited[VMAX];
+    memset(visited, false, sizeof(visited));
+    int queue[VMAX];
+    int front = 0, rear = 0;// Pop-front, Push-rear
+    //Start Vertex
+    visited[v] = true;
+    queue[rear++] = v;
+    while(front != rear){
+        v = queue[front++];//Pop
+        printf("%d ", v);
+        for(int adj = 0; adj < g->v; adj++){
+            if(g->adj[v][adj] && !visited[adj]){
+                visited[adj] = true;
+                queue[rear++] = adj;
+            }
+        }
+    }
+}
+void DFSGraph(G* g, int v){
+    bool visited[VMAX];
+    int i;
+    memset(visited, false, sizeof(visited));
+    visited[v] = true;
+    printf("%d ", v);
+    for(i=0; i<g->v; i++){
+        if(g->adj[v][i] && !visited[i])
+            DFSGraph(g, i);
+    }
+}
 
+typedef struct LLGraph{
+    int v;
+    SNode** adj;
+}LLG;
+SNode* CreateNode(int data){
+    SNode* newNode = (SNode*)malloc(sizeof(SNode));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+LLG* CreateLLGraph(int v){
+    int i;
+    LLG* llg = (LLG*)malloc(sizeof(LLG));
+    llg->v = v;
+    llg->adj = (SNode**)malloc(sizeof(SNode) * v);
+    for(i=0; i<v; i++)
+        llg->adj[i] = NULL;
+    return llg;
+}
+void AddEdgeLLGraph(LLG* llg, int s, int e, int option){
+    SNode* newNode = CreateNode(e);
+    newNode->next = llg->adj[s];
+    llg->adj[s] = newNode;
+    if(option==1){ // Undirected graph
+        newNode = CreateNode(s);
+        newNode->next = llg->adj[e];
+        llg->adj[e] = newNode;
+    }
+}
 
+void BFSLLGraph(LLG* llg, int s){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    Queue* que = CreateQueue(llg->v);
+    visited[s] = true;
+    EnqueueQueue(que, s);
+    while(!IsEmptyQueue(uqe)){
+        int curV = DequeueQueue(que);
+        printf("%d ", curV);
+        SNode* cur = llg->adj[curV];
+        while(cur != NULL){
+            int nextV = cur->data;
+            if(!visited[nextV]){
+                visited[nextV] = true;
+                EnqueueQueue(que, nextV);
+            }
+            cur = cur->next;
+        }
+    }
+    printf("\n");
+    free(visited);
+    free(que->arr);
+    free(que);
+}
+void DFSLoopLLGraph(LLG* llg, int v, bool* visited){
+    visited[v] = true;
+    printf("%d ", v);
+    SNode* cur = llg->adj[v];
+    while(cur != NULL){
+        int nextVertex = cur->data;
+        if(!visited[nextVertex])
+            DFSLoopLLGraph(llg, nextVertex, visited);
+        cur = cur->next;
+    }
+}
+void DFSLLGraph(LLG* llg){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    for(i=0; i<llg->v; i++)
+        if(!visited[i])
+            DFSLoopLLGraph(llg, i, visited);
+    free(visited);
+}
 
+void IterativeDFTLoopUDGraph(int s, bool* visited, LLG* llg){
+    Stack* stack = CreateStack(llg->v);
+    PushStack(stack, s);
+    while(!IsEmptyStack(stack)){
+        int cur = PopStack(stack);
+        if(!visited[cur]){
+            printf("%d ", cur);
+            visited[cur] = true;
+        }
+        SNode* neighbor = llg->adj[cur];
+        while(neighbor != NULL){
+            if(!visited[neighbor->data])
+                PushStack(stack, neighbor->data);
+            neighbor = neighbor->next;
+        }
+    }
+    free(stack->arr);
+    free(stack);
+}
+void IterativeDFTUDGraph(LLG* llg){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    for(i=0; i<llg->v; i++)
+        if(!visited[i])
+            IterativeDFTLoopUDGraph(i, visited, llg);
+    free(visited);
+}
 
+//Directed Graph
+bool IsCyclicLoopDGraph(int v, bool* visited, bool* recStack, LLG* llg){
+    if(visited[v] == false){
+        visited[v] = true;
+        recStack[v] = true;
+        SNode* i = llg->adj[v];
+        while(i != NULL){
+            if(!visited[i->data] && IsCyclicLoopDGraph(i->data, visited, recStack, llg))
+                return true;
+            else if(recStack[i->data])
+                return true;
+            i = i->next;
+        }
+        recStack[v] = false;
+        return false;
+    }
+}
+bool IsCyclicLoopUDGraph(int v, bool* visited, int parent, LLG* llg){
+    visited[v] = true;
+    SNode* i = llg->adj[v];
+    while(i != NULL){
+        if(!visited[i->data]){
+            if(IsCyclicLoopUDGraph(i->data, visited, v, llg))
+                return true;
+        }
+        else if(i->data != parent)
+            return true;
+        i = i->next;
+    }
+    return false;
+}
+bool IsCyclicDGraph(LLG* llg){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    bool* recStack = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++){
+        visited[i] = false;
+        recStack[i] = false;
+    }
+    for(i=0; i< llg->v; i++)
+        if(!visited[i] && IsCyclicLoopDGraph(i, visited, recStack, llg))
+            return true;
+    return false;
+}
+bool IsCyclicUDGraph(LLG* llg){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    for(i=0; i<llg->v; i++){
+        if(!visited[i] && IsCyclicLoopUDGraph(i, visited, -1, llg))
+            return true;
+    }
+    return false;
+}
 
-
-
-
-
+typedef struct DisjointSet{
+    int* rank;
+    int *parent;
+    int n;
+} DSet;
+void MakeDisjointSet(DSet* ds, int n){
+    int i;
+    ds->rank = (int*)malloc(sizeof(int) * n);
+    ds->parent = (int*)malloc(sizeof(int) * n);
+    ds->n = n;
+    for(i=0; i<n; i++){
+        ds->parent[i] = i;
+        ds->rank[i] = 0;
+    }
+}
+int FindSetDisjointSet(DSet* ds, int x){
+    if(ds->parent[x] != x)
+        ds->parent[x] = FindSetDisjointSet(ds, ds->parent[x]);
+    return ds->parent[x];
+}
+void UnionDisjointSet(DSet* ds, int x, int y){
+    int xset = FindSetDisjointSet(ds, x);
+    int yset = FindSetDisjointSet(ds, y);
+    if(xset == yset)
+        return;
+    if(ds->rank[xset] < ds->rank[yset])
+        ds->parent[xset] = yset;
+    else if(ds->rank[xset] > ds->rank[yset])
+        ds->parent[yset] = xset;
+    else{
+        ds->parent[yset] = xset;
+        ds->rank[xset]++;
+    }
+}
 
 
 
