@@ -2902,48 +2902,58 @@ void Array2DCLL(int *arr, int size, DNode **start)
 //----------------------------------------
 //----------------- Stack ----------------
 //----------------------------------------
-typedef struct LLStack{
+typedef struct LLStackNode{
     int data;
-    struct LLStack *next;
-} LLStack;
-void InitLLStack(LLStack **s)
+    struct LLStackNode *next;
+} LLStackN;
+typedef struct LLStack{
+    LLStackN* top;
+}LLStack;
+void InitLLStack(LLStackN **s)
 {
     *s = NULL;
 }
+LLStackN* CreateLLStackNode(int data){
+    LLStackN* stack = (LLStackN*)malloc(sizeof(LLStackN));
+    stack->data = data;
+    stack->next = NULL;
+    return stack;
+}
+LLStack* CreateLLStack(){
+    LLStack* stack = (LLStack*)malloc(sizeof(LLStack));
+    stack->top = NULL;
+    return stack;
+}
 bool isEmptyLLStack(LLStack *s)
 {
-    if (s == NULL)
+    if (s->top == NULL)
         return true;
     return false;
 }
-void PushLLStack(LLStack **s, int x)
+void PushLLStack(LLStack *s, int x)
 {
-    LLStack *p = (LLStack *)malloc(sizeof(*p));
-    if (p == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        return;
-    }
-    p->data = x;
-    p->next = *s;
-    *s = p;
+    LLStackN* p = CreateLLStackNode(x);
+    p->next = s->top;
+    s->top = p;
 }
-int PopLLStack(LLStack **s)
+int PopLLStack(LLStack *s)
 {
-    int x = (*s)->data;
-    LLStack *temp = *s;
-    (*s) = (*s)->next;
+    if(s->top == NULL)
+        return -1;
+    int x = s->top->data;
+    LLStackN *temp = s->top;
+    s->top = s->top->next;
     free(temp);
     return x;
 }
 int TopLLStack(LLStack *s)
 {
-    return s->data;
+    return s->top->data;
 }
-void SortedInsertLLStack(LLStack **s, int x)
+void SortedInsertLLStack(LLStack *s, int x)
 {
     int temp;
-    if (isEmptyLLStack(*s) || x > TopLLStack(*s))
+    if (isEmptyLLStack(s) || x > TopLLStack(s))
     {
         PushLLStack(s, x);
         return;
@@ -2952,10 +2962,10 @@ void SortedInsertLLStack(LLStack **s, int x)
     SortedInsertLLStack(s, x);
     PushLLStack(s, temp);
 }
-void SortLLStack(LLStack **s)
+void SortLLStack(LLStack* s)
 {
     int x;
-    if (!isEmptyLLStack(*s))
+    if (!isEmptyLLStack(s))
     {
         x = PopLLStack(s);
         SortLLStack(s);
@@ -2966,68 +2976,66 @@ void PrintLLStack(LLStack *s)
 {
     while (s)
     {
-        printf("%d ", s->data);
-        s = s->next;
+        printf("%d ", s->top->data);
+        s->top = s->top->next;
     }
     printf("\n");
 }
 
-typedef struct Stack
-{
+typedef struct ArrStack{
     int top;
     unsigned int cap;
     int *arr;
-} Stack;
-Stack *CreateStack(unsigned cap)
+}AStack;
+AStack* CreateAStack(unsigned int cap)
 {
-    Stack *st = (Stack *)malloc(sizeof(Stack));
+    AStack *st = (AStack *)malloc(sizeof(AStack));
     st->cap = cap;
     st->top = -1;
     st->arr = (int *)malloc(st->cap * sizeof(int));
     return st;
 }
-bool IsFullStack(Stack *st)
-{
-    return st->top == st->cap - 1;
+bool IsFullAStack(AStack *st){
+    return (st->top == (st->cap - 1));
 }
-bool IsEmptyStack(Stack *st)
+bool IsEmptyAStack(AStack *st)
 {
     return st->top == -1;
 }
-void PushStack(Stack *st, int data)
+void PushAStack(AStack *st, int data)
 {
-    if (IsFullStack(st))
+    if (IsFullAStack(st))
         return;
     st->arr[++st->top] = data;
 }
-int PopStack(Stack *st)
+int PopAStack(AStack *st)
 {
-    if (IsEmptyStack(st))
+    if (IsEmptyAStack(st))
         return INT_MIN;
     return st->arr[st->top--];
 }
-int PeekStack(Stack *st)
+int PeekAStack(AStack *st)
 {
-    if (IsEmptyStack(st))
+    if (IsEmptyAStack(st))
         return INT_MIN;
     return st->arr[st->top];
 }
-void DecMonotonicStack(int *arr, int n)
+void DecMonotonicAStack(int *arr, int n)
 {
-    Stack *st = CreateStack(n);
+    AStack *st = CreateAStack(n);
     int i;
     for (i = 0; i < n; i++)
     {
-        while (!IsEmptyStack(st) && arr[i] > PeekStack(st))
-            PopStack(st);
-        PushStack(st, arr[i]);
+        while (!IsEmptyAStack(st) && arr[i] > PeekAStack(st))
+            PopAStack(st);
+        PushAStack(st, arr[i]);
     }
     int n2 = st->top + 1;
     int *ans = (int *)malloc(n2 * sizeof(int));
     int j = n2 - 1;
-    while (!IsEmptyStack(st))
+    while (!IsEmptyAStack(st))
     {
-        ans[j] = PopStack(st);
+        ans[j] = PopAStack(st);
         j--;
     }
     for (i = 0; i < n2; i++)
@@ -3037,22 +3045,22 @@ void DecMonotonicStack(int *arr, int n)
     // free(st);
     free(ans);
 }
-void IncMonotonicStack(int *arr, int n)
+void IncMonotonicAStack(int *arr, int n)
 {
-    Stack *st = CreateStack(n);
+    AStack *st = CreateAStack(n);
     int i;
     for (i = 0; i < n; i++)
     {
-        while (!IsEmptyStack(st) && arr[i] < PeekStack(st))
-            PopStack(st);
-        PushStack(st, arr[i]);
+        while (!IsEmptyAStack(st) && arr[i] < PeekAStack(st))
+            PopAStack(st);
+        PushAStack(st, arr[i]);
     }
     int n2 = st->top + 1;
     int *ans = (int *)malloc(n2 * sizeof(int));
     int j = n2 - 1;
-    while (!IsEmptyStack(st))
+    while (!IsEmptyAStack(st))
     {
-        ans[j] = PopStack(st);
+        ans[j] = PopAStack(st);
         j--;
     }
     for (i = 0; i < n2; i++)
@@ -3070,7 +3078,7 @@ typedef struct QueueByStack
 } SQue;
 void EnqueueByStack(SQue *q, int x)
 {
-    PushLLStack(&q->st1, x);
+    PushLLStack(q->st1, x);
 }
 int DequeueByStack(SQue *q)
 {
@@ -3080,10 +3088,10 @@ int DequeueByStack(SQue *q)
     if (q->st2 == NULL)
         while (q->st1 != NULL)
         {
-            x = PopLLStack(&q->st1);
-            PushLLStack(&q->st2, x);
+            x = PopLLStack(q->st1);
+            PushLLStack(q->st2, x);
         }
-    x = PopLLStack(&q->st2);
+    x = PopLLStack(q->st2);
     return x;
 }
 
@@ -4944,6 +4952,7 @@ void DFSGraph(G* g, int v){
 
 typedef struct LLGraph{
     int v;
+    bool** tc;
     SNode** adj;
 }LLG;
 SNode* CreateNode(int data){
@@ -4953,12 +4962,17 @@ SNode* CreateNode(int data){
     return newNode;
 }
 LLG* CreateLLGraph(int v){
-    int i;
+    int i, j;
     LLG* llg = (LLG*)malloc(sizeof(LLG));
     llg->v = v;
     llg->adj = (SNode**)malloc(sizeof(SNode) * v);
-    for(i=0; i<v; i++)
+    llg->tc = (bool**)malloc(sizeof(bool*) * v);
+    for(i=0; i<v; i++){
         llg->adj[i] = NULL;
+        llg->tc[i] = (bool*)malloc(sizeof(bool) * v);
+        for(j=0; j<v; j++)
+            llg->tc[i][j] = false;
+    }
     return llg;
 }
 void AddEdgeLLGraph(LLG* llg, int s, int e, int option){
@@ -4971,7 +4985,7 @@ void AddEdgeLLGraph(LLG* llg, int s, int e, int option){
         llg->adj[e] = newNode;
     }
 }
-
+// BFS for Connected Graph
 void BFSLLGraph(LLG* llg, int s){
     bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
     int i;
@@ -4980,7 +4994,7 @@ void BFSLLGraph(LLG* llg, int s){
     Queue* que = CreateQueue(llg->v);
     visited[s] = true;
     EnqueueQueue(que, s);
-    while(!IsEmptyQueue(uqe)){
+    while(!IsEmptyQueue(que)){
         int curV = DequeueQueue(que);
         printf("%d ", curV);
         SNode* cur = llg->adj[curV];
@@ -4997,6 +5011,93 @@ void BFSLLGraph(LLG* llg, int s){
     free(visited);
     free(que->arr);
     free(que);
+}
+void BFSLLGraph2(LLG* llg, int s){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    int* queue = (int*)malloc(sizeof(int) * llg->v);
+    int front = -1, rear = -1;
+    visited[s] = 1;
+    queue[++rear] = s;
+    while (front != rear) {
+        s = queue[++front];
+        printf("%d ", s);
+        SNode* cur = llg->adj[s];
+        while (cur != NULL) {
+            int adjacent = cur->data;
+            if (!visited[adjacent]) {
+                visited[adjacent] = 1;
+                queue[++rear] = adjacent;
+            }
+            cur = cur->next;
+        }
+    }
+    free(visited);
+    free(queue);
+}
+// BFS for Disconnected Graph using adjacency matrix 
+void BFSLoopLLGrapphUsingAdjList(LLG* llg, int s, bool* visited){
+    int queue[llg->v];
+    int front = -1, rear = -1;
+    visited[s] = true;
+    queue[++rear] = s;
+    while(front != rear){
+        s = queue[++front];
+        printf("%d ", s);
+        SNode* cur = llg->adj[s];
+        while(cur != NULL){
+            int adjV = cur->data;
+            if(!visited[adjV]){
+                visited[adjV] = true;
+                queue[++rear] = adjV;
+            }
+            cur = cur->next;
+        }
+    }
+}
+void BFSLoopLLGraphUsingAdjMatrix(LLG* llg, int s, bool* visited){
+    if(llg->v == 0)
+        return;
+    SNode* queue[llg->v];
+    int front = -1, rear = -1;
+    queue[++rear] = llg->adj[s];
+    visited[s] = true;
+    while(front != rear){
+        SNode* cur = queue[++front];
+        printf("%d ",cur->data);
+        while(cur != NULL){
+            int neighbor = cur->data;
+            if(!visited[neighbor]){
+                queue[++rear] = llg->adj[neighbor];
+                visited[neighbor] = true;
+            }
+            cur = cur->next;
+        }
+    }
+}
+void BFSLLGraphUsingAdjMatrix(LLG* llg){
+    if(llg->v == 0)
+        return;
+    bool visited[llg->v];
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    for(i=0; i< llg->v; i++){
+        if(!visited[i])
+            BFSLoopLLGraphUsingAdjMatrix(llg, i, visited);
+    }
+}
+void BFSLLGraphUsingAdjList(LLG* llg){
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        visited[i] = false;
+    for(i=0; i< llg->v; i++){
+        if(!visited[i])
+            BFSLoopLLGrapphUsingAdjList(llg, i, visited);
+    }
 }
 void DFSLoopLLGraph(LLG* llg, int v, bool* visited){
     visited[v] = true;
@@ -5020,11 +5121,35 @@ void DFSLLGraph(LLG* llg){
     free(visited);
 }
 
+void DFSLoopTransitiveClosureLLGraph(LLG* llg, int s, int e){
+    llg->tc[s][e] = true;
+    SNode* cur = llg->adj[e];
+    while(cur != NULL){
+        if(llg->tc[s][cur->data] == false){
+            if(cur->data == s)
+                llg->tc[s][cur->data] = true;
+            else
+                DFSLoopTransitiveClosureLLGraph(llg, s, cur->data);
+        }
+        cur = cur->next;
+    }
+}
+void TransitiveClosureLLGraph(LLG* llg){
+    int i, j;
+    for(i=0; i<llg->v; i++)
+        DFSLoopTransitiveClosureLLGraph(llg, i, i);
+    for(i=0; i<llg->v; i++){
+        for(j=0; j<llg->v; j++)
+            printf("%d ", llg->tc[i][j]);
+        printf("\n");
+    }
+}
+
 void IterativeDFTLoopUDGraph(int s, bool* visited, LLG* llg){
-    Stack* stack = CreateStack(llg->v);
-    PushStack(stack, s);
-    while(!IsEmptyStack(stack)){
-        int cur = PopStack(stack);
+    AStack* stack = CreateAStack(llg->v);
+    PushAStack(stack, s);
+    while(!IsEmptyAStack(stack)){
+        int cur = PopAStack(stack);
         if(!visited[cur]){
             printf("%d ", cur);
             visited[cur] = true;
@@ -5032,7 +5157,7 @@ void IterativeDFTLoopUDGraph(int s, bool* visited, LLG* llg){
         SNode* neighbor = llg->adj[cur];
         while(neighbor != NULL){
             if(!visited[neighbor->data])
-                PushStack(stack, neighbor->data);
+                PushAStack(stack, neighbor->data);
             neighbor = neighbor->next;
         }
     }
@@ -5105,12 +5230,129 @@ bool IsCyclicUDGraph(LLG* llg){
     }
     return false;
 }
-
+//Colored Directed Graph's Cycle
+enum COLOR {WHITE, GRAY, BLACK};
+int DFSLoopCDGraph(LLG* llg, int u, int* color, LLStack* stack){
+    color[u] = GRAY;
+    SNode* cur = llg->adj[u];
+    while(cur != NULL){
+        int v = cur->data;
+        if(color[v] == GRAY)
+            return 1;
+        if(color[v] == WHITE && DFSLoopCDGraph(llg, v, color, stack))
+            return 1;
+        cur = cur->next;
+    }
+    color[u] = BLACK;
+    PushLLStack(stack, u);
+    return 0;
+}
+bool IsCycleCDGraph(LLG* llg){
+    int* color = (int*)malloc(sizeof(int) * llg->v);
+    int i;
+    for(i=0; i<llg->v; i++)
+        color[i] = WHITE;
+    LLStack* stack = CreateLLStack();
+    for(i=0; i<llg->v; i++)
+        if(color[i] == WHITE && DFSLoopCDGraph(llg, i, color, stack));
+            return true;
+    return false;
+}
+//Directed Negative-Weighted Graph's cycle Using Bellman Ford
+typedef struct Edge{
+    int src;
+    int dest;
+    int weight;
+}Edge;
+typedef struct WeightedGraph{
+    int v;
+    int e;
+    Edge* edge;
+}WGraph;
+WGraph* CreateWGraph(int v, int e){
+    WGraph* wg = (WGraph*)malloc(sizeof(WGraph));
+    wg->v = v;
+    wg->e = e;
+    wg->edge = (Edge*)malloc(sizeof(Edge) * wg->e);
+    return wg;
+}
+bool IsNegCycleWGraphUsingBellman(WGraph* wg, int src, int* dist){
+    int v = wg->v;
+    int e = wg->e;
+    int i, j;
+    for(i=0; i<v; i++)
+        dist[i] = INT_MAX;
+    dist[src];
+    for(i=1; i<=v-1; i++){
+        for(j=0; j<e; j++){
+            int u = wg->edge[j].src;
+            int w = wg->edge[j].dest;
+            int weight = wg->edge[j].weight;
+            if(dist[u] != INT_MAX && dist[u] + weight < dist[w])
+                dist[w] = dist[u] + weight;
+        }
+    }
+    for(i=0; i<e; i++){
+        int u = wg->edge[i].src;
+        int w = wg->edge[i].dest;
+        int weight = wg->edge[i].weight;
+        if(dist[u] != INT_MAX && dist[u] + weight < dist[w])
+            return true;
+    }
+    return false;
+}
+bool IsNegCycleDisconnected(WGraph* wg){
+    int v = wg->v;
+    bool* visited = (bool*)malloc(sizeof(bool));
+    memset(visited, 0, sizeof(visited));
+    int* dist = (int*)malloc(sizeof(int) * v);
+    int i, j;
+    for(i=0; i<v; i++){
+        if(!visited[i] && IsNegCycleWGraphUsingBellman(wg, i, dist))
+            return true;
+        for(j=0; j<v; j++)
+            if(dist[j] != INT_MAX)
+                visited[j] = true;
+    }
+    return false;
+}
+void FindCycleConnectedUDGraph(LLG* llg, int start, int cur, int n, bool* visited, int* path, int& count){
+    int i;
+    visited[cur] = true;
+    path[n - 1] = cur;
+    if (n == 0) {
+        if (llg->tc[cur][start]){
+            count++;
+            printf("Cycle found: ");
+            for (i = 0; i < n; i++)
+                printf("%d ", path[i]);
+            printf("%d\n", start);
+        }
+        visited[cur] = false;
+        return;
+    }
+    for (i = 0; i < llg->v; i++)
+        if (!visited[i] && llg->tc[cur][i])
+            FindCycleConnectedUDGraph(llg, start, i, n - 1, visited, path, count);
+    visited[cur] = false;
+}
+int CountCycleConnectedUDGraph(LLG* llg, int n){
+    int count = 0;
+    int i;
+    bool* visited = (bool*)malloc(sizeof(bool) * llg->v);
+    int* path = (int*)malloc(sizeof(int) * n);
+    for (i = 0; i < llg->v; i++)
+        visited[i] = false;
+    for (i = 0; i < llg->v; i++)
+        FindCycleConnectedUDGraph(llg, i, i, n, visited, path, count);
+    free(visited);
+    return count;
+}
 typedef struct DisjointSet{
     int* rank;
-    int *parent;
+    int* parent;
     int n;
-} DSet;
+}DSet;
 void MakeDisjointSet(DSet* ds, int n){
     int i;
     ds->rank = (int*)malloc(sizeof(int) * n);
@@ -5139,6 +5381,26 @@ void UnionDisjointSet(DSet* ds, int x, int y){
         ds->parent[yset] = xset;
         ds->rank[xset]++;
     }
+}
+bool IsCycleDisjointSet(WGraph* wg){
+    int v = wg->v;
+    int e = wg->e;
+    int i;
+    DSet ds;
+    MakeDisjointSet(&ds, v);
+    for(i=0; i<e; i++){
+        int x = FindSetDisjointSet(&ds, wg->edge[e].src);
+        int y = FindSetDisjointSet(&ds, wg->edge[e].dest);
+        if(x==y){
+            free(ds.parent);
+            free(ds.rank);
+            return true;
+        }
+        UnionDisjointSet(&ds, x, y);
+    }
+    free(ds.parent);
+    free(ds.rank);
+    return false;
 }
 
 
@@ -5191,7 +5453,7 @@ char dic[5][5] = {"abb", "abc", "xyz", "xyy", "bbb"};
 char pat[] = "GEEK";
 int arr[] = {1, 4, 5, 3, 12, 10};
 int n = sizeof(arr)/sizeof(arr[0]);
-IncMonotonicStack(arr, n); */
+IncMonotonicAStack(arr, n); */
 /* char *r1 = PrintLongestPalindromicSubsequence(str4);
 int r2 = CountLongestCommonSubsequence(str1, str2);
 printf("%s\n", r1);
