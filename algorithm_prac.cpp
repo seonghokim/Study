@@ -7,6 +7,8 @@
 #include <ctype.h>
 #include <iostream>
 #include <queue>
+#include <time.h>
+#include <windows.h>
 using namespace std;
 //#include <bits/stdc++.h>
 
@@ -26,6 +28,23 @@ using namespace std;
         printf(#x " is %.3f\n", x); \
     } while (0)
 #define THRESHOLD 2
+#define INF INT_MAX
+//------------------ Prototype Function-----------------
+struct Tree;
+struct MinHeap;
+struct BinomialHeap;
+struct BinomialHeapNode;
+int GetDepthTree(Tree* t);
+void GetAllNodeAtSameLevelTree(Tree* t, int level);
+void MinHeapify(MinHeap* h, int idx);
+void FindMinValNodeBHeap(struct BinomialHeap* heap);
+void BubbleUpBHeap(struct BinomialHeap* heap, struct BinomialHeapNode* node);
+void MergeBHeap(struct BinomialHeap* bh, struct BinomialHeap* otherHeap);
+void RemoveTreeBHeap(struct BinomialHeapNode** trees, struct BinomialHeapNode* targetTree);
+void SwapValuesBHeap(int* x, int* y);
+void SwapNodesBHeap(struct BinomialHeapNode** x, struct BinomialHeapNode** y);
+
+
 // int depth = 0;
 // int l_count = 0;
 // int r_count = 0;
@@ -3594,7 +3613,7 @@ public:
             data[ci] = tmp;
             pi = ci;
         }
-        return frontItem;
+        return front_item;
     }
     T Peek()
     {
@@ -3674,7 +3693,7 @@ Tree* CreateTree(int data){
     newNode->left = newNode->right = NULL;
     return newNode;
  }
-void PreorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
+void PreorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option=false){
     if(t == NULL)
         return;
     if(option){
@@ -3688,7 +3707,7 @@ void PreorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
         PreorderTree(t->right);
     }
  }
-void InorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
+void InorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option=false){
     if(t == NULL)
         return;
     // 1) printf() 없이 array에 정렬된 배열 저장
@@ -3704,7 +3723,7 @@ void InorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
         InorderTree(t->right, arr, idx, false);
     }
 }
-void PostorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option){
+void PostorderTree(Tree* t, int* arr=NULL, int* idx=NULL, bool option=false){
     if(t == NULL)
         return;
     if(option){
@@ -4171,7 +4190,9 @@ typedef struct TernarySearchTree{
     int end;
     int isleaf;
     unsigned int isEndofString = 1;
-    TSTree* left, *eq, *right;
+    struct TernarySearchTree* left;
+    struct TernarySearchTree* eq;
+    struct TernarySearchTree*right;
 }TSTree;
 TSTree* CreateTSTree(char data){
     TSTree* temp = (TSTree*)malloc(sizeof(TSTree));
@@ -5283,7 +5304,7 @@ bool IsNegCycleWGraphUsingBellman(WGraph* wg, int src, int* dist){
     for(i=0; i<v; i++)
         dist[i] = INT_MAX;
     dist[src];
-    for(i=1; i<=v-1; i++){
+    for(i=1; i<=v-1; i++){//N-1 times Relaxation, it make shortest path
         for(j=0; j<e; j++){
             int u = wg->edge[j].src;
             int w = wg->edge[j].dest;
@@ -5292,13 +5313,15 @@ bool IsNegCycleWGraphUsingBellman(WGraph* wg, int src, int* dist){
                 dist[w] = dist[u] + weight;
         }
     }
-    for(i=0; i<e; i++){
+    for(i=0; i<e; i++){//N th Relaxation, Check negative cycle
         int u = wg->edge[i].src;
         int w = wg->edge[i].dest;
         int weight = wg->edge[i].weight;
         if(dist[u] != INT_MAX && dist[u] + weight < dist[w])
             return true;
     }
+    for(i=0; i<v; i++)// Print Shortest distance from source to any node
+        printf("%3d\t%d\n",i, dist[i]);
     return false;
 }
 bool IsNegCycleDisconnected(WGraph* wg){
@@ -5314,6 +5337,33 @@ bool IsNegCycleDisconnected(WGraph* wg){
             if(dist[j] != INT_MAX)
                 visited[j] = true;
     }
+    return false;
+}
+bool IsNegCycleDGraphUsingFloydWarshall(int V, int* graph){
+    int dist[V][V];
+    int v = V;
+    int i, j, k;
+    for(i=0; i<v; i++)
+        for(j=0; j<v; j++)
+            dist[i][j] = *(graph+i*v+j);
+    printf("\n");
+    for(k=0; k<v; k++)
+        for(i=0; i<v; i++)
+            for(j=0;j<v; j++)
+                if(dist[i][k] != INF && dist[k][j] != INF && dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
+    for(i=0; i<v; i++){// Print Shortest distance
+        for(j=0; j<v; j++){
+            if(dist[i][j] == INF)
+                printf("%11s ", "INF");
+            else
+                printf("%11d ", dist[i][j]);
+        }
+        printf("\n");
+    }
+    for(i=0; i<v; i++)// Check Negative cycle
+        if(dist[i][i] < 0)
+            return true;
     return false;
 }
 void FindCycleConnectedUDGraph(LLG* llg, int start, int cur, int n, bool* visited, int* path, int& count){
@@ -5404,45 +5454,341 @@ bool IsCycleDisjointSet(WGraph* wg){
 }
 
 
+/* Dijkstra Algorithm is used for weighted graph.
+ * In these code, I implemented 2 type functions using Adjacency Matrix and Adjacency List.
+ * 
+*/
 
+//Shortest Path Using Adjacency Matrix in Weight Undirected Graph
+int FindVertexWithShortestDistance(int vertex, int* dist, bool* path){
+    int min = INT_MAX, min_idx;
+    int i;
+    for(i=0; i<vertex; i++)
+        if(path[i] == false && dist[i] <= min)
+            min = dist[i], min_idx = i;
+    return min_idx;
+}
+void ShortestPathWithDijkstra(int** graph, int nVertex, int src){
+    int dist[nVertex];
+    bool path[nVertex];
+    int i, j;
+    for(i=0; i<nVertex; i++)
+        dist[i] = INT_MAX, path[i] = false;
+    for(i=0; i<nVertex-1; i++){
+        int u = FindVertexWithShortestDistance(nVertex, dist, path);
+        path[u] = true;
+        for(j=0; j<nVertex; j++)
+            if(!path[j] && graph[u][j] && dist[u] != INT_MAX && dist[u] + graph[u][j] < dist[j])
+                dist[j] = dist[u] + graph[u][j];
+    }
+    for(i=0; i<nVertex; i++)
+        printf("Vertex:%4d/t/tDistance from Source:%4d\n", i, dist[i]);
+}
 
+// Shortest Path Using Adjacency List in Weight Undirected Graph having(or including) Negative weight
+// Shortest Path ver2 Using Adjacency List and BFS, MIn Heap in Weight Undirected Graph
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Queue Using Linked List and data type is char
-int main(){
-    SStack *s = CreateSStack();
-    int arr[] = {3, 2, 6, 1, 8, 5, 5, 5, 5};
-    int n = sizeof(arr) / sizeof(arr[0]);
-    for (int i = 0; i < n; i++)
-    {
-        PushSStack(s, arr[i]);
-        GetMinSStack(s);
+typedef struct Pair{
+    int dist;
+    int vertex;
+}Pair;
+typedef struct AdjListNode{
+    int dest;
+    int weight;
+    struct AdjListNode* next;
+}AdjListNode;
+typedef struct AdjList{
+    AdjListNode* head;
+}AdjList;
+typedef struct AdjListGraph{
+    int v;
+    AdjList* arr;
+}AdjListGraph;
+typedef struct MinHeapNode{
+    int v;
+    int dist;
+}MinHeapNode;
+typedef struct MinHeapVer2{
+    int size;
+    int cap;
+    int *pos;
+    MinHeapNode** arr;
+}MinHeapVer2;
+AdjListNode* CreateAdjListNode(int dest, int weight){
+    AdjListNode* newNode = (AdjListNode*)malloc(sizeof(AdjListNode));
+    newNode->dest = dest;
+    newNode->weight = weight;
+    newNode->next = NULL;
+    return newNode;
+}
+AdjListGraph* CreateAdjListGraph(int v){
+    AdjListGraph* alg = (AdjListGraph*)malloc(sizeof(AdjListGraph));
+    int i;
+    alg->v = v;
+    alg->arr = (AdjList*)malloc(sizeof(AdjList) * v);
+    for(i=0; i<v; i++)
+        alg->arr[i].head = NULL;
+    return alg;
+}
+MinHeapNode* CreateMinHeapNode(int v, int dist){
+    MinHeapNode* node = (MinHeapNode*)malloc(sizeof(MinHeapNode));
+    node->v = v;
+    node->dist = dist;
+    return node;
+}
+MinHeapVer2* CreateMinHeapVer2(int cap){
+    MinHeapVer2* heap = (MinHeapVer2*)malloc(sizeof(MinHeapVer2));
+    heap->pos = (int*)malloc(sizeof(int) * cap);
+    heap->size = 0;
+    heap->cap = cap;
+    heap->arr = (MinHeapNode**)malloc(sizeof(MinHeapNode*) * cap);
+    return heap;
+}
+void AddEdgeAdjListGraph(AdjListGraph* alg, int src, int dest, int weight){
+    AdjListNode* newNode = CreateAdjListNode(dest, weight);
+    newNode->next = alg->arr[src].head;
+    alg->arr[src].head = newNode;
+    newNode = CreateAdjListNode(src, weight);
+    newNode->next = alg->arr[dest].head;
+    alg->arr[dest].head = newNode;
+}
+void SwapMinHeapNode(MinHeapNode** a, MinHeapNode** b){
+    MinHeapNode* t = *a;
+    *a = *b;
+    *b = t;
+}
+void MinHeapifyVer2(MinHeapVer2* h, int idx){
+    int smallest = idx;
+    int l = 2*idx + 1;
+    int r = 2*idx + 2;
+    if(l < h->size && h->arr[l]->dist < h->arr[smallest]->dist)
+        smallest = l;
+    if(r < h->size && h->arr[r]->dist < h->arr[smallest]->dist)
+        smallest = r;
+    if(smallest != idx){
+        MinHeapNode* smallestNode = h->arr[smallest];
+        MinHeapNode* idxNode = h->arr[idx];
+        h->pos[smallestNode->v] = idx;
+        h->pos[idxNode->v] = smallest;
+        SwapMinHeapNode(&h->arr[smallest], &h->arr[idx]);
+        MinHeapifyVer2(h, smallest);
+    }
+}
+int IsEmptyMinHeapVer2(MinHeapVer2* h){
+    return h->size == 0;
+}
+MinHeapNode* ExtractMinNodeFromHeap(MinHeapVer2* h)
+{
+    if (IsEmptyMinHeapVer2(h))
+        return NULL;
+    MinHeapNode* root = h->arr[0];
+    MinHeapNode* lastNode = h->arr[h->size - 1];
+    h->arr[0] = lastNode;
+    h->pos[root->v] = h->size-1;
+    h->pos[lastNode->v] = 0;
+    --h->size;
+    MinHeapifyVer2(h, 0);
+    return root;
+}
+void DecreaseKeyMinHeapVer2(MinHeapVer2* h, int v, int dist){
+    int i = h->pos[v];
+    h->arr[i]->dist = dist;
+    while (i && h->arr[i]->dist < h->arr[(i-1)>>1]->dist){
+        h->pos[h->arr[i]->v] = (i-1)>>1;
+        h->pos[h->arr[(i-1)>>1]->v] = i;
+        SwapMinHeapNode(&h->arr[i], &h->arr[(i-1)>>1]);
+        i = (i-1)>>1;
+    }
+}
+bool IsInMinHeapVer2(MinHeapVer2* h, int v){
+   if (h->pos[v] < h->size)
+     return true;
+   return false;
+}
+void PrintShortestPathAdjList(Pair* pq, int src, int i){
+    // Print from Source to Destination
+    if(i == src){
+        printf("%2d ", i);
+        return;
+    }
+    PrintShortestPathAdjList(pq, src, pq[i].vertex);
+    printf("->%2d ", i);
+    // Print from Destination to Source
+    /*
+    printf("%d ", i);
+    while(i != src){
+        i = pq[i].vertex;
+        printf("<-%2d ", i);
     }
     printf("\n");
-    for (int i = 0; i < n; i++)
-    {
-        PopSStack(s);
-        GetMinSStack(s);
+    */
+}
+void ShortestPathWithDijkstraUsingAdjList(AdjListGraph* alg, int src){
+    Pair* pq = (Pair*)malloc(sizeof(Pair) * alg->v);
+    int* dist = (int*)malloc(sizeof(int) * alg->v);
+    int i;
+    for(i=0; i<alg->v; i++){
+        pq[i].dist = INF;
+        pq[i].vertex = i;
+        dist[i] = INF;
     }
-    DestroySStack(s);
+    pq[src].dist = 0;
+    dist[src] = 0;
+    while(1){
+        int u = -1;
+        for(i=0; i<alg->v; i++)
+            if(pq[i].dist != INF && (u == -1 || pq[i].dist < pq[u].dist))
+                u = i;
+        if(u == -1 || pq[u].dist == INT_MAX)
+            break;
+        pq[u].dist = INT_MAX;
+        AdjListNode* cur = alg->arr[u].head;
+        while(cur != NULL){
+            int v = cur->dest;
+            int weight = cur->weight;
+            if(dist[v] > dist[u] + weight){
+                dist[v] = dist[u] + weight;
+                pq[v].dist = dist[v];
+                pq[v].vertex = u;
+            }
+            cur = cur->next;
+        }
+    }
+    for(i=0; i<alg->v; i++){
+        printf("%3d\t%3d, Path: ", i, dist[i]);
+        //PrintShortestPathAdjList(pq, src, i);
+        printf("\n");
+    }
+}
+void ShortestPathWithDijkstraUsingAdjListVer2(AdjListGraph* alg, int src){
+    int v = alg->v;
+    int dist[v];
+    int i;
+    MinHeapVer2* h = CreateMinHeapVer2(v);
+    for (i=0; i<v; i++){
+        dist[i] = INT_MAX;
+        h->arr[i] = CreateMinHeapNode(i, dist[i]);
+        h->pos[i] = i;
+    }
+    h->arr[src] = CreateMinHeapNode(src, dist[src]);
+    h->pos[src] = src;
+    dist[src] = 0;
+    DecreaseKeyMinHeapVer2(h, src, dist[src]);
+    h->size = v;
+    while (!IsEmptyMinHeapVer2(h)){
+        MinHeapNode* hn = ExtractMinNodeFromHeap(h);
+        int u = hn->v; 
+        AdjListNode* temp = alg->arr[u].head;
+        while (temp != NULL){
+            int k = temp->dest;
+            if (IsInMinHeapVer2(h, k) && dist[u] != INT_MAX && temp->weight + dist[u] < dist[k]){
+                dist[k] = dist[u] + temp->weight;
+                DecreaseKeyMinHeapVer2(h, k, dist[k]);
+            }
+            temp = temp->next;
+        }
+    }
+    printf("Vertex   Distance from Source\n");
+    for (i=0; i<v; i++)
+        printf("%d \t\t %d\n", i, dist[i]);
+}
+
+/* Bellman-Ford algorithm is used in weight or unweighted graph
+ * It is slower than Dijkstra algorithm
+ * Also, it can handle negative weighted graph
+ * If, negative cycle exists, it can't find shortest path but can find negative cycle.
+ * According to Relaxation of Edges's priciple, if N vertices exists, N-1 times relaxation is needed.
+ * If there is any change(shortest path change) between N-1 th and N th relaxation, nagative cycle exists.
+*/
+// Check 5300 lines --> bool IsNegCycleWGraphUsingBellman(WGraph* wg, int src, int* dist) function
+// In the function, I already implemented getting shortest distance, checking negative cycle fucntions.
+
+
+/* Floyd Warshall algorithm is used in both of directed/undirected positive/negative weighted graph
+ * But it can't work if there is a negative cycle
+ * And it follows Dynamic Programming approach to check every possible path going via every possible node in order to calculate shortest distance between every pair of nodes.
+ * This algorithm treats all nodes between source node and destination node as intermediate node one by one
+ * Floyd Warshall algorithm shows the all shortest distance(It isn't necessary to input source vertex and destination vertex when calling the function)
+*/
+// Check 5342 lines --> IsNegCycleDGraphUsingFloydWarshall(int V, int* graph) function
+// In the function, I already implemented getting shortest distance, checking negative cycle fucntions.
+
+
+
+int main(){
+    //lock_t start_time = clock();
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+    int v = 4;
+    int graph[v][v] = { { 0, 5, INF, 10 },
+                        { INF, 0, 3, INF },
+                        { INF, INF, 0, 1 },
+                        { INF, INF, INF, 0 } };
+    bool result = IsNegCycleDGraphUsingFloydWarshall(v, graph[0]);
+    printf("Result: %s\n", result? "Negative cycle Exists" : "No negative cycle");
+ 
+
+    QueryPerformanceCounter(&end);
+    long long elapsed_ns = (end.QuadPart - start.QuadPart) * 1000000000LL / frequency.QuadPart;
+    printf("Elapsed Time: %lld nanoseconds\n", elapsed_ns);
+    //clock_t end_time = clock();
+    //double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+    //printf("Elapsed Time: %f seconds\n", elapsed_time);
     return 0;
 }
+
+
+
+
+
+
+//Shift Alt A = block Annotation On/Off
+
+
+/*     int v = 4;
+    // Negative cycle
+    int graph[][v] = { {0   , 1   , INF , INF},
+                        {INF , 0   , -1  , INF},
+                        {INF , INF , 0   ,  -1},
+                        {-1  , INF , INF ,   0}};
+    // Shortest distance
+    int graph[V][V] = { { 0, 5, INF, 10 },
+                        { INF, 0, 3, INF },
+                        { INF, INF, 0, 1 },
+                        { INF, INF, INF, 0 } };
+    bool result = IsNegCycleDGraphUsingFloydWarshall(v, graph[0]);
+    printf("Result: %s\n", result? "Negative cycle Exists" : "No negative cycle");
+ */
+
+/*     int V = 9;
+    AdjListGraph* graph = CreateAdjListGraph(V);
+
+    AddEdgeAdjListGraph(graph, 0, 1, 4);
+    AddEdgeAdjListGraph(graph, 0, 7, 8);
+    AddEdgeAdjListGraph(graph, 1, 2, 8);
+    AddEdgeAdjListGraph(graph, 1, 7, 11);
+    AddEdgeAdjListGraph(graph, 2, 3, 7);
+
+    AddEdgeAdjListGraph(graph, 2, 8, 2);
+    AddEdgeAdjListGraph(graph, 2, 5, 4);
+    AddEdgeAdjListGraph(graph, 3, 4, 9);
+    AddEdgeAdjListGraph(graph, 3, 5, 14);
+    AddEdgeAdjListGraph(graph, 4, 5, 10);
+
+    AddEdgeAdjListGraph(graph, 5, 6, 2);
+    AddEdgeAdjListGraph(graph, 6, 7, 1);
+    AddEdgeAdjListGraph(graph, 6, 8, 6);
+    AddEdgeAdjListGraph(graph, 7, 8, 7);
+
+    int src = 0;
+
+    printf("Shortest Paths from Source %d:\n", src);
+    ShortestPathWithDijkstraUsingAdjList(graph, src);
+
+    return 0; */
+
+
 /* char str1[] = "AGGTAB";//AGGTAB ,geek
 char str2[] = "GXTXAYB";//GXTXAYB , eke
 char str3[] = "axxxy";
