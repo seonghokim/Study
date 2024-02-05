@@ -9,8 +9,9 @@
 #include <queue>
 #include <time.h>
 #include <windows.h>
-using namespace std;
 //#include <bits/stdc++.h>
+using namespace std;
+
 
 // 자동 정렬 shift + alt + F
 // 커서영역 선택 Shft + alt + left 
@@ -28,7 +29,7 @@ using namespace std;
         printf(#x " is %.3f\n", x); \
     } while (0)
 #define THRESHOLD 2
-#define INF INT_MAX
+#define INF 0x3f3f3f3f
 //------------------ Prototype Function-----------------
 struct Tree;
 struct MinHeap;
@@ -43,6 +44,7 @@ void MergeBHeap(struct BinomialHeap* bh, struct BinomialHeap* otherHeap);
 void RemoveTreeBHeap(struct BinomialHeapNode** trees, struct BinomialHeapNode* targetTree);
 void SwapValuesBHeap(int* x, int* y);
 void SwapNodesBHeap(struct BinomialHeapNode** x, struct BinomialHeapNode** y);
+//------------------------------------------------------
 
 
 // int depth = 0;
@@ -5456,9 +5458,51 @@ bool IsCycleDisjointSet(WGraph* wg){
 
 /* Dijkstra Algorithm is used for weighted graph.
  * In these code, I implemented 2 type functions using Adjacency Matrix and Adjacency List.
- * 
+ * It's time complexity: O(V^2)[Adjacency Matrix], O(E logV) [Adjacency List]
 */
-
+// -----------------------------C++ STL Version------------------------
+/* class Graph{
+    int V;
+    list< pair<int, int> > *adj;
+public:
+    Graph(int V);
+    void addEdge(int u, int v, int w);
+    void shortestPath(int s);
+};
+Graph::Graph(int V){
+    this->V = V;
+    adj = new list< pair<int, int> >[V];
+}
+void Graph::addEdge(int u, int v, int w){
+    adj[u].push_back(make_pair(v, w));
+    adj[v].push_back(make_pair(u, w));
+}
+void Graph::shortestPath(int src){
+    set< pair<int, int> > setds;
+    vector<int> dist(V, INF);
+    setds.insert(make_pair(0, src));
+    dist[src] = 0;
+    while (!setds.empty()){
+        pair<int, int> tmp = *(setds.begin());
+        setds.erase(setds.begin());
+        int u = tmp.second;
+        list< pair<int, int> >::iterator i;
+        for (i = adj[u].begin(); i != adj[u].end(); ++i){
+            int v = (*i).first;
+            int weight = (*i).second;
+            if (dist[v] > dist[u] + weight){
+                if (dist[v] != INF)
+                    setds.erase(setds.find(make_pair(dist[v], v)));
+                dist[v] = dist[u] + weight;
+                setds.insert(make_pair(dist[v], v));
+            }
+        }
+    }
+    printf("Vertex   Distance from Source\n");
+    for (int i = 0; i < V; ++i)
+        printf("%d \t\t %d\n", i, dist[i]);
+} */
+//--------------------------------------------------------------------------
 //Shortest Path Using Adjacency Matrix in Weight Undirected Graph
 int FindVertexWithShortestDistance(int vertex, int* dist, bool* path){
     int min = INT_MAX, min_idx;
@@ -5487,6 +5531,7 @@ void ShortestPathWithDijkstra(int** graph, int nVertex, int src){
 
 // Shortest Path Using Adjacency List in Weight Undirected Graph having(or including) Negative weight
 // Shortest Path ver2 Using Adjacency List and BFS, MIn Heap in Weight Undirected Graph
+
 
 typedef struct Pair{
     int dist;
@@ -5544,13 +5589,15 @@ MinHeapVer2* CreateMinHeapVer2(int cap){
     heap->arr = (MinHeapNode**)malloc(sizeof(MinHeapNode*) * cap);
     return heap;
 }
-void AddEdgeAdjListGraph(AdjListGraph* alg, int src, int dest, int weight){
+void AddEdgeAdjListGraph(AdjListGraph* alg, int src, int dest, int weight, bool directed = true){
     AdjListNode* newNode = CreateAdjListNode(dest, weight);
     newNode->next = alg->arr[src].head;
     alg->arr[src].head = newNode;
-    newNode = CreateAdjListNode(src, weight);
-    newNode->next = alg->arr[dest].head;
-    alg->arr[dest].head = newNode;
+    if(directed == false){
+        newNode = CreateAdjListNode(src, weight);
+        newNode->next = alg->arr[dest].head;
+        alg->arr[dest].head = newNode;
+    }
 }
 void SwapMinHeapNode(MinHeapNode** a, MinHeapNode** b){
     MinHeapNode* t = *a;
@@ -5699,6 +5746,7 @@ void ShortestPathWithDijkstraUsingAdjListVer2(AdjListGraph* alg, int src){
  * If, negative cycle exists, it can't find shortest path but can find negative cycle.
  * According to Relaxation of Edges's priciple, if N vertices exists, N-1 times relaxation is needed.
  * If there is any change(shortest path change) between N-1 th and N th relaxation, nagative cycle exists.
+ * It's time complexity: O(VE)[Connected Graph], O(E* V^2)[Disconnected Graph]
 */
 // Check 5300 lines --> bool IsNegCycleWGraphUsingBellman(WGraph* wg, int src, int* dist) function
 // In the function, I already implemented getting shortest distance, checking negative cycle fucntions.
@@ -5709,9 +5757,124 @@ void ShortestPathWithDijkstraUsingAdjListVer2(AdjListGraph* alg, int src){
  * And it follows Dynamic Programming approach to check every possible path going via every possible node in order to calculate shortest distance between every pair of nodes.
  * This algorithm treats all nodes between source node and destination node as intermediate node one by one
  * Floyd Warshall algorithm shows the all shortest distance(It isn't necessary to input source vertex and destination vertex when calling the function)
+ * It's time complexity: O(V^3)
 */
 // Check 5342 lines --> IsNegCycleDGraphUsingFloydWarshall(int V, int* graph) function
 // In the function, I already implemented getting shortest distance, checking negative cycle fucntions.
+
+
+/* Johnson Algorithm uses both Dijkstra and Bellman-Ford as subroutines
+ * Considering all vertex as the source, apply Dijkstra for all vertex
+ * But problem of Dijkstra doesn't work for negative weight edge.
+ * So, re-weight all edges and make them all positive weight
+ * Re-weight method: Using vertex weight(h[x]), w(u, v) = w(u, v) + h[u] - h[v]
+ * How to get h[x]:
+ *      1. Add new vertex in the graph
+ *      2. Execute Bellman-Form algorithm with new vertex as source (h[0], h[1], ... , h[v-1])
+ *      3. IF we find a negarive weight cycle, return
+ *      4. Re-weight original graph
+ *      5. Run Dijkstra algorithm for all vertex
+ * It's time complexity: O(V^2 logV + VE)
+*/
+
+// Directed Acylcic Graph
+// This algorithm uses Topological sorting(represent linear ordering)
+// It's time complexity: O(V+E)
+void TopologicalSortLoop(int v, bool* visited, AdjListGraph* alg, AStack* stack){
+    visited[v] = true;
+    AdjListNode* cur = alg->arr[v].head;
+    while(cur != NULL){
+        if(!visited[cur->dest])
+            TopologicalSortLoop(cur->dest, visited, alg, stack);
+        cur = cur->next;
+    }
+    PushAStack(stack, v);
+}
+void ShortestPathDAGraph(AdjListGraph* alg, int s){
+    AStack* stack = CreateAStack(alg->v);
+    bool* visited = (bool*)malloc(sizeof(bool) * alg->v);
+    int* dist = (int*)malloc(sizeof(int) * alg->v);
+    int i;
+    for(i=0; i<alg->v; i++){
+        visited[i] = false;
+        dist[i] = INF;
+    }
+    for(i=0; i<alg->v; i++)
+        if(visited[i] == false)
+            TopologicalSortLoop(i, visited, alg, stack);
+    dist[s] = 0;
+    while(!IsEmptyAStack(stack)){
+        int u = PopAStack(stack);
+        AdjListNode* cur = alg->arr[u].head;
+        while(cur != NULL){
+            if(dist[u] != INF && cur->weight != INF && dist[cur->dest] > dist[u] + cur->weight)
+                dist[cur->dest] = dist[u] + cur->weight;
+            cur = cur->next;
+        }
+    }
+    for(i=0; i<alg->v; i++)
+        (dist[i] == INF) ? printf("INF ") : printf("%d ", dist[i]);
+}
+
+/* Dial’s Algorithm (Optimized Dijkstra for small range weights)
+ * It's time complexity: O(E+WV)
+ * Max distance between any two nodes: w(V-1)
+ * 
+*/
+void ShortestPathDial(AdjListGraph* alg, int src, int w) {
+    int* dist = (int*)malloc(sizeof(int) * alg->v);
+    bool* visited = (bool*)malloc(sizeof(bool) * alg->v);
+    int i;
+    for(i=0; i<alg->v; i++){
+        dist[i] = INF;
+        visited[i] = false;
+    }
+    dist[src] = 0;
+    AdjListNode** bucket = (AdjListNode**)malloc(sizeof(AdjListNode*) * (w+1));
+    for(i=0; i<=w; i++)
+        bucket[i] = NULL;
+    bucket[0] = CreateAdjListNode(src, 0);
+    for(i=0; i<=w; i++){
+        while(bucket[i] != NULL){
+            int u = bucket[i]->dest;
+            bucket[i] = bucket[i]->next;
+            if(visited[u])
+                continue;
+            visited[u] = true;
+            AdjListNode* cur = alg->arr[u].head;
+            while(cur != NULL){
+                int cv = cur->dest;
+                int cw = cur->weight;
+                if(!visited[cv] && dist[cv] > dist[u] + cw){
+                    dist[cv] = dist[u] = cw;
+                    int newWeight = dist[cv] % (w+1);
+                    AdjListNode* newNode = CreateAdjListNode(cv, newWeight);
+                    newNode->next = bucket[newWeight];
+                    bucket[newWeight] = newNode;
+                }
+                cur = cur->next;
+            }
+        }
+    }
+    for(i=0; i<alg->v; i++)
+        printf("Vertex %d : %d\n", i, dist[i]);
+    free(dist);
+    free(visited);
+    for(i=0; i<=w; i++){
+        AdjListNode* cur = bucket[i];
+        while(cur != NULL){
+            AdjListNode* next = cur->next;
+            free(cur);
+            cur = next;
+        }
+    }
+    free(bucket);
+}
+
+
+
+
+
 
 
 
@@ -5720,15 +5883,35 @@ int main(){
     LARGE_INTEGER frequency, start, end;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&start);
-    int v = 4;
-    int graph[v][v] = { { 0, 5, INF, 10 },
-                        { INF, 0, 3, INF },
-                        { INF, INF, 0, 1 },
-                        { INF, INF, INF, 0 } };
-    bool result = IsNegCycleDGraphUsingFloydWarshall(v, graph[0]);
-    printf("Result: %s\n", result? "Negative cycle Exists" : "No negative cycle");
- 
+    //---------------------- Execution Code -------------------------
+    AdjListGraph* g = CreateAdjListGraph(9);
+    AddEdgeAdjListGraph(g, 0, 1, 4, false);
+    AddEdgeAdjListGraph(g, 0, 7, 8, false);
+    AddEdgeAdjListGraph(g, 1, 2, 8, false);
+    AddEdgeAdjListGraph(g, 1, 7, 11, false);
+    AddEdgeAdjListGraph(g, 2, 3, 7, false);
+    AddEdgeAdjListGraph(g, 2, 8, 2, false);
+    AddEdgeAdjListGraph(g, 2, 5, 4, false);
+    AddEdgeAdjListGraph(g, 3, 4, 9, false);
+    AddEdgeAdjListGraph(g, 3, 5, 14, false);
+    AddEdgeAdjListGraph(g, 4, 5, 10, false);
+    AddEdgeAdjListGraph(g, 5, 6, 2, false);
+    AddEdgeAdjListGraph(g, 6, 7, 1, false);
+    AddEdgeAdjListGraph(g, 6, 8, 6, false);
+    AddEdgeAdjListGraph(g, 7, 8, 7, false);
+    ShortestPathDial(g, 0, 14);
+    for(int i=0; i<9; i++){
+        AdjListNode* cur = g->arr[i].head;
+        while(cur != NULL){
+            AdjListNode* next = cur->next;
+            free(cur);
+            cur = next;
+        }
+    }
+    free(g->arr);
+    free(g);
 
+    //---------------------------------------------------------------
     QueryPerformanceCounter(&end);
     long long elapsed_ns = (end.QuadPart - start.QuadPart) * 1000000000LL / frequency.QuadPart;
     printf("Elapsed Time: %lld nanoseconds\n", elapsed_ns);
@@ -5745,6 +5928,20 @@ int main(){
 
 //Shift Alt A = block Annotation On/Off
 
+
+/* AdjListGraph* g = CreateAdjListGraph(6);
+    AddEdgeAdjListGraph(g, 0, 1, 5);
+    AddEdgeAdjListGraph(g, 0, 2, 3);
+    AddEdgeAdjListGraph(g, 1, 3, 6);
+    AddEdgeAdjListGraph(g, 1, 2, 2);
+    AddEdgeAdjListGraph(g, 2, 4, 4);
+    AddEdgeAdjListGraph(g, 2, 5, 2);
+    AddEdgeAdjListGraph(g, 2, 3, 7);
+    AddEdgeAdjListGraph(g, 3, 4, -1);
+    AddEdgeAdjListGraph(g, 4, 5, -2);
+    int s = 1;
+    printf("Following are shortest distances from source %d:\n", s);
+    ShortestPathDAGraph(g, s); */
 
 /*     int v = 4;
     // Negative cycle
