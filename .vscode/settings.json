@@ -27,6 +27,9 @@
         "ratio": "cpp",
         "system_error": "cpp",
         "tuple": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "iostream": "cpp",
+        "iosfwd": "cpp",
+        "algorithm": "cpp"
     }
 }
