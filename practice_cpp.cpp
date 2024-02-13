@@ -84,7 +84,7 @@ int main()
 } */
 
 
-#include <iostream> 
+/* #include <iostream> 
   
 using namespace std; 
   
@@ -114,4 +114,58 @@ int main()
      
   //getchar(); 
   return 0; 
+} */
+/* #include <algorithm>
+#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+using namespace std;
+ 
+int main()
+{
+    // Initializing vector with array values
+    int arr[] = { 5, 10, 15, 20, 20, 20, 23, 42, 42, 42, 45 };
+    int n = sizeof(arr) / sizeof(arr[0]);
+    vector<int> vect(arr, arr + n);
+ 
+    cout << "Given Vector is:\n";
+    for (int i = 0; i < n; i++)
+        cout << vect[i] << " ";
+ 
+    vect.erase(find(vect.begin(),vect.end(),10));
+    cout << "\nVector after erasing element:\n";
+    for (int i = 0; i < vect.size(); i++)
+        cout << vect[i] << " ";
+ 
+    vect.erase(unique(vect.begin(), vect.end()),
+               vect.end());
+    cout << "\nVector after removing duplicates:\n";
+    for (int i = 0; i < vect.size(); i++)
+        cout << vect[i] << " ";
+ 
+    return 0;
+} */
+#include <forward_list>
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    forward_list<int> flist1 = {10, 20, 30};
+    forward_list<int> flist2 = {40, 50, 60};
+
+    // Reverse the elements of flist1
+    flist1.reverse();
+
+    // Shifting elements from first to second
+    // forward list after 1st position
+    flist2.splice_after(flist2.before_begin(), flist1);
+
+    // Displaying the forward list
+    cout << "The forward list after splice_after operation: ";
+    for (int& c : flist2)
+        cout << c << " ";
+    cout << endl;
+
+    return 0;
 }
