@@ -30,6 +30,7 @@
         "random": "cpp",
         "iostream": "cpp",
         "iosfwd": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "condition_variable": "cpp"
     }
 }

@@ -9,7 +9,7 @@
 #include <queue>
 #include <time.h>
 #include <windows.h>
-//#include <bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 
 
@@ -5817,9 +5817,15 @@ void ShortestPathDAGraph(AdjListGraph* alg, int s){
 }
 
 /* Dial’s Algorithm (Optimized Dijkstra for small range weights)
- * It's time complexity: O(E+WV)
+ * It's time complexity: O(E + W*V)
  * Max distance between any two nodes: w(V-1)
- * 
+ * Explanation of Algorithm
+ * 1) Create Bucket and Set start node's weight 0
+ * 2) Insert distance k in k th elemeent of bucket
+ * 3) Node in bucket are represented by list of vertices
+ * 4) Until 1st non-empty bucket is found, sequentially check the bucket from 0
+ * 5) Labeling and deleting node in bucket during scanning process
+ * 6) 
 */
 void ShortestPathDial(AdjListGraph* alg, int src, int w) {
     int* dist = (int*)malloc(sizeof(int) * alg->v);
@@ -5870,7 +5876,56 @@ void ShortestPathDial(AdjListGraph* alg, int src, int w) {
     }
     free(bucket);
 }
-
+class ShorestPathDialCPlus{
+    int V;
+    list<pair<int, int>> *adj; 
+public:
+    ShorestPathDialCPlus(int V){
+        this->V = V;
+        adj = new list<pair<int, int>>[V];
+    }
+    void AddEdgeDial(int u, int v, int w){
+        adj[u].push_back(make_pair(v,w));
+        adj[v].push_back(make_pair(u,w));
+    }
+    void ShortestPath(int src, int W){
+        vector<pair<int, list<int>::iterator>> dist(V);
+        for(int i=0;i <V ; i++)
+            dist[i].first = INF;
+        list<int> B[W*V+1];
+        B[0].push_back(src);
+        dist[src].first = 0;
+        int idx = 0;
+        while(1){
+            while(B[idx].size() == 0 && idx < W*V)
+                idx++;
+            if(idx == W*V)
+                break;
+            int u = B[idx].front();
+            B[idx].pop_front();
+            for(auto i = adj[u].begin(); i!=adj[u].end(); ++i){
+                int v = (*i).first;
+                int weight = (*i).second;
+                int du = dist[u].first;
+                int dv = dist[v].first;
+                if (dv > du + weight){
+                    if (dv != INF)
+                        B[dv].erase(dist[v].second);
+                    dist[v].first = du + weight;
+                    dv = dist[v].first;
+ 
+ 
+                    B[dv].push_front(v);
+                    dist[v].second = B[dv].begin();
+            }
+        }
+    }
+ 
+    // Print shortest distances stored in dist[]
+    printf("Vertex Distance from Source\n");
+    for (int i = 0; i < V; ++i)
+        printf("%d     %d\n", i, dist[i].first);
+}
 
 
 
