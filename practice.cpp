@@ -3,9 +3,11 @@
 #include <string>
 #include <ctype.h>
 #include <math.h>
+#include <bits/stdc++.h>
 using namespace std;
 
-void EvenOddCompare(long n);
+#define INF 0x3f3f3f3f
+/* void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
 void CheckLargestNum(long n1, long n2, long n3);
 void Swap(long* a, long* b);
@@ -23,57 +25,7 @@ long Fibonacci(long n);
 long Bin2Gray(long n);
 long Gray2Bin(long n);
 void TowerOfHanoi(int num, char from, char temp, char to);
-
-
-int main(void){
-    long input;
-    long input1, input2, input3;
-    char i_str[100];
-    long result1=0, result2=0;
-    bool state1, state2, state3;
-    long linput1, linput2;
-    long lresult1;
-    printf("Enter 1 number: ");
-    scanf("%ld",&linput1);
-    //printf("Enter 2 number: ");
-    //scanf("%ld %ld",&linput1, &linput2);
-    //printf("Enter string: ");
-    //scanf("%[^\n]s",i_str);
-    
-    //EvenOddCompare(input); // 1
-    //SumOfEachEvenOddNum(input); // 2
-    //scanf("%d %d %d",&input1, &input2, &input3); // 3
-    //CheckLargestNum(input1,input2,input3); // 3
-    //scanf("%d %d", &input1, &input2);
-    //Swap(&input1, &input2);
-    //result1 = SumOfDigits(input,NULL, 0);
-    //result2 = SumOfDigits(0, i_str, 2);
-    //printf("result: %d, result: %d\n", result1, result2);
-    //result1 = FindMaxAmongSameDigitsNum(input);
-    //printf("result: %d\n",result1);
-    //NumVowelsNConsonants(i_str);
-    //state1 = CheckPrimeNum(input);
-    //state2 = CheckPerfectNum(input);
-    //state3 = CheckStrongNum(input);
-    //printf("prime %d perfect %d stroing %d\n", state1, state2, state3);
-    //state1 = CheckArmstrongNum(input);
-    //printf("armstrongnum %d \n", state1);
-    //result1 = ReverseNum(input);
-    //state1 = CheckPalindrome(input);
-    //printf("reversed num %d is palindrome %d \n", result1, state1);
-    //lresult1 = AddBinaryNum(linput1, linput2);
-    //printf("Binarynum: %ld\n", lresult1);
-    //lresult1 = Fibonacci(linput1);
-    //lresult1 = Bin2Gray(linput1);
-    //lresult1 = Gray2Bin(linput1);
-    //printf("bin : %ld\n", lresult1);
-    TowerOfHanoi(3,'A','B','C');
-
-
-    
-    return 0;
-}
-
+ */
 
 void EvenOddCompare(long n){
      if(n%2==0)// (n&1 == 1) is using bitwise operator 
@@ -472,7 +424,204 @@ int String2Int(string str){
     return int(x);
 }
 
+int FindFirstRepeatingElementWithNaive(vector<int> arr){
+    int size = arr.size();
+    for(int i=0; i<size; i++)
+        for(int j=i+1; j<size; j++)
+            if(arr[i] == arr[j])
+                return i;
+    return -1;
+}
+int FindFirstRepeatingElementWithHashSet(vector<int> arr){
+    int min = -1;
+    int size = arr.size();
+    set<int> hashset;
+    for(int i=size-1; i>=0; i--){
+        if(hashset.find(arr[i]) != hashset.end())//find(x)는  x가 존재하면 return set.end()
+            min = i;
+        else
+            hashset.insert(arr[i]);
+    }
+    if(min != -1)
+        return min;
+    return -1;
+}
+int FindFirstRepeatingElementWithHashing(vector<int> arr){
+    bool isRepeat = false;
+    int size = arr.size();
+    int max = size;
+    for(int i=0; i<size; i++)
+        if(max < arr[i])
+            max = arr[i];
+    int a[max+1] = {};
+    bool b[max+1] = {};
+    for(int i=0; i<size; ++i){
+        if(a[arr[i]]){
+            b[arr[i]] = true;
+            isRepeat = true;
+            continue;
+        }
+        else
+            //if i=0 and arr[0] = 0, we have to avoid a[0] = 0
+            a[arr[i]] = i+1;
+    }
+    if(!isRepeat)
+        return -1;
+    else{
+        int min = max+1;
+        for(int i =0; i<max+1; i++)
+            if(!!(a[i]) && min > a[i] && b[i])
+                min = a[i];
+        return min-1;
+    }
+}
+int FindFirstRepeatingElementWithSingleHashArray(vector<int> arr){
+    int max = -1;
+    int size = arr.size();
+    for(const auto &x : arr)
+        if(max < x)
+            max = x;
+    int hash[max+1] = {};
+    for(auto &x : arr)
+        hash[x]++;
+    for(int i=0; i<size; i++)
+        if(hash[arr[i]] > 1)
+            return i;
+    return -1;
+}
+
+void FindLargest3Element(vector<int> arr){
+    int first, second, third;
+    int size = arr.size();
+    if(size < 3)
+        return;
+    third = first = second = -INF;
+    for(auto &x : arr){
+        if(x > first)
+            third = second, second = first, first = x;
+        else if(x > second && x != first)
+            third = second, second = x;
+        else if(x>third && x !=second && x != first)
+            third = x;
+    }
+    cout << first << ", " << second << ", " <<third << endl;
+}
+void FindLargest3ElementWithSort(vector<int> arr){
+    int size = arr.size();
+    sort(arr.begin(), arr.end());
+    int repeatcheck=0, count = 1;
+    for(int i=1; i<=size, count<4; i++){
+        if(repeatcheck != arr[size-i]){
+            cout << arr[size-i] << " ";
+            repeatcheck = arr[size-i];
+            count++;
+        }
+    }
+}
+
+int FindMissingNum(vector<int> arr){
+    int size = arr.size();
+    int x = arr[0], y=1;
+    for(int i = 1; i<size; i++)
+        x ^= arr[i];
+    for(int i = 2; i<=size+1; i++)
+        y ^= i;
+    return x^y;
+}
+void FindMissingRepearingNum(vector<int>& arr){
+    int n = arr.size();
+    int xor1 = 0;
+    int set_bit;
+    int x = 0;
+    int y = 0;
+ 
+    xor1 = 0;
+    for (int i = 0; i < n; i++){
+        xor1 ^= arr[i];
+        xor1 ^= (i+1);
+    }
+    set_bit = xor1 & ~(xor1 - 1);//Rightmost set bit
+    // Divide 2 sets(one include set_bit, other doesn't include set_bit)
+    for (int i = 0; i < n; i++) {
+        if ((arr[i] & set_bit) != 0)
+            x = x^ arr[i];
+        else
+            y = y ^ arr[i];
+        if (((i+1) & set_bit) != 0)
+            x ^= (i+1);
+        else
+            y ^= (i+1);
+    }
+    // we can't know whether x is a repeating number or not
+    for(int i=0; i<n; i++){
+        if(arr[i] == x)
+            break;
+        if(arr[i] == y)
+            swap(x, y);
+    }
+    cout << x << " , " << y << endl;
+    // x is repeating number
+    // y is missing number
+}
 
 
+
+
+
+int main(void){
+    vector<int> arr = {2, 5, 5, 8, 12, 15, 17, 19};
+    vector<int> arr2 = {1, 3, 4, 5, 1, 6, 2 };//1, 3, 4, 5, 1, 6, 2 
+    // 1, 2, 3, 5, 3, 6
+    int key = 5;
+    FindMissingRepearingNum(arr2);
+    //int res = FindMissingNum(arr2);
+    //FindLargest3ElementWithSort(arr);
+    //(res==-1)? cout<< "No Key in Array"<< endl : cout << "Key is located at index " << res;
+    return 0;
+}
+
+
+/* long input;
+    long input1, input2, input3;
+    char i_str[100];
+    long result1=0, result2=0;
+    bool state1, state2, state3;
+    long linput1, linput2;
+    long lresult1;
+    printf("Enter 1 number: ");
+    scanf("%ld",&linput1);
+    printf("Enter 2 number: ");
+    scanf("%ld %ld",&linput1, &linput2);
+    printf("Enter string: ");
+    scanf("%[^\n]s",i_str);
+    
+    EvenOddCompare(input); // 1
+    SumOfEachEvenOddNum(input); // 2
+    scanf("%d %d %d",&input1, &input2, &input3); // 3
+    CheckLargestNum(input1,input2,input3); // 3
+    scanf("%d %d", &input1, &input2);
+    Swap(&input1, &input2);
+    result1 = SumOfDigits(input,NULL, 0);
+    result2 = SumOfDigits(0, i_str, 2);
+    printf("result: %d, result: %d\n", result1, result2);
+    result1 = FindMaxAmongSameDigitsNum(input);
+    p rintf("result: %d\n",result1);
+    NumVowelsNConsonants(i_str);
+    state1 = CheckPrimeNum(input);
+    state2 = CheckPerfectNum(input);
+    state3 = CheckStrongNum(input);
+    printf("prime %d perfect %d stroing %d\n", state1, state2, state3);
+    state1 = CheckArmstrongNum(input);
+    printf("armstrongnum %d \n", state1);
+    result1 = ReverseNum(input);
+    state1 = CheckPalindrome(input);
+    printf("reversed num %d is palindrome %d \n", result1, state1);
+    lresult1 = AddBinaryNum(linput1, linput2);
+    printf("Binarynum: %ld\n", lresult1);
+    lresult1 = Fibonacci(linput1);
+    lresult1 = Bin2Gray(linput1);
+    lresult1 = Gray2Bin(linput1);
+    printf("bin : %ld\n", lresult1);
+    TowerOfHanoi(3,'A','B','C'); */
 
 

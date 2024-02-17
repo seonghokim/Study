@@ -252,34 +252,9 @@ int Partition(int *arr, int low, int high)
     int pivot = arr[high];
     int i = low;
     for (int j = low; j <= high; j++)
-    {
-        // printf("Progress Partition: i= %d, j= %d \n", i, j);
         if (arr[j] < pivot)
-        {
-            /*
-            printf("Before Swaped Array: ");
-            for(int k=0; k<=high; k++)
-                printf("%d ", arr[k]);
-            printf("\n");
-            */
             Swap(&arr[i++], &arr[j]);
-            /*
-            printf("Swap: arr[i]= %d, arr[j]= %d \n", arr[i-1], arr[j]);
-            printf("After Swaped Array: ");
-            for(int k=0; k<=high; k++)
-                printf("%d ", arr[k]);
-            printf("\n");
-            */
-        }
-    }
-    // printf("Before Last Swap: i= %d, high= %d, arr[i]=%d, arr[high]=%d \n", i, high, arr[i], arr[high]);
     Swap(&arr[i], &arr[high]);
-    /*printf("After Last Swap: i= %d, high= %d, arr[i]=%d, arr[high]=%d \n", i, high, arr[i], arr[high]);
-    printf("End Partition Array: ");
-    for(int t=0; t<=high; t++)
-        printf("%d ", arr[t]);
-    printf("\n");
-    */
     return (i);
     // If pivot is first element
     /*
@@ -301,19 +276,11 @@ int Partition(int *arr, int low, int high)
      return Partition(arr, low, high);
     */
 }
-void QuickSort(int *arr, int low, int high)
-{
-    if (low < high)
-    {
-        // printf("Before Partition: low= %d, high= %d \n", low, high);
+void QuickSort(int *arr, int low, int high){
+    if (low < high){
         int pi = Partition(arr, low, high);
-        // printf("After Partition: low= %d, high= %d, pivot=%d\n", low, high, arr[pi]);
-        // printf("l_count = %d\n",l_count++);
         QuickSort(arr, low, pi - 1);
-        // printf("Left QuickSort: low= %d, high(pi-1)= %d \n", low, pi-1);
-        // printf("R_count= %d\n",r_count++);
         QuickSort(arr, pi + 1, high);
-        // printf("Right QuickSort: low(pi+1)= %d, high= %d \n", pi+1, high);
     }
     // If pivot is middle element
     /*
