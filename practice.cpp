@@ -294,6 +294,7 @@ long Fibonacci(long n)
         printf("fibN: %ld\n", fib2);
         return fib2;
     }
+    return 0;
 }
 long Bin2Gray(long n)
 {
@@ -564,21 +565,184 @@ void FindMissingRepearingNum(vector<int>& arr){
     // y is missing number
 }
 
+//Knight's tour algorithm
+const int SIZE = 6;
+bool IsSafeMovement(int x, int y, int arr[SIZE][SIZE]){
+    return (x>=0 && x<SIZE && y>=0 && y<SIZE && arr[x][y] == -1);
+}
+void PrintKnightTourArr(int arr[SIZE][SIZE]){
+    for(int i=0; i<SIZE; i++){
+        for(int j=0; j<SIZE; j++)
+            cout << setw(2) <<arr[i][j] << " ";
+        cout << endl;
+    }
+}
+bool KnightTourLoop(int x, int y, int move, int arr[SIZE][SIZE], int dx[8], int dy[8]){
+    if(move == SIZE * SIZE)
+        return true;
+    for(int i = 0; i < 8; i++){
+        int x_next = x + dx[i];
+        int y_next = y + dy[i];
+        if(IsSafeMovement(x_next, y_next, arr)){
+            arr[x_next][y_next] = move;
+            if(KnightTourLoop(x_next, y_next, move+1, arr, dx, dy))
+                return true;
+            else
+                arr[x_next][y_next] = -1;
+        }
+    }
+    return false;
+}
+void KnightTour(){
+    int arr[SIZE][SIZE];
+    for(int i=0; i<SIZE; i++)
+        for(int j=0; j<SIZE; j++)
+            arr[i][j] = -1;
+    int dx[8] = {2, 1, -1, -2, -2, -1, 1, 2};
+    int dy[8] = {1, 2, 2, 1, -1, -2, -2 , -1};
+    int x = 0;
+    int y = 0;
+    arr[x][y] = 0;
+    if(KnightTourLoop(x, y, 1, arr, dx, dy))
+        PrintKnightTourArr(arr);
+    else
+        KnightTour();
+}
+
+int dr[4] = {1, 0, 0, -1};
+int dc[4] = {0, -1, 1, 0};
+bool IsValidPath(int r, int c, vector<vector<int>>& maze){
+    int size = maze.size();
+    return r >= 0 && c >= 0 && r<size && c<size && maze[r][c];
+}
+bool FindMazePath(int r, int c, vector<vector<int>>& maze, vector<vector<int>>& path, vector<pair<int,int>>& sol){
+    int size = maze.size();
+    if(r == size-1 && c == size-1){
+        path[r][c] = 1;
+        return true;
+    }
+    maze[r][c] = 0, path[r][c] = 1;
+    for(int i =0; i<4; i++){
+        int r_next = r + dr[i];
+        int c_next = c + dc[i];
+        if(IsValidPath(r_next, c_next, maze)){
+            sol.push_back({r_next, c_next});
+            if(FindMazePath(r_next, c_next, maze, path, sol))
+                return true;
+            sol.pop_back(), path[r][c] = 0;
+        }
+    }
+    return false;
+}
+
+
+/*
+    To check output of PrintNQueen()
+    cout << " i: "<< i << " solution i: "<< solution[i] << " J: "<< j;
+    cout << " " << (j == solution[i] ? "Q" : ".") << endl;
+*/
+
+vector<vector<int>> NQresult;
+void PrintNQueen(const vector<vector<int>>& result) {
+    for (const auto &solution : result) {
+        int size = solution.size();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++)
+                cout << " " << (j == solution[i] ? "Q" : ".");
+            cout << endl;
+        }
+        cout << endl;
+    }
+}
+bool NQueenLoop(vector<vector<int>>& arr, vector<int>& ld, vector<int>& rd, vector<int>& col, int c){
+    int size = arr.size();
+    if(c == size){
+        vector<int> v;
+        for(int i=0; i<size; i++)
+            for(int j=0; j<size; j++)
+                if(arr[i][j] == 1)
+                    v.push_back(j);
+        NQresult.push_back(v);
+        return true;
+    }
+    bool res = false;
+    for(int i=0; i<size; i++){
+        //if(ld[i-c+size-1] != 1 && rd[i+c] != 1 && col[i] != 1){
+        if(ld[i+c] != 1 && rd[i-c+size-1] != 1 && col[i] != 1){
+            arr[i][c] = 1;
+            ld[i+c] = rd[i-c+size-1] = col[i] = 1;
+            res = NQueenLoop(arr, ld, rd, col, c+1) || res;
+            arr[i][c] = 0;
+            ld[i+c] = rd[i-c+size-1] = col[i] = 0;
+        }
+    }
+    return res;
+}
+bool NQueen(int n){
+    vector<vector<int>> arr(n, vector<int>(n, 0));
+    int max_range = 2*n-1;
+    vector<int> ld(max_range, 0);
+    vector<int> rd(max_range, 0);
+    vector<int> col(max_range, 0);
+    if(NQueenLoop(arr, ld, rd, col, 0) == false)
+        return false;
+    else{
+        PrintNQueen(NQresult);
+        return true;
+    }
+}
+
+
+
+
+
+
+
 
 
 
 
 int main(void){
-    vector<int> arr = {2, 5, 5, 8, 12, 15, 17, 19};
-    vector<int> arr2 = {1, 3, 4, 5, 1, 6, 2 };//1, 3, 4, 5, 1, 6, 2 
+    //vector<int> arr = {2, 5, 5, 8, 12, 15, 17, 19};
+    //vector<int> arr2 = {1, 3, 4, 5, 1, 6, 2 };//1, 3, 4, 5, 1, 6, 2 
     // 1, 2, 3, 5, 3, 6
-    int key = 5;
-    FindMissingRepearingNum(arr2);
+    //int key = 5;
+    NQueen(4);
+ 
     //int res = FindMissingNum(arr2);
     //FindLargest3ElementWithSort(arr);
     //(res==-1)? cout<< "No Key in Array"<< endl : cout << "Key is located at index " << res;
     return 0;
 }
+
+
+// Rat in Maze
+/*     vector<vector<int>> maze = {
+        {1, 0, 0, 0},
+        {1, 1, 0, 1},
+        {1, 1, 0, 0},
+        {0, 1, 1, 1}
+    };
+    vector<vector<int>> path(4, vector<int>(4, 0));
+    vector<pair<int,int>> sol;
+    int size = maze.size();
+    // Print Coordinate of Solution Path
+    sol.push_back({0,0});
+    if(FindMazePath(0, 0, maze, path, sol)){
+        for(auto& i : sol)
+            cout << "(" << i.first << ", " << i.second << ")";
+        cout << endl;
+    }
+    else
+        cout << "Can't find solution\n";
+    // Print Path to text image
+    for(int i=0; i<size; i++){
+        for(int j=0; j<size; j++)
+            cout << path[i][j] << " ";
+        cout << endl;
+    } */
+
+
 
 
 /* long input;
