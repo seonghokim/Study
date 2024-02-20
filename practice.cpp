@@ -7,6 +7,7 @@
 using namespace std;
 
 #define INF 0x3f3f3f3f
+#define endl "\n"
 /* void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
 void CheckLargestNum(long n1, long n2, long n3);
@@ -692,29 +693,149 @@ bool NQueen(int n){
     }
 }
 
+void SumofSubSet(vector<int>& arr, int sum, vector<int>& sub, int i, set<vector<int>>& subset){
+    int size = arr.size();
+    if(sum == 0){
+        if(!sub.empty())
+            subset.insert(sub);
+        return;
+    }
+    if(i == size)
+        return;
+    SumofSubSet(arr, sum, sub, i+1, subset);//Exclude i th element
+    if(arr[i] <= sum){//Include i th element
+        sub.push_back(arr[i]);
+        SumofSubSet(arr, sum-arr[i], sub, i+1, subset);
+        sub.pop_back();
+    }
+}
 
+void PrintUDGraphColoring(vector<vector<int>>& result){
+    for(auto& x : result){
+        for(auto& y : x)
+            cout << y << " ";
+        cout << endl;
+    }
+}
+bool CanColoring(int vertex, vector<vector<bool>>& graph, vector<int>& color, int cur_color){
+    int size = graph.size();
+    for(int i=0; i<size; i++)
+        if(graph[vertex][i] && (cur_color == color[i]))
+            return false;
+    return true;
+}
+bool UDGraphColoring(vector<vector<bool>>& graph, int m, vector<int>& color, int vertex, vector<vector<int>>& result){
+    int size = graph.size();
+    if(vertex == size){
+        result.push_back(color);
+        return true;
+    }
+    bool res = false;
+    for(int i=0; i<m; i++){
+        if(CanColoring(vertex, graph, color, i)){
+            color[vertex] = i;
+            res = UDGraphColoring(graph, m, color, vertex+1, result) || res;
+            color[vertex] = -1;
+        }
+    }
+    return res;
+}
 
-
-
-
-
-
+// Hamiltonian Cycle (it starts at any index)
+void PrintHamiltonCycle(vector<int>& path, int size, int start_pos){
+    int temp = size;
+    for(int i = start_pos; temp >= 0 ; i=(i+1)%size, temp--)
+        cout << path[i] << " ";
+    cout << endl;
+}
+bool CheckPath(vector<vector<bool>>& graph, vector<int>& path, int cur_pos, int next_pos, int count){
+    int size = graph.size();
+    int start_pos = (size+cur_pos-count)%size;
+    int before_pos = (size+cur_pos-1)%size;
+    if(path[before_pos] != -1)//Check if new vertex can be connected to the last traversed vertex
+        if(graph[path[before_pos]][next_pos] == 0)
+            return false;
+    int temp = count;
+    for(int i=start_pos; temp > 0; i=(i+1)%size, temp--)//Check if vertex has been passed
+        if(path[i] == next_pos)
+            return false;
+    return true;
+}
+bool HamiltonianCycle(vector<vector<bool>>& graph, vector<int>& path, int cur_pos, int count){
+    int size = graph.size();
+    int start_pos = (size+cur_pos-count)%size;
+    if(count == size){
+        int end_pos = (size+start_pos-1)%size;
+        if(graph[path[end_pos]][path[start_pos]] == 1)
+            return true;
+        else
+            return false;
+    }
+    int temp = size;
+    for(int next_pos=start_pos; temp > 0 ; next_pos=(next_pos+1)%size, temp--){
+        if(CheckPath(graph, path, cur_pos, next_pos, count)){
+            path[cur_pos] = next_pos;
+            if(HamiltonianCycle(graph, path, (cur_pos+1)%size, count+1))
+                return true;
+            path[cur_pos] = -1;
+        }
+    }
+    return false;
+}
+// Same Function( Hapmiltonian Cycle). (it starts at index 0)
+/* void PrintHamiltonCycle(vector<int>& path){
+    for(auto i : path)
+        cout << path[i] << " ";
+    cout << endl;
+}
+bool CheckPath(vector<vector<bool>>& graph, vector<int>& path, int cur_pos, int next_pos){
+    if(cur_pos-1 >= 0)
+        if(path[cur_pos-1] != -1)//Check if new vertex can be connected to the last traversed vertex
+            if(graph[path[cur_pos-1]][next_pos] == 0)
+                return false;
+    for(int i=0; i<cur_pos; i++)//Check if vertex has been passed
+        if(path[i] == next_pos)
+            return false;
+    return true;
+}
+bool HamiltonianCycle(vector<vector<bool>>& graph, vector<int>& path, int cur_pos){
+    int size = graph.size();
+    if(cur_pos == size){
+        if(graph[path[cur_pos-1]][path[0]] == 1){
+            path[size] = 0;
+            return true;
+        }
+        else
+            return false;
+    }
+    for(int next_pos=0; next_pos<size; next_pos++){
+        if(CheckPath(graph, path, cur_pos, next_pos)){
+            path[cur_pos] = next_pos;
+            if(HamiltonianCycle(graph, path, cur_pos+1))
+                return true;
+            path[cur_pos] = -1;
+        }
+    }
+    return false;
+} */
 
 
 
 int main(void){
-    //vector<int> arr = {2, 5, 5, 8, 12, 15, 17, 19};
-    //vector<int> arr2 = {1, 3, 4, 5, 1, 6, 2 };//1, 3, 4, 5, 1, 6, 2 
-    // 1, 2, 3, 5, 3, 6
-    //int key = 5;
-    NQueen(4);
- 
-    //int res = FindMissingNum(arr2);
-    //FindLargest3ElementWithSort(arr);
-    //(res==-1)? cout<< "No Key in Array"<< endl : cout << "Key is located at index " << res;
+
     return 0;
 }
 
+
+    /* vector<int> arr = {2, 3, 5, 5, 8, 12, 15, 17, 19};
+    vector<int> arr2 = {1, 3, 4, 5, 1, 6, 2 };//1, 3, 4, 5, 1, 6, 2 
+     1, 2, 3, 5, 3, 6
+    int key = 5;
+    int res = FindMissingNum(arr2);
+    FindLargest3ElementWithSort(arr);
+    (res==-1)? cout<< "No Key in Array"<< endl : cout << "Key is located at index " << res;
+
+ */
 
 // Rat in Maze
 /*     vector<vector<int>> maze = {
@@ -741,6 +862,68 @@ int main(void){
             cout << path[i][j] << " ";
         cout << endl;
     } */
+
+// Sum of Subset
+/*     vector<int> arr = {2, 3, 5, 5, 8, 12, 15, 17, 19};
+    int sum = 18;
+    vector<int> sub;
+    set<vector<int>> subset;
+    SumofSubSet(arr, sum, sub, 0, subset);
+    cout<< endl;
+    for(auto k: subset){
+        for(auto t : k)
+            cout << t << " ";
+        cout << endl;
+    } */
+
+// UDGraph M Coloring
+/*     vector<vector<bool>> graph = {
+        {0, 1, 1, 1},
+        {1, 0, 1, 0},
+        {1, 1, 0, 1},
+        {1, 0, 1, 0}
+    };
+    vector<vector<int>> result;
+    int size = graph.size();
+    int m = 3;
+    vector<int> color(size, -1);
+    
+    if(UDGraphColoring(graph, m, color, 0, result))
+        PrintUDGraphColoring(result);
+    else
+        cout << "No result" << endl;
+ */
+
+// Hamiltonian Cycle
+/*     vector<vector<bool>> graph = {
+        {0, 1, 0, 1, 0},
+        {1, 0, 1, 1, 1},
+        {0, 1, 0, 0, 1},
+        {1, 1, 0, 0, 1},
+        {0, 1, 1, 1, 0}
+    };
+    int size = graph.size();
+    int start_pos = 4;
+    vector<int> path(size+1, -1);
+    if(HamiltonianCycle(graph, path, start_pos, 0))
+        PrintHamiltonCycle(path, size, start_pos);
+    else
+        cout << "No result" << endl;
+    cout << endl;
+    vector<vector<bool>> graph2 = {
+        {0, 1, 0, 1, 0},
+        {1, 0, 1, 1, 1},
+        {0, 1, 0, 0, 1},
+        {1, 1, 0, 0, 0},
+        {0, 1, 1, 0, 0}
+    };
+    int size2 = graph2.size();
+    int start_pos2 = 0;
+    vector<int> path2(size2+1, -1);
+    if(HamiltonianCycle(graph2, path2, start_pos2, 0))
+        PrintHamiltonCycle(path2, size2, start_pos2);
+    else
+        cout << "No result" << endl; */
 
 
 
