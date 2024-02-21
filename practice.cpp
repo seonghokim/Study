@@ -819,10 +819,162 @@ bool HamiltonianCycle(vector<vector<bool>>& graph, vector<int>& path, int cur_po
     return false;
 } */
 
+void PrintSudoku(vector<vector<int>>& grid){
+    int size = grid.size();
+    for(int i=0; i<size; i++){
+        for(int j=0; j<size; j++)
+            cout << grid[i][j] << " ";
+        cout << endl;
+    }
+}
+bool FindUnassignedLoc(vector<vector<int>>& grid, int& row, int& col){
+    int size = grid.size();
+    for(row=0; row<size; row++)
+        for(col=0; col<size; col++)
+            if(!grid[row][col])
+                return true;
+    return false;
+}
+bool UsedInRow(vector<vector<int>>& grid, int row, int num){
+    int size = grid.size();
+    for(int col=0; col<size; col++)
+        if(grid[row][col] == num)
+            return true;
+    return false;
+}
+bool UsedInCol(vector<vector<int>>& grid, int col, int num){
+    int size = grid.size();
+    for(int row=0; row<size; row++)
+        if(grid[row][col] == num)
+            return true;
+    return false;
+}
+bool UsedInBox(vector<vector<int>>& grid, int row, int col, int num){
+    for(int r=0; r<3; r++)
+        for(int c=0; c<3; c++)
+            if(grid[r+row][c+col] == num)
+                return true;
+    return false;
+}
+bool CanWriteNum(vector<vector<int>>& grid, int row, int col, int num){
+    return !UsedInRow(grid, row, num) && !UsedInCol(grid, col, num) && !UsedInBox(grid, row-row%3, col-col%3, num) && grid[row][col] == 0;
+}
+bool Sudoku(vector<vector<int>>& grid){
+    int size = grid.size();
+    int row, col;
+    if(!FindUnassignedLoc(grid, row, col))
+        return true;
+    for(int num=1; num<=9; num++){
+        if(CanWriteNum(grid, row, col, num)){
+            grid[row][col] = num;
+            if(Sudoku(grid))
+                return true;
+            grid[row][col] = 0;
+        }
+    }
+    return false;
+}
 
+int GetIndexofBox(int r, int c){
+    return r/3*3+c/3;
+}
+bool CanWriteNumWithBitMask(vector<int>& row, vector<int>& col, vector<int>& box, int r, int c, int num){
+    return !((row[r] >> num) & 1) && !((col[c] >> num) & 1) && !((box[GetIndexofBox(r,c)] >> num) & 1);
+}
+void SetInitialSudoku(vector<vector<int>>& grid, vector<int>& row, vector<int>& col, vector<int>& box){
+    int size = grid.size();
+    for(int i=0; i<size; i++)
+        for(int j=0; j<size; j++)
+            row[i] |= 1 << grid[i][j],
+            col[j] |= 1 << grid[i][j],
+            box[GetIndexofBox(i,j)] |= 1 << grid[i][j];
+}
+bool SudokuWithBitMask(vector<vector<int>>& grid, int r, int c, vector<int>& row, vector<int>& col, vector<int>& box){
+    static bool seted = false;
+    int size = grid.size();
+    if(!seted)
+        seted = true, SetInitialSudoku(grid, row, col, box);
+    if(r == size-1 && c == size)
+        return true;
+    if(c == size)
+        c = 0, r++;
+    if(grid[r][c])
+        return SudokuWithBitMask(grid, r, c+1, row, col, box);
+    for(int i=1; i<=size; i++){
+        if(CanWriteNumWithBitMask(row, col, box, r, c, i)){
+            grid[r][c] = i;
+            row[r] |= 1 << i;
+            col[c] |= 1 << i;
+            box[GetIndexofBox(r,c)] |= 1 << i;
+            if(SudokuWithBitMask(grid, r, c+1, row, col, box))
+                return true;
+            row[r] &= ~(1 << i);
+            col[c] &= ~(1 << i);
+            box[GetIndexofBox(r,c)] &= ~(1 << i);
+        }
+        grid[r][c] = 0;
+    }
+    return false;
+}
+
+bool IsParenthesis(char c){
+    return c=='(' || c==')';
+}
+bool IsValidParenthesis(string s){
+    int cnt = 0;
+    for(int i=0; i<s.length(); i++){
+        if(s[i] == '(')
+            cnt++;
+        else if(s[i] == ')')
+            cnt--;
+        if(cnt < 0)
+            return false;
+    }
+    return (cnt==0);
+}
+void RemoveInvalidParentheses(string s){
+    if(s.empty())
+        return;
+    unordered_set<string> visit;
+    queue<string> q;
+    string temp;
+    bool level;
+    q.push(s);
+    visit.insert(s);
+    while(!q.empty()){
+        s = q.front();
+        q.pop();
+        if(IsValidParenthesis(s)){
+            cout << s << endl;
+            level = true;
+        }
+        if(level)
+            continue;
+        for(int i=0; i<s.length(); i++){
+            if(!IsParenthesis(s[i]))
+                continue;
+            temp = s.substr(0, i) + s.substr(i+1);
+            if(visit.find(temp) == visit.end()){
+                q.push(temp);
+                visit.insert(temp);
+            }
+        }
+    }
+}
+
+
+void GraycodeToNBitNum(vector<int>& res, int n, int& cur){
+    if(n==0){
+        res.push_back(cur);
+        return;
+    }
+    GraycodeToNBitNum(res, n-1, cur);
+    cur ^= 1 << (n-1);
+    GraycodeToNBitNum(res, n-1, cur);
+}
 
 int main(void){
-
+    
     return 0;
 }
 
@@ -924,6 +1076,46 @@ int main(void){
         PrintHamiltonCycle(path2, size2, start_pos2);
     else
         cout << "No result" << endl; */
+
+// Sudoku
+/*     vector<vector<int>> grid = {
+        { 3, 0, 6, 5, 0, 8, 4, 0, 0 },
+        { 5, 2, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 8, 7, 0, 0, 0, 0, 3, 1 },
+        { 0, 0, 3, 0, 1, 0, 0, 8, 0 },
+        { 9, 0, 0, 8, 6, 3, 0, 0, 5 },
+        { 0, 5, 0, 0, 9, 0, 6, 0, 0 },
+        { 1, 3, 0, 0, 0, 0, 2, 5, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 7, 4 },
+        { 0, 0, 5, 2, 0, 6, 3, 0, 0 }
+    };
+    int size = grid.size();
+    vector<int> row(size, 0);
+    vector<int> col(size, 0);
+    vector<int> box(size, 0);
+    if(SudokuWithBitMask(grid, 0, 0, row, col, box))
+        PrintSudoku(grid);
+ */
+
+// Remove Invalid Parentheses
+/*     string expression = "()())()";
+    RemoveInvalidParentheses(expression);
+    expression = "()v)";
+    RemoveInvalidParentheses(expression);
+ */
+
+// GraycodeToNBitNum
+/*     vector<int> res;
+    int n = 3;
+    int cur = 0;
+    GraycodeToNBitNum(res, n, cur);
+    for(auto k : res)
+        cout << k << endl;
+ */
+
+
+
+
 
 
 
