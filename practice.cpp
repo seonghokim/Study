@@ -566,7 +566,9 @@ void FindMissingRepearingNum(vector<int>& arr){
     // y is missing number
 }
 
-//Knight's tour algorithm
+//----------------------- BackTracking --------------------
+
+// Knight's tour algorithm
 const int SIZE = 6;
 bool IsSafeMovement(int x, int y, int arr[SIZE][SIZE]){
     return (x>=0 && x<SIZE && y>=0 && y<SIZE && arr[x][y] == -1);
@@ -610,39 +612,39 @@ void KnightTour(){
         KnightTour();
 }
 
+// Rat In Maze
 int dr[4] = {1, 0, 0, -1};
 int dc[4] = {0, -1, 1, 0};
-bool IsValidPath(int r, int c, vector<vector<int>>& maze){
+bool IsValidPath(int r, int c, vector<vector<int>>& maze, vector<vector<int>>& path){
     int size = maze.size();
-    return r >= 0 && c >= 0 && r<size && c<size && maze[r][c];
+    return r >= 0 && c >= 0 && r<size && c<size && maze[r][c] && path[r][c]!=1;
 }
-bool FindMazePath(int r, int c, vector<vector<int>>& maze, vector<vector<int>>& path, vector<pair<int,int>>& sol){
+bool FindMazePath(int r, int c, vector<vector<int>>& maze, vector<vector<int>>& path, vector<vector<vector<int>>>& all){
     int size = maze.size();
     if(r == size-1 && c == size-1){
-        path[r][c] = 1;
+        all.push_back(path);
         return true;
     }
-    maze[r][c] = 0, path[r][c] = 1;
+    bool res = false;
+    path[r][c] = 1;
     for(int i =0; i<4; i++){
         int r_next = r + dr[i];
         int c_next = c + dc[i];
-        if(IsValidPath(r_next, c_next, maze)){
-            sol.push_back({r_next, c_next});
-            if(FindMazePath(r_next, c_next, maze, path, sol))
-                return true;
-            sol.pop_back(), path[r][c] = 0;
+        if(IsValidPath(r_next, c_next, maze, path)){
+            path[r_next][c_next] = 1;
+            res = FindMazePath(r_next, c_next, maze, path, all) || res;
+            path[r_next][c_next] = 0;
         }
     }
-    return false;
+    return res;
 }
 
-
+// N-Queen
 /*
     To check output of PrintNQueen()
     cout << " i: "<< i << " solution i: "<< solution[i] << " J: "<< j;
     cout << " " << (j == solution[i] ? "Q" : ".") << endl;
 */
-
 vector<vector<int>> NQresult;
 void PrintNQueen(const vector<vector<int>>& result) {
     for (const auto &solution : result) {
@@ -693,6 +695,7 @@ bool NQueen(int n){
     }
 }
 
+// Sum of Subset
 void SumofSubSet(vector<int>& arr, int sum, vector<int>& sub, int i, set<vector<int>>& subset){
     int size = arr.size();
     if(sum == 0){
@@ -710,6 +713,7 @@ void SumofSubSet(vector<int>& arr, int sum, vector<int>& sub, int i, set<vector<
     }
 }
 
+// M-Coloring
 void PrintUDGraphColoring(vector<vector<int>>& result){
     for(auto& x : result){
         for(auto& y : x)
@@ -819,6 +823,7 @@ bool HamiltonianCycle(vector<vector<bool>>& graph, vector<int>& path, int cur_po
     return false;
 } */
 
+// Sudoku
 void PrintSudoku(vector<vector<int>>& grid){
     int size = grid.size();
     for(int i=0; i<size; i++){
@@ -917,6 +922,7 @@ bool SudokuWithBitMask(vector<vector<int>>& grid, int r, int c, vector<int>& row
     return false;
 }
 
+// Remove Invalid Parentheses in string
 bool IsParenthesis(char c){
     return c=='(' || c==')';
 }
@@ -962,7 +968,7 @@ void RemoveInvalidParentheses(string s){
     }
 }
 
-
+// Print Gray code from 0 to 2^n-1
 void GraycodeToNBitNum(vector<int>& res, int n, int& cur){
     if(n==0){
         res.push_back(cur);
@@ -973,8 +979,67 @@ void GraycodeToNBitNum(vector<int>& res, int n, int& cur){
     GraycodeToNBitNum(res, n-1, cur);
 }
 
+// Permutation of String
+void PermutateString(string& str, int l, int r){
+    if(l == r)
+        cout << str << endl;
+    else{
+        for(int i=l; i<=r ; i++){
+            swap(str[l], str[i]);
+            PermutateString(str, l+1, r);
+            swap(str[l], str[i]);
+        }
+    }
+}
+void PermutateStringWithSTL(string str, string out){
+    if(!str.size()){
+        cout << out << endl;
+        return;
+    }
+    for(int i=0; i<str.size(); i++){
+        PermutateStringWithSTL(str.substr(1), out+str[0]);
+        rotate(str.begin(), str.begin()+1, str.end());
+    }
+}
+void PermutateStringWithNextPermutation(string str){
+    //If cur string is lexicographically largest, next_permutation returns false
+    sort(str.begin(), str.end());
+    unordered_set<string> res;
+    do{
+        res.insert(str);
+        //cout << str << endl;
+    }while(next_permutation(str.begin(), str.end()));
+    for(auto k : res)
+        cout << k << endl;
+}
+
+
+
+
+
+
 int main(void){
-    
+    vector<vector<int>> maze = {
+        {1, 0, 0, 0},
+        {1, 1, 0, 1},
+        {1, 1, 0, 0},
+        {0, 1, 1, 1}
+    };
+    vector<vector<vector<int>>> res;
+    vector<vector<int>> path(4, vector<int>(4, 0));
+    int size = maze.size();
+    // Print Coordinate of Solution Path
+    if(FindMazePath(0, 0, maze, path, res)){
+        int size_res = res.size();
+        for(int k=0; k<size_res; k++){
+            for(int i=0; i<size; i++){
+                for(int j=0; j<size; j++)
+                    cout << res[k][i][j] << " ";
+                cout << endl;
+            }
+            cout << endl;
+        }
+    }
     return 0;
 }
 
@@ -1014,6 +1079,30 @@ int main(void){
             cout << path[i][j] << " ";
         cout << endl;
     } */
+/*     vector<vector<int>> maze = {
+        {1, 0, 0, 0},
+        {1, 1, 0, 1},
+        {1, 1, 0, 0},
+        {0, 1, 1, 1}
+    };
+    vector<vector<vector<int>>> res;
+    vector<vector<int>> path(4, vector<int>(4, 0));
+    int size = maze.size();
+    // Print Coordinate of Solution Path
+    if(FindMazePath(0, 0, maze, path, res)){
+        int size_res = res.size();
+        for(int k=0; k<size_res; k++){
+            for(int i=0; i<size; i++){
+                for(int j=0; j<size; j++)
+                    cout << res[k][i][j] << " ";
+                cout << endl;
+            }
+            cout << endl;
+        }
+    }
+ */
+
+
 
 // Sum of Subset
 /*     vector<int> arr = {2, 3, 5, 5, 8, 12, 15, 17, 19};
@@ -1111,6 +1200,12 @@ int main(void){
     GraycodeToNBitNum(res, n, cur);
     for(auto k : res)
         cout << k << endl;
+ */
+
+// Permutation of String
+/*     string str = "abb";
+    int n = str.size();
+    PermutateStringWithNextPermutation(str);
  */
 
 
