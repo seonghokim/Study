@@ -1013,33 +1013,66 @@ void PermutateStringWithNextPermutation(string str){
         cout << k << endl;
 }
 
+//----------------------- Greedy --------------------
 
+// Acitivity Selection Problem
+void PrintMaxActivities(vector<pair<int,int>>& work, vector<int>& result){
+    // work.first = end time, work.second = start time
+    if(!is_sorted(work.begin(), work.end()))
+        sort(work.begin(), work.end());
+    int i=0, j;
+    int size = work.size();
+    result.push_back(i);
+    for(j=1; j<size; j++){
+        if(work[j].second >= work[i].first){
+            result.push_back(j);
+            i = j;
+        }
+    }
+}
+
+// Job Sequencing Problem
+struct Job{
+    char id;
+    int deadline;
+    int profit;
+};
+bool CompareProfit(Job a, Job b){
+    return a.profit > b.profit;
+}
+void PrintMaxProfitJobSequencing(Job* arr, int n, vector<char>& result){
+    sort(arr, arr+n, CompareProfit);
+    vector<bool> slot(n, false);
+    vector<int> day(n, -1);
+    for(int i=0; i<n; i++){
+        for(int j=min(n, arr[i].deadline)-1; j>=0; j--){
+            if(slot[j] == false){
+                day[j] = i;
+                result.push_back(arr[day[j]].id);
+                slot[j] = true;
+                break;
+            }
+        }
+    }
+}
 
 
 
 
 int main(void){
-    vector<vector<int>> maze = {
-        {1, 0, 0, 0},
-        {1, 1, 0, 1},
-        {1, 1, 0, 0},
-        {0, 1, 1, 1}
+    Job arr[] = {
+        {'a', 4, 100},
+        {'b', 1, 19},
+        {'c', 2, 27},
+        {'d', 1, 25},
+        {'e', 3, 15}
     };
-    vector<vector<vector<int>>> res;
-    vector<vector<int>> path(4, vector<int>(4, 0));
-    int size = maze.size();
-    // Print Coordinate of Solution Path
-    if(FindMazePath(0, 0, maze, path, res)){
-        int size_res = res.size();
-        for(int k=0; k<size_res; k++){
-            for(int i=0; i<size; i++){
-                for(int j=0; j<size; j++)
-                    cout << res[k][i][j] << " ";
-                cout << endl;
-            }
-            cout << endl;
-        }
-    }
+    int n = sizeof(arr)/sizeof(arr[0]);
+    vector<char> result;
+    PrintMaxProfitJobSequencing(arr, n, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl;
     return 0;
 }
 
@@ -1208,11 +1241,30 @@ int main(void){
     PermutateStringWithNextPermutation(str);
  */
 
+// PrintMaxActivities
+/*     vector<pair<int,int>> work = {
+        {2, 1},{4,3}, {6,0}, {7,5}, {9,8}, {9,5}
+    };
+    vector<int> result;
+    PrintMaxActivities(work, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
 
-
-
-
-
+// PrintMaxProfitJobSequencing
+/*     Job arr[] = {
+        {'a', 4, 100},
+        {'b', 1, 19},
+        {'c', 2, 27},
+        {'d', 1, 25},
+        {'e', 3, 15}
+    };
+    int n = sizeof(arr)/sizeof(arr[0]);
+    vector<char> result;
+    PrintMaxProfitJobSequencing(arr, n, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
 
 
 /* long input;

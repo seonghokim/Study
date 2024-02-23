@@ -30,6 +30,7 @@ using namespace std;
     } while (0)
 #define THRESHOLD 2
 #define INF 0x3f3f3f3f
+
 //------------------ Prototype Function-----------------
 struct Tree;
 struct MinHeap;
@@ -5847,9 +5848,9 @@ class ShorestPathDialCPlus{
     int V;
     list<pair<int, int>> *adj; 
 public:
-    ShorestPathDialCPlus(int V){
-        this->V = V;
-        adj = new list<pair<int, int>>[V];
+    ShorestPathDialCPlus(int v){
+        this->V = v;
+        adj = new list<pair<int, int>>[v];
     }
     void AddEdgeDial(int u, int v, int w){
         adj[u].push_back(make_pair(v,w));
@@ -5880,66 +5881,114 @@ public:
                         B[dv].erase(dist[v].second);
                     dist[v].first = du + weight;
                     dv = dist[v].first;
- 
- 
                     B[dv].push_front(v);
                     dist[v].second = B[dv].begin();
             }
         }
     }
- 
-    // Print shortest distances stored in dist[]
     printf("Vertex Distance from Source\n");
     for (int i = 0; i < V; ++i)
         printf("%d     %d\n", i, dist[i].first);
 }
+};
 
-
-
-
-
-
-
-int main(){
-    //lock_t start_time = clock();
-    LARGE_INTEGER frequency, start, end;
-    QueryPerformanceFrequency(&frequency);
-    QueryPerformanceCounter(&start);
-    //---------------------- Execution Code -------------------------
-    AdjListGraph* g = CreateAdjListGraph(9);
-    AddEdgeAdjListGraph(g, 0, 1, 4, false);
-    AddEdgeAdjListGraph(g, 0, 7, 8, false);
-    AddEdgeAdjListGraph(g, 1, 2, 8, false);
-    AddEdgeAdjListGraph(g, 1, 7, 11, false);
-    AddEdgeAdjListGraph(g, 2, 3, 7, false);
-    AddEdgeAdjListGraph(g, 2, 8, 2, false);
-    AddEdgeAdjListGraph(g, 2, 5, 4, false);
-    AddEdgeAdjListGraph(g, 3, 4, 9, false);
-    AddEdgeAdjListGraph(g, 3, 5, 14, false);
-    AddEdgeAdjListGraph(g, 4, 5, 10, false);
-    AddEdgeAdjListGraph(g, 5, 6, 2, false);
-    AddEdgeAdjListGraph(g, 6, 7, 1, false);
-    AddEdgeAdjListGraph(g, 6, 8, 6, false);
-    AddEdgeAdjListGraph(g, 7, 8, 7, false);
-    ShortestPathDial(g, 0, 14);
-    for(int i=0; i<9; i++){
-        AdjListNode* cur = g->arr[i].head;
-        while(cur != NULL){
-            AdjListNode* next = cur->next;
-            free(cur);
-            cur = next;
+// Multistage Graph(Shortest path)
+/* pair's first: stage, pair's second: (vertex, weight)
+ * dist[i]: distance from vertex(i) to vertex(target)
+ * graph(first, (second, third)): first(stage), second(vertex), third(weight)
+ * Reversely, We check from dist(max_stage-1) to dist[1]
+ * And, We update dist[] to get minimum value 
+*/
+int MultistageShortestPath(vector<pair<int, unordered_map<int,int>>>& graph, int src, int dest, int stage){
+    vector<int> dist(graph.size(), INF);
+    dist[dest] = 0;
+    for(int cur_stage=stage; cur_stage>0; cur_stage--){
+        for(int vertex=0; vertex<graph.size(); vertex++){
+            if(graph[vertex].first != cur_stage)
+                continue;
+            for(auto& u : graph[vertex].second)//second = (vertex, weight)
+                dist[vertex] = min(dist[vertex], u.second+dist[u.first]);
         }
     }
-    free(g->arr);
-    free(g);
+    return dist[src];
+}
 
-    //---------------------------------------------------------------
-    QueryPerformanceCounter(&end);
-    long long elapsed_ns = (end.QuadPart - start.QuadPart) * 1000000000LL / frequency.QuadPart;
-    printf("Elapsed Time: %lld nanoseconds\n", elapsed_ns);
-    //clock_t end_time = clock();
-    //double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-    //printf("Elapsed Time: %f seconds\n", elapsed_time);
+// Shortest Path in Unweighted Graph
+vector<int> BFS_Shortest_Path(vector<vector<int>>& graph, int src){
+    deque<int> dq;
+    dq.push_back(src);
+    vector<int> dist(graph.size(), INF);
+    dist[src] = 0;
+    set<int> visited;
+    while(!dq.empty()){
+        int v = dq.front();
+        dq.pop_front();
+        visited.insert(v);
+        for(int k: graph[v]){
+            if(visited.find(k) == visited.end()){
+                if(dist[k] > dist[v]+1){
+                    dist[k] = dist[v]+1;
+                    dq.push_back(k);
+                }
+            }
+        }
+    }
+    return dist;
+}
+
+// Karp's minimum mean weight cycle
+struct edge{
+    int from, weight;
+};
+vector<edge> edges[4];
+void AddEdge(int u, int v, int w){
+    edges[v].push_back({u,w});
+}
+void ShortestPath(int dp[][4]){
+    for(int i=0; i<=4; i++)
+        for(int j=0; j<4; j++)
+            dp[i][j] = -1;
+    dp[0][0]=0;
+    for(int i=1; i<=4; i++){
+        for(int j=0; j<4; j++){
+            for(int k=0; k<edges[j].size(); k++){
+                int cur_w = dp[i-1][edges[j][k].from]+edges[j][k].weight;
+                if(dp[i][j] == -1)
+                    dp[i][j] = cur_w;
+                else
+                    dp[i][j] = min(dp[i][j], cur_w);
+            }
+        }
+    }
+}
+double MinAvgWeight(){
+    int dp[5][4];
+    ShortestPath(dp);
+    double avg[4];
+    for(int i=0; i<4; i++)
+        avg[i] = -1;
+    for(int i=0; i<4; i++){
+        if(dp[4][i] != -1){
+            for(int j=0; j<4; j++)
+                if(dp[j][i] != -1)
+                    avg[i] = max(avg[i], ((double)dp[4][i]-dp[j][i])/(4-j));
+        }
+    }
+    double result = avg[0];
+    for(int i=0; i<4; i++)
+        if(avg[i] != -1 && avg[i] < result)
+            result = avg[i];
+    return result;
+}
+
+int main(){
+    AddEdge(0, 1, 1);
+    AddEdge(0, 2, 10);
+    AddEdge(1, 2, 3);
+    AddEdge(2, 3, 2);
+    AddEdge(3, 1, 0);
+    AddEdge(3, 0, 8);
+    cout << MinAvgWeight();
     return 0;
 }
 
@@ -5964,7 +6013,6 @@ int main(){
     int s = 1;
     printf("Following are shortest distances from source %d:\n", s);
     ShortestPathDAGraph(g, s); */
-
 /*     int v = 4;
     // Negative cycle
     int graph[][v] = { {0   , 1   , INF , INF},
@@ -5979,7 +6027,6 @@ int main(){
     bool result = IsNegCycleDGraphUsingFloydWarshall(v, graph[0]);
     printf("Result: %s\n", result? "Negative cycle Exists" : "No negative cycle");
  */
-
 /*     int V = 9;
     AdjListGraph* graph = CreateAdjListGraph(V);
 
@@ -6054,3 +6101,111 @@ free(r2); */
     free(r4);
     char* r5 = FindLongestRepeatingSubsequence(str3);
     printf("%s\n", r5); */
+
+
+    // Dial's shortest path Algorithm
+/*         ShorestPathDialCPlus g(9);
+    g.AddEdgeDial(0, 1, 4);
+    g.AddEdgeDial(0, 7, 8);
+    g.AddEdgeDial(1, 2, 8);
+    g.AddEdgeDial(1, 7, 11);
+    g.AddEdgeDial(2, 3, 7);
+    g.AddEdgeDial(2, 8, 2);
+    g.AddEdgeDial(2, 5, 4);
+    g.AddEdgeDial(3, 4, 9);
+    g.AddEdgeDial(3, 5, 14);
+    g.AddEdgeDial(4, 5, 10);
+    g.AddEdgeDial(5, 6, 2);
+    g.AddEdgeDial(6, 7, 1);
+    g.AddEdgeDial(6, 8, 6);
+    g.AddEdgeDial(7, 8, 7);
+    g.ShortestPath(0, 14); */
+
+// Multistage Shortest Path
+/*     vector<pair<int, unordered_map<int, int>>> graph = {
+        {1, {{1,1},{2,2},{3,5}}},
+        {2, {{4,4},{5,11}}},
+        {2, {{4,9},{5,5}}},
+        {2, {{6,2}}},
+        {3, {{7,18}}},
+        {3, {{7,13}}},
+        {3, {{7,2}}},
+        {4, {}}
+    };
+    int res = MultistageShortestPath(graph, 0, graph.size()-1, 4);
+    if(res != INF)
+        cout << "Result: " << res << endl;
+    else
+        cout << "No result" << endl; */
+
+// BFS_Shortest_Path
+/*     vector<vector<int>> graph = {
+        {1,2}, {2, 3}, {3}, {4}, {}
+    };
+    int start_v = 0;
+    vector<int> dist = BFS_Shortest_Path(graph, start_v);
+    for(int d : dist)
+        cout << d << " ";
+    cout << endl; */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
