@@ -1044,8 +1044,8 @@ void PrintMaxProfitJobSequencing(Job* arr, int n, vector<char>& result){
     sort(arr, arr+n, CompareProfit);
     vector<bool> slot(n, false);
     vector<int> day(n, -1);
-    for(int i=0; i<n; i++){
-        for(int j=min(n, arr[i].deadline)-1; j>=0; j--){
+    for(int i=0; i<n; i++){// i = job number
+        for(int j=min(n, arr[i].deadline)-1; j>=0; j--){// j = work day
             if(slot[j] == false){
                 day[j] = i;
                 result.push_back(arr[day[j]].id);
@@ -1055,13 +1055,66 @@ void PrintMaxProfitJobSequencing(Job* arr, int n, vector<char>& result){
         }
     }
 }
+struct JobProfit{
+    bool operator()(Job const& a, Job const& b){
+        return a.profit < b.profit;
+    }
+};
+void PrintMaxProfitJobSequencingWithPriorityQueue(Job* arr, int n, vector<Job>& result){
+    // Ascending order
+    sort(arr, arr+n, [](Job a, Job b){return a.deadline < b.deadline;});
+    // Descending order
+    priority_queue<Job, vector<Job>, JobProfit> pq;
+    for(int i = n-1; i>=0 ; i--){
+        int slot;
+        if(i==0)
+            slot = arr[i].deadline;
+        else
+            slot = arr[i].deadline - arr[i-1].deadline;
+        pq.push(arr[i]);
+        while(slot > 0 && pq.size() > 0){
+            Job job = pq.top();
+            pq.pop();
+            slot--;
+            result.push_back(job);
+        }
+    }
+    sort(result.begin(), result.end(), [&](Job a, Job b){return a.deadline < b.deadline;});
+    for(int i=0; i<result.size(); i++)
+        cout << result[i].id << ' ';
+    cout << endl;
+}
 
-
+struct DisjointSetForJobSequencing{
+    int* parent;
+    DisjointSetForJobSequencing(int n){
+        parent = new int[n+1];
+        for(int i=0; i<=n; i++)
+            parent[i] = i;
+    }
+    int Find(int s){
+        if(s == parent[s])
+            return s;
+        return parent[s] = Find(parent[s]);
+    }
+    void Merge(int u, int v){
+        parent[v] = u;
+    }
+};
+int FindMaxDeadline(Job* arr, int n){
+    int result = INT_MIN;
+    for(int i=0; i<n; i++)
+        result = max(result, arr[i].deadline);
+    return result;
+}
+void PrintMaxProfitJobSequencingWithDisjointSet(Job* arr, int n){
+    
+}
 
 
 int main(void){
     Job arr[] = {
-        {'a', 4, 100},
+        {'a', 2, 12},
         {'b', 1, 19},
         {'c', 2, 27},
         {'d', 1, 25},
@@ -1069,7 +1122,8 @@ int main(void){
     };
     int n = sizeof(arr)/sizeof(arr[0]);
     vector<char> result;
-    PrintMaxProfitJobSequencing(arr, n, result);
+    vector<Job> result2;
+    PrintMaxProfitJobSequencingWithPriorityQueue(arr, n, result2);
     for(auto k : result)
         cout << k << " ";
     cout << endl;
