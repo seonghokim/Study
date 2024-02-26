@@ -1108,25 +1108,204 @@ int FindMaxDeadline(Job* arr, int n){
     return result;
 }
 void PrintMaxProfitJobSequencingWithDisjointSet(Job* arr, int n){
-    
+    sort(arr, arr+n, CompareProfit);
+    int max_deadline = FindMaxDeadline(arr, n);
+    DisjointSetForJobSequencing ds(max_deadline);
+    for(int i=0; i<n ; i++){
+        int slot = ds.Find(arr[i].deadline);
+        if(slot > 0){
+            ds.Merge(ds.Find(slot-1), slot);
+            cout << arr[i].id << " ";
+        }
+    }
 }
 
+// Huffman coding
+struct MinHeapNode{
+    char data;
+    unsigned freq;
+    MinHeapNode *left, *right;
+    MinHeapNode(char data, unsigned freq){
+        left = right = NULL;
+        this->data = data;
+        this->freq = freq;
+    }
+};
+struct CompareFrequency{
+    //In priority queue, this function works in ascending order.
+    bool operator()(MinHeapNode* l, MinHeapNode* r){
+        return l->freq > r->freq;
+    }
+};
+void PrintCode(MinHeapNode* root, string str){
+    if(!root)
+        return;
+    if(root->data != '$')
+        cout << root->data << ": " << str << endl;
+    PrintCode(root->left, str+"0");
+    PrintCode(root->right, str+"1");
+}
+void StoreCode(MinHeapNode* root, string str, map<char,string>& codes){
+    if(root == NULL)
+        return;
+    if(root->data != '$')
+        codes[root->data] = str;
+    StoreCode(root->left, str+"0", codes);
+    StoreCode(root->right, str+"1", codes);
+}
+void Huffman_Encoding(map<char, int>& freqTable, map<char, string>& codes, priority_queue<MinHeapNode*, vector<MinHeapNode*>, CompareFrequency>& minheap){
+    MinHeapNode* left, *right, *top;
+    int size = freqTable.size();
+    for(map<char, int>::iterator i = freqTable.begin(); i!=freqTable.end() ;i++)
+        minheap.push(new MinHeapNode(i->first, i->second));
+    while(minheap.size() != 1){
+        left = minheap.top();
+        minheap.pop();
+        right = minheap.top();
+        minheap.pop();
+        top = new MinHeapNode('$', left->freq + right->freq);
+        top->left = left;
+        top->right = right;
+        minheap.push(top);
+    }
+    StoreCode(minheap.top(), "", codes);
+}
+void CalculateCharFrequency(map<char, int>& freqTable, string str){
+    for(int i=0; i<str.size(); i++)
+        freqTable[str[i]]++;
+}
+string Huffman_Decoding(MinHeapNode* root, string s){
+    string result = "";
+    MinHeapNode* cur = root;
+    for(int i=0; i<s.size(); i++){
+        if(s[i] == '0')
+            cur = cur->left;
+        else
+            cur = cur->right;
+        if(cur->left == NULL && cur->right == NULL){
+            result += cur->data;
+            cur = root;
+        }
+    }
+    return result+'\0';
+}
+
+// Water Connection Problem
+int DFS(int k, int& p, vector<int>& start,  vector<int>& pipe){
+    if(start[k] == 0)// if End house
+        return k;
+    if(pipe[k] < p)
+        p = pipe[k];
+    return DFS(start[k], p, start, pipe);
+}
+void WaterConnection(vector<vector<int>>& arr, vector<int>& start, vector<int>& end, vector<int>& pipe){
+    int n_house = start.size();
+    int n_pipe = arr.size();
+    vector<vector<int>> result;
+    for(int i=0; i<n_pipe; i++){
+        int h1=arr[i][0], h2=arr[i][1], diameter=arr[i][2];
+        start[h1] = h2;
+        pipe[h1] = diameter;
+        end[h2] = h1;
+    }
+    for(int i=1; i<=n_house; i++){
+        if(end[i] == 0 && start[i]){// Start house's Condition
+            int p = INF;
+            int end_point = DFS(i, p, start, pipe);
+            result.push_back({i, end_point, p});
+        }
+    }
+    cout << "Number of (tank, tap): "<< result.size() << endl;
+    for(auto t : result){
+        for(auto y : t)
+            cout << y << " ";
+        cout << endl;
+    }
+}
+
+// Minumum Swap for Bracket Balancing
+int MinSwapCount(string s){
+    vector<int> pos;
+    int size = s.size();
+    for(int i=0; i<size; i++)
+        if(s[i] == '[')
+            pos.push_back(i);
+    int count=0, n_swap =0, p=0;
+    for(int i=0; i<size; i++){
+        if(s[i] == '[')
+            count++, p++;
+        else
+            count--;
+        if(count < 0){
+            n_swap += pos[p]-i;
+            swap(s[i], s[pos[p]]);
+            p++;
+            count = 1;
+        }
+    }
+    return n_swap;
+}
+
+// Egyptian Fraction
+void EgyptianFraction(int n, int d){
+    //n: numerator, d: denominator
+    if(d==0 || n==0)
+        return;
+    if(d % n == 0){//simplify
+        cout << "1/" << d/n;
+        return;
+    }
+    if(n%d == 0){//not fraction(integer )
+        cout << n/d;
+        return;
+    }
+    if(n/d){// Improper fraction
+        cout << n/d << " + ";
+        EgyptianFraction(n%d, d);
+        return;
+    }
+    int x = d/n+1;
+    cout << "1/" << x << " + ";
+    EgyptianFraction(n*x-d, d*x);
+}
+vector<int> GetEgyptianFraction(int n, int d, vector<int> d_list){
+    if(n==0)
+        return d_list;
+    int x = ceil((double)d/n);
+    d_list.push_back(x);
+    d_list = GetEgyptianFraction(n*x-d, d*x, d_list);
+    return d_list;
+}
+
+// Policemen catch thieves
+int PoliceCatchThief(string str, int k){
+    int result = 0;
+    int size = str.length();
+    for(auto& k : str)
+        k = tolower(k);
+    vector<int> pol;
+    vector<int> thi;
+    for(int i=0; i<size; i++){
+        if(str[i] == 'p')
+            pol.push_back(i);
+        else if(str[i] == 't')
+            thi.push_back(i);
+    }
+    int l=0, r=0;
+    int t_size = thi.size(), p_size = pol.size();
+    while(l<t_size && r<p_size){
+        if(abs(thi[l] - pol[r]) <= k)
+            l++, r++, result++;
+        else if(thi[l] < pol[r])
+            l++;
+        else
+            r++;
+    }
+    return result;
+}
 
 int main(void){
-    Job arr[] = {
-        {'a', 2, 12},
-        {'b', 1, 19},
-        {'c', 2, 27},
-        {'d', 1, 25},
-        {'e', 3, 15}
-    };
-    int n = sizeof(arr)/sizeof(arr[0]);
-    vector<char> result;
-    vector<Job> result2;
-    PrintMaxProfitJobSequencingWithPriorityQueue(arr, n, result2);
-    for(auto k : result)
-        cout << k << " ";
-    cout << endl;
+
     return 0;
 }
 
@@ -1319,6 +1498,70 @@ int main(void){
     for(auto k : result)
         cout << k << " ";
     cout << endl; */
+
+// Huffman Encoding
+/*     vector<pair<char, int>> str = {
+        {'a', 5},
+        {'b', 9},
+        {'c', 12},
+        {'d', 13},
+        {'e', 16},
+        {'f', 45}
+    };
+    HuffmanCode(str); */
+
+// Huffman Decoding
+/*     string str = "geeksforgeeks";
+    string encoded, decoded;
+    map<char, int> freqTable;
+    map<char, string> codes;
+    priority_queue<MinHeapNode*, vector<MinHeapNode*>, CompareFrequency> minheap;
+    CalculateCharFrequency(freqTable, str);
+    Huffman_Encoding(freqTable, codes, minheap);
+    for(auto k : str)
+        encoded += codes[k];
+    cout << "Encoded string: " << encoded << endl;
+    decoded = Huffman_Decoding(minheap.top(), encoded);
+    cout << "Decoded string: " << decoded << endl;
+ */
+
+// Water Connection
+/*     int h = 9, p = 6;
+    vector<int> start(h+1, 0);
+    vector<int> pipe(h+1, INF);
+    vector<int> end(h+1, 0);
+    vector<vector<int>> arr = {
+        {7, 4, 98}, {5, 9, 72}, {4, 6, 10},
+        {2, 8, 22}, {9, 7, 17}, {3, 1, 66}
+    };
+    WaterConnection(arr, start, end, pipe); */
+
+// MinSwapCount
+/*     string s = "[]][][";
+    cout << MinSwapCount(s) << "\n";
+ 
+    s = "[[][]]";
+    cout << MinSwapCount(s) << "\n"; */
+
+// Egyptian Fraction
+/*     string str = "";
+    vector<int> result = GetEgyptianFraction(12, 13, {});
+    for(auto k : result)
+        str +="1/" + to_string(k) + " + ";
+    string temp = str.substr(0, str.length()-3);
+    cout << temp << endl; */
+
+// Police catch Thief
+/*     int k = 2;
+    string str = "PTTPT";
+    cout << PoliceCatchThief(str, k) << endl;
+    str = "TTPPTP";
+    cout << PoliceCatchThief(str, k) << endl;
+    str = "PTPTTP";
+    cout << PoliceCatchThief(str, k) << endl; */
+
+
+
 
 
 /* long input;
