@@ -1304,8 +1304,147 @@ int PoliceCatchThief(string str, int k){
     return result;
 }
 
-int main(void){
+// Fitting Shelves Problem
+void FittingShelves(int wall, int a, int b){
+    int p = wall/a, q=0, rem=wall%a;
+    int n_a=p, n_b=q, minspace = rem;
+    while(wall >= b){
+        q += 1;
+        wall -= b;
+        p = wall / a;
+        rem = wall % a;
+        if(rem <= minspace){
+            n_a = p;
+            n_b = q;
+            minspace = rem;
+        }
+    }
+    cout << n_a << " " << n_b << " " << minspace << endl;
+}
 
+// Assign Mice to Holes
+int AssignMice2Hole(vector<int>& mice, vector<int>& hole){
+    int n = mice.size();
+    sort(mice.begin(), mice.end());
+    sort(hole.begin(), hole.end());
+    int max = 0;
+    for(int i=0; i<n; i++)
+        if(max < abs(mice[i]-hole[i]))
+            max = abs(mice[i]-hole[i]);
+    return max;
+}
+
+// Minimum Product Subset of Array
+int MinProductSubset(vector<int> arr){
+    int size = arr.size();
+    int count_neg=0, count_zero=0, result=1;
+    int max_neg = INT_MAX, min_pos = INT_MAX;
+    if(size == 1)
+        return arr[0];
+    for(int i=0; i<size; i++){
+        if(arr[i] == 0){
+            count_zero++;
+            continue;
+        }
+        else if(arr[i] < 0){
+            count_neg++;
+            max_neg = max(max_neg, arr[i]);
+        }
+        else if(arr[i] > 0)
+            min_pos = min(min_pos, arr[i]);
+        result *= arr[i];
+    }
+    if(count_zero == size || (count_neg == 0 && count_zero >0))
+        return 0;
+    if(count_neg == 0)
+        return min_pos;
+    if(!(count_neg & 1) && count_neg !=0)
+        result /=max_neg;
+    return result;
+}
+
+int SumArray(vector<int>& arr){
+    int sum=0;
+    for(auto& k : arr)
+        sum += k;
+    return sum;
+}
+int MaxArraySumKNegation(vector<int>& arr, int k){
+    int size = arr.size();
+    int sum=0, i=0;
+    sort(arr.begin(), arr.end());
+    for(i=0; i<size; i++){
+        if(k && arr[i] < 0){
+            arr[i] *= -1;
+            --k;
+            continue;
+        }
+        break;
+    }
+    if(i==size)
+        --i;
+    if(k==0 || k%2 == 0)
+        return SumArray(arr);
+    if(i != 0 && abs(arr[i]) >= abs(arr[i-1]))
+        --i;
+    arr[i] *= -1;
+    return SumArray(arr);
+}
+
+// Min sum of proudct of 2 arrays
+int MinSumOfProductOfTwoArray(vector<int>& a,vector<int>& b, int k){
+    int diff = 0, result =0;
+    int size = a.size();
+    int tmp;
+    for(int i=0 ; i<size; i++){
+        int mult = a[i] * b[i];
+        result += mult;
+        if(mult <0 && b[i] <0)
+            tmp = (a[i]+2*k) * b[i];
+        else if(mult <0 && a[i] <0)
+            tmp = (a[i]-2*k) * b[i]; 
+        else if(mult >0 && a[i] <0)
+            tmp = (a[i] +2*k) * b[i];
+        else if(mult >0 && a[i] >0)
+            tmp = (a[i]-2*k) * b[i];
+        int d = abs(mult-tmp);
+        if(d > diff)
+            diff = d;
+    }
+    return result-diff;
+}
+
+// Min sum of absolute difference of pairs of 2 arrays
+int MinSumOfAbsDiffOfPairTwoArr(vector<int>& a, vector<int>& b){
+    int size = a.size();
+    int sum = 0;
+    sort(a.begin(), a.end());
+    sort(b.begin(), b.end());
+    for(int i=0; i<size; i++)
+        sum += abs(a[i]-b[i]);
+    return sum;
+}
+
+// Min Inc/Dec to make array non-inc
+int TransformNonIncArr(vector<int>& arr){
+    int result = 0;
+    int size = arr.size();
+    priority_queue<int> pq;
+    for(int i=size-1; i>=0; --i){
+        if(!pq.empty() && pq.top() > arr[i]){
+            result += abs(arr[i]-pq.top());
+            pq.pop();
+            pq.push(arr[i]);
+        }
+        pq.push(arr[i]);
+    }
+    return result;
+}
+
+
+int main(void){
+    vector<int> a = {2, 3, 4, 5, 4};
+    cout << TransformNonIncArr(a) << endl;
     return 0;
 }
 
@@ -1560,8 +1699,40 @@ int main(void){
     str = "PTPTTP";
     cout << PoliceCatchThief(str, k) << endl; */
 
+// FittingShelves
+/*     int wall = 29, m = 3, n = 9;
+    FittingShelves(wall, m, n);
+    wall = 76, m = 1, n = 10;
+    FittingShelves(wall, m, n); */
 
+// AssignMice2Hole
+/*     vector<int> mice = {4, -4, 2};
+    vector<int> hole = {4, 0, 5};
+    int min = AssignMice2Hole(mice, hole);
+    cout << min << endl;
+ */
 
+// MinProductSubset
+/*     vector<int> a = {-1, -1, -2, 4, 3};
+    cout << MinProductSubset(a) << endl; */
+
+// MaxArraySumKNegation
+/*     vector<int> arr = {-2, 0, 5, -1, 2};
+    cout << MaxArraySumKNegation(arr, 4) << endl; */
+
+// MinSumOfProductOfTwoArray
+/*     vector<int> a = {2, 3, 4, 5, 4};
+    vector<int> b = {3, 4, 2, 3, 2};
+    cout << MinSumOfProductOfTwoArray(a, b, 3) << endl; */
+
+// MinSumOfAbsDiffOfPairTwoArr
+/*     vector<int> a = {2, 3, 4, 5, 4};
+    vector<int> b = {3, 4, 2, 3, 2};
+    cout << MinSumOfAbsDiffOfPairTwoArr(a, b) << endl; */
+
+// TransformNonIncArr
+/*     vector<int> a = {2, 3, 4, 5, 4};
+    cout << TransformNonIncArr(a) << endl; */
 
 
 /* long input;
