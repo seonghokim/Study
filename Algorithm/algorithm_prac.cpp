@@ -1441,10 +1441,187 @@ int TransformNonIncArr(vector<int>& arr){
     return result;
 }
 
+// Sorting Array with reverse around midlle
+bool IsSortingWithOnlyReverse(vector<int>& arr){
+    int size = arr.size();
+    vector<int> temp(arr);
+    sort(temp.begin(), temp.end());
+    for(int i=0; i<size; ++i)
+        if(!(arr[i] == temp[i]) && !(arr[size-1-i] == temp[i]))
+            return false;
+    return true;
+}
+
+// Sum of Areas of Rectangles Possible for an Array
+int MaxSumAreaOfRectangle(vector<int>& arr){
+    int size = arr.size();
+    int sum = 0;
+    bool flag = false;
+    int len;
+    sort(arr.begin(), arr.end(), greater<int>());
+    for(int i=0; i<size ; ++i){
+        if((arr[i] == arr[i+1] || arr[i]-arr[i+1] == 1) && !flag){
+            flag = !flag;
+            len = arr[i+1];
+            i++;
+        }
+        else if((arr[i] == arr[i+1] || arr[i]-arr[i+1] == 1) && flag){
+            flag = !flag;
+            sum += arr[i+1] * len;
+            i++;
+        }
+    }
+    return sum;
+}
+
+// Largest lexicographic array with at-most K consecutive swaps
+void AtMostKSwap(vector<int>& arr, int k){
+    int size = arr.size();
+    for(int i=0; i<size-1 && k>0; i++){
+        int pos = i;
+        for(int j=i+1; j<size; j++){
+            if(k <= j-i)
+                break;
+            if(arr[j] > arr[pos])
+                pos = j;
+        }
+        for(int j=pos; j>i; j--)
+            swap(arr[j], arr[j-1]);
+        k -= pos-i;
+    }
+}
+
+// Partition into two subsets of lengths K and (N – k) such that the difference of sums is maximum
+int MaxDiffofSumOfSubset(vector<int>& arr, int k){
+    int size = arr.size();
+    int diff = 0, sum1=0, sum2=0;
+    sort(arr.begin(), arr.end());
+    for(int i=0; i<k; i++)
+        sum1 += arr[i];
+    for(int i=k; i<size; i++)
+        sum2 += arr[i];
+    return diff = abs(sum1-sum2);
+}
+
+// First Fit in memory management
+void FirstFit(vector<int>& block, vector<int>& process){
+    int b_size = block.size();
+    int p_size = process.size();
+    vector<int> alloc(p_size, -1);
+    for(int i=0; i<p_size; i++){
+        for(int j=0; j<b_size; j++){
+            if(block[j] >= process[i]){
+                alloc[i] = j;
+                block[j] -= process[i];
+                break;
+            }
+        }
+    }
+    for(int i=0; i<p_size; i++){
+        cout << " " << i+1 << "\t\t" << process[i] << "\t\t";
+        if(alloc[i] != -1)
+            cout << alloc[i] + 1;
+        else
+            cout << "Not allocated";
+        cout << endl;
+    }
+}
+
+// Best Fit in memory management
+void BestFit(vector<int>& block, vector<int>& process){
+    int b_size = block.size();
+    int p_size = process.size();
+    vector<int> alloc(p_size, -1);
+    for(int i=0; i<p_size; i++){
+        int best = -1;
+        for(int j=0; j<b_size; j++){
+            if(block[j] >= process[i]){
+                if(best == -1)
+                    best = j;
+                else if(block[best] > block[j])
+                    best = j;
+            }
+        }
+        if(best != -1){
+            alloc[i] = best;
+            block[best] -= process[i];
+        }
+    }
+    for(int i=0; i<p_size; i++){
+        cout << " " << i+1 << "\t\t" << process[i] << "\t\t";
+        if(alloc[i] != -1)
+            cout << alloc[i] + 1;
+        else
+            cout << "Not allocated";
+        cout << endl;
+    }
+}
+
+// Worst Fit in memory management
+void WorstFit(vector<int>& block, vector<int>& process){
+    int b_size = block.size();
+    int p_size = process.size();
+    vector<int> alloc(p_size, -1);
+    for(int i=0; i<p_size; i++){
+        int worst = -1;
+        for(int j=0; j<b_size; j++){
+            if(block[j] >= process[i]){
+                if(worst == -1)
+                    worst = j;
+                else if(block[worst] < block[j])
+                    worst = j;
+            }
+        }
+        if(worst != -1){
+            alloc[i] = worst;
+            block[worst] -= process[i];
+        }
+    }
+    for(int i=0; i<p_size; i++){
+        cout << " " << i+1 << "\t\t" << process[i] << "\t\t";
+        if(alloc[i] != -1)
+            cout << alloc[i] + 1;
+        else
+            cout << "Not allocated";
+        cout << endl;
+    }
+}
+
+// Non-preemptive Shortest Job First (CPU Scheduling)
+bool CompareBurstTime(vector<int>& a, vector<int>& b){
+    return a[1] < b[1];
+}
+void NonPreempShortestJobFirst(vector<vector<int>>& process){
+    int size = process.size();
+    int time_total_wait = 0, time_total_tat=0;
+    double time_avg_wait = 0, time_avg_tat = 0;
+    sort(process.begin(), process.end(), CompareBurstTime);
+    process[0].push_back(0);
+    for(int i=1; i<size; i++){
+        process[i].push_back(0);
+        for(int j=0; j<i; j++)
+            process[i][2] += process[j][1];
+        time_total_wait += process[i][2];
+    }
+    time_avg_wait = (double)time_total_wait / size;
+    cout << "P     BT     WT     TAT" << endl;
+    for(int i=0; i<size; i++){
+        process[i].push_back(process[i][1]+process[i][2]);
+        time_total_tat += process[i][3];
+        cout << "P" << process[i][0] << "     " << process[i][1] << "     " << process[i][2] << "      " << process[i][3] << endl;
+    }
+    time_avg_tat = (double)time_total_tat / size;
+    cout << "Average Waiting Time= " << time_avg_wait << endl;
+    cout << "Average Turnaround Time= " << time_avg_tat << endl;
+}
 
 int main(void){
-    vector<int> a = {2, 3, 4, 5, 4};
-    cout << TransformNonIncArr(a) << endl;
+    ios::sync_with_stdio(0);
+	cin.tie(0);
+    vector<vector<int>> process = {
+        {1, 3}, {2, 6}, {3, 10}, {4, 12}
+    };
+    NonPreempShortestJobFirst(process);
     return 0;
 }
 
@@ -1733,6 +1910,41 @@ int main(void){
 // TransformNonIncArr
 /*     vector<int> a = {2, 3, 4, 5, 4};
     cout << TransformNonIncArr(a) << endl; */
+
+// IsSortingWithOnlyReverse
+/*     vector<int> a = { 1, 7, 6, 4, 5, 3, 2, 8 };
+    cout << IsSortingWithOnlyReverse(a) << endl; */
+
+// MaxSumAreaOfRectangle
+/*     vector<int> a = { 10, 10, 10, 10, 11, 10, 11, 10, 9, 9, 20, 20 };
+    cout << MaxSumAreaOfRectangle(a) << endl; */
+
+// AtMostKSwap
+/*     vector<int> a = {3, 5, 4, 1, 2};
+    int k = 4;
+    AtMostKSwap(a, k);
+    for(auto& k : a)
+        cout << k << " "; */
+
+// MaxDiffofSumOfSubset
+/*     vector<int> a = {8, 4, 5, 2, 10};
+    int k = 2;
+    cout << MaxDiffofSumOfSubset(a, k) << endl; */
+
+// First Fit
+/*     vector<int> block = {100, 500, 200, 300, 600};
+    vector<int> process = {212, 417, 112, 426};
+    FirstFit(block, process); */
+
+// Best Fit
+/*     vector<int> block = {100, 500, 200, 300, 600};
+    vector<int> process = {212, 417, 112, 426};
+    BestFit(block, process); */
+
+// Worst Fit
+/*     vector<int> block = {100, 500, 200, 300, 600};
+    vector<int> process = {212, 417, 112, 426};
+    WorstFit(block, process); */
 
 
 /* long input;
