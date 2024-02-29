@@ -1615,13 +1615,184 @@ void NonPreempShortestJobFirst(vector<vector<int>>& process){
     cout << "Average Turnaround Time= " << time_avg_tat << endl;
 }
 
+// Job Scheduling with 2 jobs allowed at a time
+bool CheckTwoJobsAtATime(vector<pair<int, int>>& job){
+    int size = job.size();
+    sort(job.begin(), job.end());
+    int j1 = job[0].second, j2 = job[1].second;
+    for(int i=2; i<size; i++){
+        if(job[i].first >= j1){
+            j1 = j2;
+            j2 = job[i].second;
+        }
+        else if(job[i].first >= j2)
+            j2 = job[i].second;
+        else
+            return false;
+    }
+    return true;
+}
+
+// Optimal Page replacement algorithm
+bool SearchKey(vector<int>& frame, int key){
+    for(int i=0; i<frame.size(); i++)
+        if(frame[i] == key)
+            return true;
+    return false;
+}
+int PredictNotUsedInFuture(vector<int>& frame, vector<int>& page, int index){
+    int result = -1, far = index;
+    for(int i=0; i<frame.size(); i++){
+        int j;
+        for(j = index; j<page.size(); j++)
+            if(frame[i] == page[j]){
+                if(j > far){
+                    far = j;
+                    result = i;
+                }
+                break;
+            }
+        if(j == page.size())
+            return i;
+    }
+    return result == -1 ? 0 : result;
+}
+void OptimalPageReplacement(vector<int>& page, int f_size){
+    vector<int> frame;
+    int hit = 0;
+    int p_size = page.size();
+    for(int i=0; i<p_size; i++){
+        if(SearchKey(frame, page[i])){
+            hit++;
+            continue;
+        }
+        if(frame.size() < f_size)
+            frame.push_back(page[i]);
+        else{
+            int j = PredictNotUsedInFuture(frame, page, i+1);
+            frame[j] = page[i];
+        }
+    }
+    cout << "hit= " << hit << endl;
+    cout << "miss= " << p_size - hit << endl;
+}
+void OptimalPageReplacementWithUnorderedSet(vector<int>& page, int f_size){
+    vector<int> frame(f_size, -1);
+    int hit = 0;
+    int p_size = page.size();
+    for(int i=0 ; i<p_size ; i++){
+        bool found = false;
+        bool emptyFrame = false;
+        int far = -1, repIdx = -1;
+        for(int j=0; j<f_size; j++){
+            int k;
+            if(frame[j] == page[i]){// page found in a frame: hit
+                hit++;
+                found = true;
+                break;
+            }
+            if(frame[j] == -1){// Page not found in a frame: miss
+                frame[j] = page[i];
+                emptyFrame = true;
+                break;
+            }
+        }
+        if(found || emptyFrame)
+            continue;
+        for(int j=0; j<f_size; j++){
+            int k;
+            for(k = i+1; k<p_size; k++){
+                if(frame[j] == page[k]){
+                    if(k > far){
+                        far = k;
+                        repIdx = j;
+                    }
+                    break;
+                }
+            }
+            if(k == p_size){
+                repIdx = j;
+                break;
+            }
+        }
+        frame[repIdx] = page[i];
+    }
+    cout << "hit = " << hit << endl;
+    cout << "miss = " << p_size - hit << endl;
+}
+
+// Kruskal's Minimum Spanning Tree
+class DSU{// Disjoint Set Union
+    int* parent;
+    int* rank;
+public:
+    DSU(int n){
+        parent = new int[n];
+        rank = new int[n];
+        for(int i=0; i<n; i++){
+            parent[i] = -1;
+            rank[i] = 1;
+        }
+    }
+    int Find(int i){// Search element that connected others
+        if(parent[i] == -1)
+            return i;
+        return parent[i] = Find(parent[i]);
+    }
+    void Unite(int x, int y){
+        int s1 = Find(x);
+        int s2 = Find(y);
+        if(s1 != s2){
+            if(rank[s1] < rank[s2])
+                parent[s1] = s2;
+            else if(rank[s1] > rank[2])
+                parent[s2] = s1;
+            else{// same rank
+                parent[s2] = s1;
+                rank[s1] += 1;
+            }
+        }
+    }
+};
+class Graph{
+    vector<vector<int>> edgelist;
+    int v;
+public:
+    Graph(int v) { this->v = v;}
+    void AddEdge(int x, int y, int w){
+        edgelist.push_back({w, x, y});
+    }
+    void Kruskal_MST(){
+        sort(edgelist.begin(), edgelist.end());
+        DSU s(v);
+        int result;
+        for(auto edge : edgelist){
+            int w = edge[0];
+            int x = edge[1];
+            int y = edge[2];
+            if(s.Find(x) != s.Find(y)){
+                s.Unite(x, y);
+                result += w;
+                cout << x << "--" << y << "==" << w << endl;
+            }
+        }
+        cout << "Min cost(weight) spanning tree: " << result;
+    }
+};
+
+
+
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<vector<int>> process = {
-        {1, 3}, {2, 6}, {3, 10}, {4, 12}
-    };
-    NonPreempShortestJobFirst(process);
+    Graph g(4);
+    g.AddEdge(0, 1, 10);
+    g.AddEdge(1, 3, 15);
+    g.AddEdge(2, 3, 4);
+    g.AddEdge(2, 0, 6);
+    g.AddEdge(0, 3, 5);
+    g.Kruskal_MST();
     return 0;
 }
 
@@ -1945,6 +2116,36 @@ int main(void){
 /*     vector<int> block = {100, 500, 200, 300, 600};
     vector<int> process = {212, 417, 112, 426};
     WorstFit(block, process); */
+
+// CheckTwoJobsAtATime
+/*     vector<pair<int, int>> job = {
+        {1, 2}, {2, 3}, {4, 5}
+    };
+    cout << CheckTwoJobsAtATime(job); */
+
+// OptimalPageReplacement
+/*     vector<int> page = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2};
+    int f_size = 4;
+    OptimalPageReplacement(page, f_size);
+ */
+/*     vector<int> page = {1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5};
+    int f_size = 4;
+    OptimalPageReplacementWithUnorderedSet(page, f_size); */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /* long input;
