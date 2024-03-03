@@ -1780,19 +1780,491 @@ public:
     }
 };
 
+// Prim's Minimum Spanning Tree
+int FindMinWeightVertexinFringeVertex(vector<int>& key, vector<bool>& mst){
+    int min = INT_MAX, min_vertex_idx;
+    int size = key.size();
+    for(int i=0 ; i<size; i++)
+        if(mst[i] == false && key[i] < min)// Find vertex that have min weight in fringe set
+            min = key[i], min_vertex_idx = i;
+    return min_vertex_idx;
+}
+void PrintMST(vector<int>& parent, vector<vector<int>>& graph){
+    int size = graph.size();
+    cout << "Edge \tWeight\n";
+    for(int i=1; i<size; i++)
+        cout << parent[i] << "-" << i << "\t" << graph[i][parent[i]] << endl;
+}
+void Prim_MSTwithAdjacencyMatrix(vector<vector<int>>& graph){
+    int size = graph.size();
+    vector<int> parent(size, -1);
+    vector<int> key(size, INT_MAX);
+    vector<bool> inMST(size, false);
+    key[0] = 0;
+    for(int count=0; count<size-1; count++){
+        int u = FindMinWeightVertexinFringeVertex(key, inMST);
+        inMST[u] = true;
+        for(int v = 0; v<size; v++)
+            if(graph[u][v] && inMST[v] == false && graph[u][v] < key[v])
+                parent[v] = u, key[v] = graph[u][v];
+    }
+    PrintMST(parent, graph);
+}
 
+int Prim_MSTwithPriorityQueue(vector<vector<int>>& edge){
+    int size = edge.size();
+    int result = 0;
+    vector<vector<int>> adj[size];
+    for(int i=0; i<size; i++){
+        int u = edge[i][0];
+        int v = edge[i][1];
+        int w = edge[i][2];
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+    vector<bool> visited(size, false);
+    pq.push({0,0});
+    while(!pq.empty()){
+        auto p = pq.top();
+        pq.pop();
+        int w = p.first;
+        int u = p.second;
+        if(visited[u] == true)
+            continue;
+        result += w;
+        visited[u] = true;
+        for(auto v : adj[u])
+            if(visited[v[0]] == false)
+                pq.push({v[1], v[0]});
+    }
+    return result;
+}
 
+// Boruvka's Minimum Spanning Tree
+class BoruvkaGraph{
+    int v;
+    vector<vector<int>> graph;
+    int Find(vector<int>& parent, int i){
+        if(parent[i] == i)
+            return i;
+        return parent[i] = Find(parent, parent[i]);
+    }
+    void UnionSet(vector<int>& parent, vector<int>& rank, int x, int y){
+        int xroot = Find(parent, x);
+        int yroot = Find(parent, y);
+        if(rank[xroot] < rank[yroot])
+            parent[xroot] =yroot;
+        else if(rank[xroot] > rank[yroot])
+            parent[yroot] = xroot;
+        else{
+            parent[yroot] = xroot;
+            rank[xroot]++;
+        }
+    }
+public:
+    BoruvkaGraph(int v){
+        this->v = v;
+        graph = vector<vector<int>> ();
+    }
+    void AddEdge(int u, int v, int w){
+        graph.push_back({u, v, w});
+    }
+    void Boruvka_MST(){
+        vector<int> parent(v);
+        vector<int> rank(v);
+        vector<vector<int>> cheapest(v, vector<int>(3, -1));
+        int numTree = v;
+        int MSTweight = 0;
+        for(int i=0; i<v; i++){
+            parent[i] = i;
+            rank[i] = 0;
+        }
+        while(numTree > 1){
+            for(int i=0; i<graph.size(); i++){
+                int u = graph[i][0], v = graph[i][1], w = graph[i][2];
+                int set1 = Find(parent, u), set2 = Find(parent, v);
+                if(set1 != set2){
+                    if(cheapest[set1][2] == -1 || cheapest[set1][2] > w )
+                        cheapest[set1] = {u, v, w};
+                    if(cheapest[set2][2] == -1 || cheapest[set2][2] > w )
+                        cheapest[set2] = {u, v, w};
+                }
+            }
+            for(int i=0; i<v; i++){
+                if(cheapest[i][2] != -1){
+                    int u = cheapest[i][0], v = cheapest[i][1], w = cheapest[i][2];
+                    int set1 = Find(parent, u), set2 = Find(parent, v);
+                    if(set1 != set2){
+                        MSTweight += w;
+                        UnionSet(parent, rank, set1, set2);
+                        printf("Edge %d-%d with weight %d included in MST\n", u, v, w);
+                        numTree--;
+                    }
+                }
+            }
+            for(int i=0; i<v; i++)
+                cheapest[i][2] = -1;
+        }
+        printf("Weight of MST is %d\n", MSTweight);
+    }
+};
+
+// Dinic's Max FLow Problem
+struct Edge{
+    int v;
+    int flow;
+    int cap;
+    int reverse;
+};
+class DinicGraph{
+    int v;
+    int* level;
+    vector<Edge>* adj;
+public:
+    DinicGraph(int v){
+        adj = new vector<Edge>[v];
+        this->v = v;
+        level = new int[v];
+    }
+    void AddEdge(int u, int v, int cap){
+        Edge a{v, 0, cap, (int)adj[v].size()};
+        Edge b{u, 0, 0, (int)adj[u].size()};
+        adj[u].push_back(a);
+        adj[v].push_back(b);//reverse edge
+    }
+    bool BFS(int s, int t){
+        for(int i=0; i<v; i++)
+            level[i] = -1;
+        level[s] = 0;
+        list<int> q;
+        q.push_back(s);
+        vector<Edge>::iterator it;
+        while(!q.empty()){
+            int u = q.front();
+            q.pop_front();
+            for(it=adj[u].begin(); it!=adj[u].end(); it++){
+                Edge& e = *it;
+                if(level[e.v] < 0 && e.flow < e.cap){//if connected node from cur node
+                    level[e.v] = level[u]+1;// connected node's level + 1 
+                    q.push_back(e.v);
+                }
+            }
+        }
+        return level[t] < 0 ? false : true;
+    }
+    int SendFlow(int u, int flow, int t, vector<int>& next){
+        if(u == t)
+            return flow;
+        for(; next[u] < adj[u].size(); next[u]++){
+            Edge& e = adj[u][next[u]];
+            if(level[e.v] == level[u]+1 && e.flow < e.cap){
+                int cur_flow = min(flow, e.cap-e.flow);
+                int temp_flow = SendFlow(e.v, cur_flow, t, next);
+                if(temp_flow > 0){
+                    e.flow += temp_flow;
+                    adj[e.v][e.reverse].flow -= temp_flow;
+                    return temp_flow;
+                }
+            }
+        }
+        return 0;
+    }
+    int Dinic_MaxFlow(int s, int t){
+        if(s == t)
+            return -1;
+        int total = 0;
+        while(BFS(s, t) == true){
+            vector<int> next(v+1, 0);
+            while(int flow = SendFlow(s, INT_MAX, t, next))
+                total += flow;
+        }
+        return total;
+    }
+};
+
+// Ford-Fulkerson's Max Flow Problem
+bool Fulkerson_MaxFlow_BFS(vector<vector<int>>& graph, int s, int t, vector<int>& parent){
+    int size = graph.size();
+    vector<bool> visited(size, false);
+    queue<int> q;
+    q.push(s);
+    visited[s] = true;
+    parent[s] = -1;
+    while(!q.empty()){
+        int u = q.front();
+        q.pop();
+        for(int v=0; v<size; ++v){
+            if(visited[v] == false && graph[u][v] > 0){
+                if(v == t){
+                    parent[v] = u;
+                    return true;
+                }
+                q.push(v);
+                parent[v] = u;
+                visited[v] = true;
+            }
+        }
+    }
+    return false;
+}
+int Fulkerson_MaxFlow(vector<vector<int>>& graph, int s, int t){
+    int u, v;
+    int size = graph.size();
+    vector<int> parent(size);
+    int max_flow = 0;
+    while(Fulkerson_MaxFlow_BFS(graph, s, t, parent)){
+        int path_flow = INT_MAX;
+        for(v = t; v!=s; v=parent[v])
+            path_flow = min(path_flow, graph[parent[v]][v]);
+        for(v=t; v!=s; v=parent[v]){
+            graph[parent[v]][v] -= path_flow;
+            graph[v][parent[v]] += path_flow;
+        }
+        max_flow += path_flow;
+    }
+    return max_flow;
+}
+
+// Number of Single Cycle Components in Undirected Graph
+int degree[10000];
+bool found[10000];
+vector<int> cur_graph;
+vector<int> adj_list[10000];
+void Cycle_AddEdge(int src, int dest){
+    src--, dest--;
+    adj_list[src].push_back(dest);
+    adj_list[dest].push_back(src);
+    degree[src]++;
+    degree[dest]++;
+}
+void Cycle_DFS(int v){
+    found[v] = true;
+    cur_graph.push_back(v);
+    for(int it : adj_list[v])
+        if(!found[it])
+            Cycle_DFS(it);
+}
+int CountingCycle(int n, int m){
+    int count = 0;
+    for(int i =0; i<n; i++){
+        if(!found[i]){
+            cur_graph.clear();
+            Cycle_DFS(i);
+            bool flag = true;
+            for(int v : cur_graph){
+                if(degree[v] == 2)
+                    continue;
+                else{
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag == true)
+                count++;
+        }
+    }
+    return count;
+}
+
+// Bin Packing Problem(Minimize number of used bins)
+int BinPakcing_NextFit(vector<int>& weight, int cap){
+    int size = weight.size();
+    int res = 0, bin_rem = cap;
+    for(int i=0; i<size; i++){
+        if(weight[i] > bin_rem){
+            res++;
+            bin_rem = cap-weight[i];
+        }
+        else
+            bin_rem -= weight[i];
+    }
+    return res;
+}
+int BinPacking_FirstFit(vector<int>& weight, int cap){
+    int size = weight.size();
+    int res = 0;
+    vector<int> bin_rem(size, cap);
+    for(int i=0; i<size; i++){
+        int j;
+        for(j=0; j<res; j++)
+            if(bin_rem[j] >= weight[i]){
+                bin_rem[j] -= weight[i];
+                break;
+            }
+        if(j == res){
+            bin_rem[res] = cap - weight[i];
+            res++;
+        }
+    }
+    return res;
+}
+int BinPacking_BestFit(vector<int>& weight, int cap){
+    int size = weight.size();
+    int res = 0;
+    vector<int> bin_rem(size, cap);
+    for(int i=0 ; i<size; i++){
+        int j;
+        int min_space = cap +1, bestbin_idx = 0;
+        for(j=0; j<res; j++)
+            if(bin_rem[j] >= weight[i] && bin_rem[j]-weight[i] < min_space){
+                bestbin_idx = j;
+                min_space = bin_rem[j]-weight[i];
+            }
+        if(min_space == cap+1){
+            bin_rem[res] = cap - weight[i];
+            res++;
+        }
+        else
+            bin_rem[bestbin_idx] -= weight[i];
+    }
+    return res;
+}
+int BinPacking_WorstFit(vector<int>& weight, int cap){
+    int size = weight.size();
+    int res = 0;
+    vector<int> bin_rem(size, cap);
+    for(int i=0; i<size; i++){
+        int j;
+        int max_space = -1, worst_idx = 0;
+        for(j=0; j<res; j++)
+            if(bin_rem[j] >= weight[i] && bin_rem[j]-weight[i] > max_space){
+                worst_idx = j;
+                max_space = bin_rem[j] - weight[i];
+            }
+        if(max_space == -1){
+            bin_rem[res] = cap - weight[i];
+            res++;
+        }
+        else
+            bin_rem[worst_idx] -= weight[i];
+    }
+    return res;
+}
+int BinPacking_FirstFitDecreasing(vector<int>& weight, int cap){
+    sort(weight.begin(), weight.end(), greater<int>());
+    return BinPacking_FirstFit(weight, cap);
+}
+
+// Graph Coloring
+class GraphColoring{
+    int v;
+    list<int> *adj;
+public:
+    GraphColoring(int v){this->v = v; adj=new list<int>[v];}
+    ~GraphColoring(){delete [] adj;}
+    void AddEdge(int u, int v){
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    void Coloring(){
+        vector<int> result(v, -1);
+        vector<bool> available(v, false);
+        result[0] = 0;
+        for(int u=1; u<v; u++){
+            list<int>::iterator it;
+            for(it = adj[u].begin(); it!=adj[u].end(); ++it)
+                if(result[*it] != -1)
+                    available[result[*it]] = true;
+            int color;
+            for(color=0; color<v; color++)
+                if(available[color] == false)
+                    break;
+            result[u] = color;
+            for(it = adj[u].begin(); it!=adj[u].end(); ++it)
+                if(result[*it] != -1)
+                    available[result[*it]] = false;
+        }
+        for(int u=0; u<v; u++)
+            cout << "vertex: " << u << "--> color: " << result[u] << endl;
+    }
+};
+
+// K Centers Problem
+int GetIndexOfFartestCity(vector<int>& dist){
+    int size = dist.size();
+    int idx = 0;
+    for(int i=0; i<size; i++)
+        if(dist[i] > dist[idx])
+            idx = i;
+    return idx;
+}
+void KCenter(vector<vector<int>>& weight, int k){
+    int size = weight.size();
+    vector<int> dist(size, INF);
+    vector<int> center;
+    int far_idx = 0;
+    for(int i=0; i<k; i++){
+        center.push_back(far_idx);
+        for(int j=0; j<size; j++)
+            dist[j] = min(dist[j], weight[far_idx][j]);
+        far_idx = GetIndexOfFartestCity(dist);
+    }
+    cout << dist[far_idx] << endl;
+    for(auto k: center)
+        cout << k << " ";
+    cout << endl;
+}
+
+// Shortest Superstring Problem
+int min(int a, int b){
+    return a < b ? a : b;
+}
+int FindOverlappingPair(string str1, string str2, string& str){
+    int max = INT_MIN;
+    int len1 = str1.length();
+    int len2 = str2.length();
+    for(int i=1; i<=min(len1,len2); i++){
+        if(str1.compare(len1-i, i, str2, 0, i)==0){
+            if(max < i){
+                max = i;
+                str = str1 + str2.substr(i);
+            }
+        }
+    }
+    for(int i=1; i<=min(len1, len2); i++){
+        if(str1.compare(0, i, str2, len2-i, i)==0){
+            if(max < i){
+                max = i;
+                str = str2 + str1.substr(i);
+            }
+        }
+    }
+    return max;
+}
+string FindShortestSuperstring(vector<string> arr){
+    int size = arr.size();
+    while(size != 1){
+        int max = INT_MIN;
+        int l, r;
+        string res;
+        for(int i=0; i<size; i++){
+            for(int j=i+1; j<size; j++){
+                string str;
+                int overlapped = FindOverlappingPair(arr[i], arr[j], str);
+                if(max < overlapped){
+                    max = overlapped;
+                    res.assign(str);
+                    l = i, r = j;
+                }
+            }
+        }
+        size--;
+        if(max == INT_MIN)
+            arr[0] += arr[size];
+        else{
+            arr[l] = res;
+            arr[r] = arr[size];
+        }
+    }
+    return arr[0];
+}
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    Graph g(4);
-    g.AddEdge(0, 1, 10);
-    g.AddEdge(1, 3, 15);
-    g.AddEdge(2, 3, 4);
-    g.AddEdge(2, 0, 6);
-    g.AddEdge(0, 3, 5);
-    g.Kruskal_MST();
+    vector<string> arr = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
+    cout << FindShortestSuperstring(arr);
     return 0;
 }
 
@@ -2132,17 +2604,116 @@ int main(void){
     int f_size = 4;
     OptimalPageReplacementWithUnorderedSet(page, f_size); */
 
+// Kruskal's MST
+/*     Graph g(4);
+    g.AddEdge(0, 1, 10);
+    g.AddEdge(1, 3, 15);
+    g.AddEdge(2, 3, 4);
+    g.AddEdge(2, 0, 6);
+    g.AddEdge(0, 3, 5);
+    g.Kruskal_MST(); */
 
+// Prim's MST
+/*     vector<vector<int>> graph = {
+        {0, 2, 0, 6, 0},
+        {2, 0, 3, 8, 5},
+        {0, 3, 0, 0, 7},
+        {6, 8, 0, 0, 9},
+        {0, 5, 7, 9, 0}
+    };
+    Prim_MSTwithAdjacencyMatrix(graph); */
+/*     vector<vector<int>> graph = {
+        {0, 1, 5},
+        {1, 2, 3},
+        {0, 2, 1}
+    };
+    cout << Prim_MSTwithPriorityQueue(graph); */
 
+// Boruvka's MST
+/*     BoruvkaGraph g(4);
+    g.AddEdge(0, 1, 10);
+    g.AddEdge(0, 2, 6);
+    g.AddEdge(0, 3, 5);
+    g.AddEdge(1, 3, 15);
+    g.AddEdge(2, 3, 4);
+    g.Boruvka_MST(); */
 
+// Dinic's Max Flow Problem
+/*     DinicGraph g(6);
+    g.AddEdge(0, 1, 16);
+    g.AddEdge(0, 2, 13);
+    g.AddEdge(1, 2, 10);
+    g.AddEdge(1, 3, 12);
+    g.AddEdge(2, 1, 4);
+    g.AddEdge(2, 4, 14);
+    g.AddEdge(3, 2, 9);
+    g.AddEdge(3, 5, 20);
+    g.AddEdge(4, 3, 7);
+    g.AddEdge(4, 5, 4);
+    cout << g.Dinic_MaxFlow(0, 5); */
 
+// Fulkerson's Max Flow Problem
+/*     vector<vector<int>> graph = {
+        {0, 16, 13, 0, 0, 0}, {0, 0, 10, 12, 0, 0},
+        {0, 4, 0, 0, 14, 0}, {0, 0, 9, 0, 0, 20},
+        {0, 0, 0, 7, 0, 4}, {0, 0, 0, 0, 0, 0}
+    };
+    cout << Fulkerson_MaxFlow(graph, 0, 5); */
 
+// Number of Single Cycle Components in Undirected Graph
+/*     Cycle_AddEdge(1, 10);
+    Cycle_AddEdge(1, 5);
+    Cycle_AddEdge(5, 10);
+    Cycle_AddEdge(2, 9);
+    Cycle_AddEdge(9, 15);
+    Cycle_AddEdge(2, 15);
+    Cycle_AddEdge(2, 12);
+    Cycle_AddEdge(12, 15);
+    Cycle_AddEdge(13, 8);
+    Cycle_AddEdge(6, 14);
+    Cycle_AddEdge(14, 3);
+    Cycle_AddEdge(3, 7);
+    Cycle_AddEdge(7, 11);
+    Cycle_AddEdge(11, 6);
+    cout << CountingCycle(15, 14); */
 
+// Bin Packing Problem(Minimize number of used bins)
+/*     vector<int> weight = {2, 5, 4, 7, 1, 3, 8};
+    int cap = 10;
+    cout << BinPakcing_NextFit(weight, cap); */
 
+// Graph Coloring
+/*     GraphColoring g(5);
+    g.AddEdge(0, 1);
+    g.AddEdge(0, 2);
+    g.AddEdge(1, 2);
+    g.AddEdge(1, 3);
+    g.AddEdge(2, 3);
+    g.AddEdge(3, 4);
+    g.Coloring();
+    cout << endl;
+    GraphColoring g2(5);
+    g2.AddEdge(0, 1);
+    g2.AddEdge(0, 2);
+    g2.AddEdge(1, 2);
+    g2.AddEdge(1, 4);
+    g2.AddEdge(2, 4);
+    g2.AddEdge(4, 3);
+    g2.Coloring(); */
 
+// K Center Problem
+/*     vector<vector<int>> weight = {
+        {0, 4, 8, 5},
+        {4, 0, 10, 7},
+        {8, 10, 0, 9},
+        {5, 7, 9, 0}
+    };
+    int k = 2;
+    KCenter(weight, k); */
 
-
-
+// Shortest Superstring Problem
+/*     vector<string> arr = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
+    cout << FindShortestSuperstring(arr); */
 
 
 
