@@ -2260,11 +2260,55 @@ string FindShortestSuperstring(vector<string> arr){
     return arr[0];
 }
 
+// Fractional Knapsack Problem
+struct Item{
+    int profit, weight;
+    Item(int profit, int weight){
+        this->profit = profit;
+        this->weight = weight;
+    }
+};
+bool CompareItemProfit(Item a, Item b){
+    double r1 = (double)a.profit / (double)a.weight;
+    double r2 = (double)b.profit / (double)b.weight;
+    return r1 > r2;
+}
+double FractionalKnapSack(int w, Item arr[], int n){
+    sort(arr, arr+n, CompareItemProfit);
+    double result = 0.0;
+    for(int i=0; i<n; i++){
+        if(arr[i].weight <= w){
+            w -= arr[i].weight;
+            result += arr[i].profit;
+        }
+        else{
+            result += arr[i].profit * ((double)w/(double)arr[i].weight);
+            break;
+        }
+    }
+    return result;
+}
+
+// Minimum number of coins
+void FindMinCoins(int v){
+    vector<int> denomination = {1, 2, 5, 10, 20, 50, 100, 500, 1000};
+    int d_size = denomination.size();
+    sort(denomination.begin(), denomination.end(), greater<int>());
+    vector<int> result;
+    for(int i=0; i<d_size; i++){
+        while(v >= denomination[i]){
+            v -= denomination[i];
+            result.push_back(denomination[i]);
+        }
+    }
+    for(auto k : result)
+        cout << k << " ";
+}
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<string> arr = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
-    cout << FindShortestSuperstring(arr);
+    FindMinCoins(93);
     return 0;
 }
 
@@ -2715,8 +2759,11 @@ int main(void){
 /*     vector<string> arr = {"catgc", "ctaagt", "gcta", "ttca", "atgcatc"};
     cout << FindShortestSuperstring(arr); */
 
-
-
+// Fractional Knapsack Problem
+/*     int W = 50;
+    Item arr[] = { { 60, 10 }, { 100, 20 }, { 120, 30 } };
+    int N = sizeof(arr) / sizeof(arr[0]);
+    cout << FractionalKnapSack(W, arr, N); */
 
 
 /* long input;
