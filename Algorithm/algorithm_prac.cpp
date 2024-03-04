@@ -2325,8 +2325,61 @@ long long int CountWaysToAssignCap(int mask, int cap, vector<int> caplist[101], 
     return dp[mask][cap] = ways;
 }
 
-
-
+// Traverlling Salesman Problem
+vector<pair<int,int>> dirty;
+int X[] = {-1, 0, 0, 1};
+int Y[] = {0, 1, -1, 0};
+bool IsSafe_TravelSalesman(vector<vector<char>>& arr, int x, int y, int r, int c){
+    if(x >= r || y >= c || x < 0 || y < 0 )
+        return false;
+    if(arr[x][y] == '#')
+        return false;
+    return true;
+}
+void GetDist_TravelSalesman(vector<vector<vector<int>>>& dist, vector<vector<char>>& arr, int r, int c, int idx){
+    int size = dirty.size();
+    vector<vector<bool>> visited(size, vector<bool>(size, false));
+    int cx = dirty[idx].first;
+    int cy = dirty[idx].second;
+    queue<pair<int, int>> q;
+    q.push({cx, cy});
+    for(int i=0; i<=r ; i++)
+        for(int j=0; j<=c; j++)
+            dist[i][j][idx] = INF;
+    visited[cx][cy] = false;
+    dist[cx][cy][idx] = 0;
+    while(!q.empty()){
+        auto x = q.front();
+        q.pop();
+        for(int i=0; i<4; i++){
+            cx = x.first + X[i];
+            cy = x.second + Y[i];
+            if(IsSafe_TravelSalesman(arr, cx, cy, r, c)){
+                if(visited[cx][cy])
+                    continue;
+                visited[cx][cy] = true;
+                dist[cx][cy][idx] = dist[x.first][x.second][idx]+1;
+                q.push({cx, cy});
+            }
+        }
+    }
+}
+int TravelSalesman_Bitmasking(int idx, int mask, vector<vector<int>>& dp,  vector<vector<vector<int>>>& dist){
+    int len = dirty.size();
+    int limit = (1<<len) -1;
+    if(mask == limit)
+        return dist[0][0][idx];
+    if(dp[idx][mask] != -1)
+        return dp[idx][mask];
+    int ret = INT_MAX;
+    for(int i=0; i<len; i++){
+        if( (mask & (1 << i))==0 ){
+            int newMask = mask | (1<<i);
+            ret = min(ret, TravelSalesman_Bitmasking(i, newMask, dp, dist)+dist[dirty[i].first][dirty[i].second][idx]);
+        }
+    }
+    return dp[idx][mask] = ret;
+}
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
@@ -2803,7 +2856,27 @@ int main(void){
     vector<vector<int>> dp(1025, vector<int>(101, -1));
     cout << CountWaysToAssignCap(0, 1, caplist, dp, allmask); */
 
-
+// Travelling Salesman Problem(Bitmasking)
+/*     vector<vector<char>> arr = {// r = arr.size(), c = arr[0].size();
+        {'.', '.', '.', '.', '.', '*', '.'},
+        {'.', '.', '.', '#', '.', '.', '.'},
+        {'.', '*', '.', '#', '.', '*', '.'},
+        {'.', '.', '.', '.', '.', '.', '.'}
+    };
+    int r = arr.size();
+    int c = arr[0].size();
+    for(int i=0; i<r; i++)
+        for(int j=0; j<c; j++)
+            if(arr[i][j] == '*')
+                dirty.push_back({i, j});
+    dirty.insert(dirty.begin(), {0, 0});
+    int len = dirty.size();
+    int limit = (1<<len)-1;
+    vector<vector<int>> dp(len, vector<int>((1<<len), -1));
+    vector<vector<vector<int>>> dist(r+1, vector<vector<int>>(c+1, vector<int>(len, INF)));
+    for(int i=0; i<len; i++)
+        GetDist_TravelSalesman(dist, arr, r, c, i);
+    cout << TravelSalesman_Bitmasking(0, 1, dp, dist); */
 
 
 
