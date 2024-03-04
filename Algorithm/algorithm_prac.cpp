@@ -2305,10 +2305,32 @@ void FindMinCoins(int v){
         cout << k << " ";
 }
 
+// Count ways to assign unique cap to every person
+long long int CountWaysToAssignCap(int mask, int cap, vector<int> caplist[101], vector<vector<int>>& dp, int allmask){
+    if(mask == allmask)
+        return 1;
+    if(cap > 100)
+        return 0;
+    if(dp[mask][cap] != -1)
+        return dp[mask][cap];
+    long long int ways = CountWaysToAssignCap(mask, cap+1, caplist, dp, allmask);
+    int size = caplist[cap].size();
+    for(int j=0; j<size; j++){
+        if(mask & (1<<caplist[cap][j]) )
+            continue;
+        else
+            ways += CountWaysToAssignCap(mask | (1<<caplist[cap][j]) , cap+1, caplist, dp, allmask);
+        ways %= 1000000007;
+    }
+    return dp[mask][cap] = ways;
+}
+
+
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    FindMinCoins(93);
+
     return 0;
 }
 
@@ -2764,6 +2786,31 @@ int main(void){
     Item arr[] = { { 60, 10 }, { 100, 20 }, { 120, 30 } };
     int N = sizeof(arr) / sizeof(arr[0]);
     cout << FractionalKnapSack(W, arr, N); */
+
+// Minimum number of coins
+/*     FindMinCoins(93); */
+
+// Count ways to assign unique cap to every person
+/*     int n = 3;
+    int allmask = (1 << n) -1;
+    vector<int> caplist[101];
+    caplist[5].push_back(0);
+    caplist[100].push_back(0);
+    caplist[1].push_back(0);
+    caplist[2].push_back(1);
+    caplist[5].push_back(2);
+    caplist[100].push_back(2);
+    vector<vector<int>> dp(1025, vector<int>(101, -1));
+    cout << CountWaysToAssignCap(0, 1, caplist, dp, allmask); */
+
+
+
+
+
+
+
+
+
 
 
 /* long input;
