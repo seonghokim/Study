@@ -2380,10 +2380,49 @@ int TravelSalesman_Bitmasking(int idx, int mask, vector<vector<int>>& dp,  vecto
     }
     return dp[idx][mask] = ret;
 }
+int TravelSalesman_DP(int i, int mask, vector<vector<int>>& dist, vector<vector<int>>& memo){
+    // (1 << n) -1 == ~(1 << n) ==> Set n bits to 1
+    int n = dist.size()-1;
+    if(mask == ((1<<i) | 3))// 1st bit and i bit
+        return dist[1][i];
+    if(memo[i][mask] != 0)// if distance is stored, not 0
+        return memo[i][mask];
+    int result = INF;
+    for(int j=1; j<=n; j++)
+        if((mask & (1 << j)) && j != i && j != 1)
+            result = min(result, TravelSalesman_DP(j, mask & (~(1 << i)), dist, memo)+dist[j][i]);
+    return memo[i][mask] = result;
+}
+
+// Sum Over Subset
+void SumOverSubset_BruteForce(vector<int>& a, int n){
+    int sum[1<<n] = {0};
+    for(int i=0; i<(1<<n); i++)
+        for(int j=0; j<(1<<n); j++)
+            if((i & j) == j)
+                sum[i] += a[j];
+    for(int i=0; i<(1<<n); i++)
+        cout << sum[i] << " ";
+}
+void SumOverSubset(vector<int>& a, int n){
+    int sum[1<<n] = {0};
+    for(int i=0; i<(1<<n); i++){
+        sum[i] = a[0];
+        for(int j=i; j>0; j=(j-1) & i)
+            sum[i] += a[j];
+    }
+    for(int i=0; i<(1<<n); i++)
+        cout << sum[i] << " ";
+}
+
+
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-
+    int n = 2;
+    vector<int> a = {7, 12, 14, 16};
+    SumOverSubset_BruteForce(a, n);
     return 0;
 }
 
@@ -2877,11 +2916,25 @@ int main(void){
     for(int i=0; i<len; i++)
         GetDist_TravelSalesman(dist, arr, r, c, i);
     cout << TravelSalesman_Bitmasking(0, 1, dp, dist); */
+// Travelling Salesman Problem(Bitmasking + DP)
+/*     int n = 4;
+    vector<vector<int>> dist = {//node 1  {1, 1~4} 
+        {0, 0, 0, 0, 0},
+        {0, 0, 10, 15, 20},
+        {0, 10, 0, 25, 25},
+        {0, 15, 25, 0, 30},
+        {0, 20, 25, 30, 0}
+    };
+    vector<vector<int>> memo(n+1, vector<int>(1<<(n+1), 0));
+    int result = INF;
+    for(int i=1; i <= n; i++)// 1 node --> any node --> i node --> 1 node
+        result = min(result, TravelSalesman_DP(i, (1 <<(n+1))-1, dist, memo)+dist[i][1]);
+    cout << result << endl; */
 
-
-
-
-
+// Sum Over Subset
+/*     int n = 2;
+    vector<int> a = {7, 12, 14, 16};
+    SumOverSubset_BruteForce(a, n); */
 
 
 
