@@ -2575,13 +2575,87 @@ int CountAllCombiOfCoint_DPoptimal(vector<int>& coin, int n,  int sum){// O(n*su
     return dp[sum];
 }
 
+// Subset Sum Problem
+bool IsSubsetSum_Recursion(vector<int>& set, int n, int sum){// O(2^n)
+    if(sum == 0)
+        return true;
+    if(n == 0)
+        return false;
+    if(set[n-1] > sum)
+        return IsSubsetSum_Recursion(set, n-1, sum);
+    return IsSubsetSum_Recursion(set, n-1, sum) || IsSubsetSum_Recursion(set, n-1, sum-set[n-1]);
+}
+bool IsSubsetSum_DPmemo(vector<int>& set, int n, int sum, vector<vector<int>>& dp){// O(sum * n)
+    if(sum == 0)
+        return true;
+    if(n <= 0)
+        return false;
+    if(dp[n-1][sum] != -1)
+        return dp[n-1][sum];
+    if(set[n-1] > sum)
+        return dp[n-1][sum] = IsSubsetSum_DPmemo(set, n-1, sum, dp);
+    return dp[n-1][sum] = IsSubsetSum_DPmemo(set, n-1, sum, dp) || IsSubsetSum_DPmemo(set, n-1, sum-set[n-1], dp);
+}
+bool IsSubsetSum_DPtable(vector<int>& set, int n, int sum){
+    vector<vector<bool>> dp(n+1, vector<bool>(sum+1, false));
+    for(int i=0; i<=n; i++)
+        dp[i][0] = true;
+    for(int i=1; i<=sum; i++)
+        dp[0][i] = false;
+    for(int i=1; i<=n; i++){
+        for(int j=1; j<=sum; j++){
+            if(j < set[i-1])
+                dp[i][j] = dp[i-1][j];
+            if(j >= set[i-1])
+                dp[i][j] = dp[i-1][j] || dp[i-1][j-set[i-1]];
+        }
+    }
+    return dp[n][sum];
+}
+
+//Cutting a Rod
+int CutRod_OptimalSubstructure(vector<int>& price, int index, int n){// O(2^n)
+    if(index == 0)
+        return n * price[0];
+    int notCut = CutRod_OptimalSubstructure(price, index-1, n);
+    int cut = INT_MIN;
+    int rod_length = index+1;
+    if(rod_length <= n)
+        cut = price[index] + CutRod_OptimalSubstructure(price, index, n-rod_length);
+    return max(notCut, cut);
+}
+int CutRod_OverlappingSubproblem(vector<int>& price, int index, int n, vector<vector<int>>& dp){// O(n^2)
+    if(index == 0)
+        return n * price[0];
+    if(dp[index][n] != -1)
+        return dp[index][n];
+    int notCut = CutRod_OverlappingSubproblem(price, index-1, n, dp);
+    int cut = INT_MIN;
+    int rod_length = index + 1;
+    if(rod_length <= n)
+        cut = price[index] + CutRod_OverlappingSubproblem(price, index, n-rod_length, dp);
+    return dp[index][n] = max(notCut, cut);
+}
+int CutRod_BottomUp(vector<int>& price, int n){// O(n^2)
+    int result[n+1];
+    result[0] = 0;
+    for(int i=1; i<=n; i++){
+        int max_val = INT_MIN;
+        for(int j=0; j<i; j++)
+            max_val = max(max_val, price[j] + result[i-j-1]);
+        result[i] = max_val;
+    }
+    return result[n];
+}
+int CutRod_UnboundedKnap(vector<int>& price, int n)
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<int> coin = {1, 2, 3};
-    int n = coin.size();
-    int sum = 5;
-    cout << CountAllCombiOfCoint_DPoptimal(coin, n, sum) << " ";
+    vector<int> price = {1, 5, 8, 9, 10, 17, 17, 20};
+    int n = price.size();
+    int index = n-1;
+    cout << CutRod_BottomUp(price, n) << " ";
     return 0;
 }
 

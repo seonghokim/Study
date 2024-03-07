@@ -575,12 +575,23 @@
     vector<vector<int>> dp(n+1, vector<int>(sum+1, -1));
     cout << CountAllCombiOfCoint_DPmemo(coin, n, sum, dp) << " "; */
 
+// Subset Sum Problem
+/*     vector<int> set = {3, 34, 4, 12, 5, 2};
+    int n = set.size();
+    int sum = 9;
+    vector<vector<int>> dp(n+1, vector<int>(sum+1, -1));
+    cout << IsSubsetSum_DPmemo(set, n, sum, dp) << " "; */
+/*     vector<int> set = {3, 34, 4, 12, 5, 2};
+    int n = set.size();
+    int sum = 9;
+    cout << IsSubsetSum_DPtable(set, n, sum) << " "; */
 
-
-
-
-
-
+//Cutting a Rod
+/*     vector<int> price = {1, 5, 8, 9, 10, 17, 17, 20};
+    int n = price.size();
+    int index = n-1;
+    vector<vector<int>> dp(n, vector<int>(n+1, -1));
+    cout << CutRod_OverlappingSubproblem(price, index, n, dp) << " "; */
 
 
 
