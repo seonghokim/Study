@@ -2647,15 +2647,134 @@ int CutRod_BottomUp(vector<int>& price, int n){// O(n^2)
     }
     return result[n];
 }
-int CutRod_UnboundedKnap(vector<int>& price, int n)
+int CutRod_UnboundedKnapsack(vector<int>& price, vector<int>& length, int max_len, int n, vector<vector<int>>& dp){// O(n^2)
+    if(n == 0 || max_len == 0)
+        return 0;
+    if(length[n-1] <= max_len)
+        dp[n][max_len] = max(price[n-1]+CutRod_UnboundedKnapsack(price, length, max_len-length[n-1], n, dp), CutRod_UnboundedKnapsack(price, length, max_len, n-1, dp));
+    else
+        dp[n][max_len] = CutRod_UnboundedKnapsack(price, length, max_len, n-1, dp);
+    return dp[n][max_len];
+}
+int CutRod_DPiterative(vector<int>& price, int n){// O(n^2)
+    int dp[n+1][n+1];
+    for(int i=0; i<=n; i++){
+        for(int j=0; j<=n; j++){
+            if(i == 0 || j == 0)
+                dp[i][j] = 0;
+            else{
+                if(i == 1)
+                    dp[i][j] = j * price[i-1];
+                else{
+                    if(i > j)
+                        dp[i][j] = dp[i-1][j];
+                    else
+                        dp[i][j] = max(price[i-1] + dp[i][j-i], dp[i-1][j] );
+                }
+            }
+        }
+    }
+    return dp[n][n];
+}
+
+// Painting Fence Algorithm
+long PaintingFenceWays(int n, int k){// O(n)
+    vector<long> dp(n+1, 0);
+    long long mod = 1000000007;
+    dp[1] = k;
+    dp[2] = k * k;
+    for(int i=3; i<=n; i++)
+        dp[i] = ((k-1) * (dp[i-1]+dp[i-2])) % mod;
+    return dp[n];
+}
+long PaintingFenceWays_OptimalSpace(int n, int k){// O(n)
+    long total = k;
+    int mod = 1000000007;
+    int same = 0, diff = k;
+    for(int i=2; i<=n; i++){
+        same = diff;
+        diff = (total * (k-1)) % mod;
+        total = (same+diff) % mod;
+    }
+    return total;
+}
+
+// Longest Common Subsequence(LCS)
+int LCS_Recursion(string s1, string s2, int m, int n){// O(2^(m*n))
+    if(m == 0 || n == 0)
+        return 0;
+    if(s1[m-1] == s2[n-1])
+        return 1 + LCS_Recursion(s1, s2, m-1, n-1);
+    return max(LCS_Recursion(s1, s2, m, n-1), LCS_Recursion(s1, s2, m-1, n));
+}
+int LCS_DPmemo(string s1, string s2, int m, int n, vector<vector<int>>& dp){// O(m*n)
+    if(m == 0 || n == 0)
+        return 0;
+    if(s1[m-1] == s2[n-1])
+        return dp[m][n] = 1 + LCS_DPmemo(s1, s2, m-1, n-1, dp);
+    if(dp[m][n] != -1)
+        return dp[m][n];
+    return dp[m][n] = max(LCS_DPmemo(s1, s2, m, n-1, dp), LCS_DPmemo(s1, s2, m-1, n, dp));
+}
+int LCS_DPtable(string s1, string s2, int m, int n){// O(m*n)
+    int dp[m+1][n+1];
+    for(int i=0; i<=m; i++){
+        for(int j=0; j<=n; j++){
+            if(i == 0 || j == 0)
+                dp[i][j] = 0;
+            else if(s1[i-1] == s2[j-1])
+                dp[i][j] = dp[i-1][j-1]+1;
+            else
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    return dp[m][n];
+}
+int LCS_DPOptimalspace(string s1, string s2){// O(m*n)
+    int m = s1.size();
+    int n = s2.size();
+    vector<int> prev(n+1, 0), cur(n+1, 0);
+    for(int i=1; i<m+1; i++){
+        for(int j=1; j<n+1; j++){
+            if(s1[i-1] == s2[j-1])
+                cur[j] = 1 + prev[j-1];
+            else
+                cur[j] = 0 + max(cur[j-1], prev[j]);
+        }
+        prev = cur;
+    }
+    return cur[n];
+}
+
+// Longest Increasing Subsequence(LIS)
+int LongestIncreasingSubsequence_Recursion(vector<int>& arr, int n, int& max_val){// O(2^n)
+    if(n == 1)
+        return 1;
+    int result, max_end = 1;
+    for(int i=1; i<n ; i++){
+        result = LongestIncreasingSubsequence_Recursion(arr, i, max_val);
+        if(arr[i-1] < arr[n-1] && result+1 > max_end)
+            max_end = result + 1;
+    }
+    if(max_val < max_end)
+        max_val = max_end;
+    return max_end;
+}
+int LongestIncreasingSubsequence_DPmemo(int idx, int prev_idx, int n, vector<int>& arr, vector<vector<int>>& dp){
+    
+}
+
+
+
+
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<int> price = {1, 5, 8, 9, 10, 17, 17, 20};
-    int n = price.size();
-    int index = n-1;
-    cout << CutRod_BottomUp(price, n) << " ";
+    vector<int> arr = {10, 22, 9, 33, 21, 50, 41, 60};
+    int n = arr.size();
+    int max = 1;
+    cout << LongestIncreasingSubsequence_Recursion(arr, n, max) << " ";
     return 0;
 }
 

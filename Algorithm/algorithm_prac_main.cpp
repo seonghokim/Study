@@ -592,15 +592,43 @@
     int index = n-1;
     vector<vector<int>> dp(n, vector<int>(n+1, -1));
     cout << CutRod_OverlappingSubproblem(price, index, n, dp) << " "; */
+/*     vector<int> price = {1, 5, 8, 9, 10, 17, 17, 20};
+    int n = price.size();
+    int index = n-1;
+    cout << CutRod_BottomUp(price, n) << " "; */
+/*     vector<int> price = {1, 5, 8, 9, 10, 17, 17, 20};
+    int n = price.size();
+    int max_len = n;
+    vector<int> length(n, 0);
+    vector<vector<int>> dp(9, vector<int>(9, -1));
+    for(int i=0; i<n; i++)
+        length[i] = i+1;
+    cout << CutRod_UnboundedKnapsack(price, n) << " "; */
+/*     vector<int> price = {1, 5, 8, 9, 10, 17, 17, 20};
+    int n = price.size();
+    cout << CutRod_DPiterative(price, n) << " "; */
 
-
-
-
-
-
-
-
-
+// Painting Fence Algorithm
+/*     int n = 3, k = 2;
+    cout << PaintingFenceWays_OptimalSpace(n, k) << " "; */
+    
+// Longest Common Subsequence(LCS)
+/*     string s1 = "aggtab";
+    string s2 = "gxtxayb";
+    int m = s1.size();
+    int n = s2.size();
+    vector<vector<int>> dp(m+1, vector<int>(n+1, -1));
+    cout << LCS_DPmemo(s1, s2, m, n, dp) << " "; */
+/*     string s1 = "aggtab";
+    string s2 = "gxtxayb";
+    int m = s1.size();
+    int n = s2.size();
+    cout << LCS_DPtable(s1, s2, m, n) << " "; */
+/*     string s1 = "aggtab";
+    string s2 = "gxtxayb";
+    int m = s1.size();
+    int n = s2.size();
+    cout << LCS_DPOptimalspace(s1, s2) << " "; */
 
 
 
