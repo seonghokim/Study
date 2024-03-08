@@ -630,6 +630,110 @@
     int n = s2.size();
     cout << LCS_DPOptimalspace(s1, s2) << " "; */
 
+// Longest Increasing Subsequence(LIS)
+/*     vector<int> arr = {10, 22, 9, 33, 21, 50, 41, 60};
+    int n = arr.size();
+    int max = 1;
+    cout << LongestIncreasingSubsequence_Recursion(arr, n, max) << " "; */
+/*     vector<int> arr = {10, 22, 9, 33, 21, 50, 41, 60};
+    int n = arr.size();
+    vector<vector<int>> dp(n+1, vector<int>(n+1, -1));
+    cout << LongestIncreasingSubsequence_DPmemo(0, -1, n, arr, dp) << " "; */
+/*     vector<int> arr = {10, 22, 9, 33, 21, 50, 41, 60};
+    int n = arr.size();
+    cout << LongestIncreasingSubsequence_DPtable(arr, n) << " "; */
+/*     vector<int> arr = {10, 22, 9, 33, 21, 50, 41, 60};
+    int n = arr.size();
+    cout << LongestIncreasingSubsequence_BinarySearch(arr) << " "; */
+
+// Longest Subsequence that Difference between adjacents in 1
+/*     vector<int> arr = {1, 2, 3, 4, 5, 3, 2};
+    int n = arr.size();
+    cout << LongestSubSequenceWithDiffOne_DP2(arr) << " "; */
+
+// Maximum size Square Sub-Matrix with all 1
+/*     vector<vector<int>> grid = {
+        {0, 1, 1, 0, 1}, {1, 1, 0, 1, 0},
+        {0, 1, 1, 1, 0}, {1, 1, 1, 1, 0},
+        {1, 1, 1, 1, 1}, {0, 0, 0, 0, 0}
+    };
+    PrintMaxSizeSquareWithAllOne_OptimalSpace(grid); */
+
+// Min Cost Path
+/*     vector<vector<int>> cost = {
+        {1, 2, 3},
+        {4, 8, 2},
+        {1, 5, 3}
+    };
+    vector<vector<int>> dp(cost.size(), vector<int>(cost[0].size(), -1));
+    cout << MinCostPath_DPmemo(cost, 2, 2, dp); */
+/*     vector<vector<int>> cost = {
+        {1, 2, 3},
+        {4, 8, 2},
+        {1, 5, 3}
+    };
+    cout << MinCostPath_DPtable(cost, 2, 2); */
+/*     vector<vector<int>> cost = {
+        {1, 8, 8, 1, 5},
+        {4, 1, 1, 8, 1},
+        {4, 2, 8, 8, 1},
+        {1, 5, 8, 8, 1}
+    };
+    cout << MinCostPath_Dijkstra(cost, 3, 4); */
+
+// Minimum number of jumps to reach end
+/*     vector<int> arr = {1, 3, 5, 8, 9, 2, 6, 7, 6, 8, 9};
+    int n = arr.size();
+    cout << MinJumpToEnd_Recursion(arr, 0, n-1); */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

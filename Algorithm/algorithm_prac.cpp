@@ -2760,21 +2760,254 @@ int LongestIncreasingSubsequence_Recursion(vector<int>& arr, int n, int& max_val
         max_val = max_end;
     return max_end;
 }
-int LongestIncreasingSubsequence_DPmemo(int idx, int prev_idx, int n, vector<int>& arr, vector<vector<int>>& dp){
-    
+int LongestIncreasingSubsequence_DPmemo(int idx, int prev_idx, int n, vector<int>& arr, vector<vector<int>>& dp){// O(n^2)
+    if(idx == n)
+        return 0;
+    if(dp[idx][prev_idx+1] != -1)
+        return dp[idx][prev_idx+1];
+    int notTake = 0 + LongestIncreasingSubsequence_DPmemo(idx+1, prev_idx, n, arr, dp);
+    int take = INT_MIN;
+    if(prev_idx == -1 || arr[idx] > arr[prev_idx])
+        take = 1 + LongestIncreasingSubsequence_DPmemo(idx+1, idx, n, arr, dp);
+    return dp[idx][prev_idx+1] = max(take, notTake);
+}
+int LongestIncreasingSubsequence_DPtable(vector<int>& arr, int n){// O(n^2)
+    int dp[n];
+    dp[0] = 1;
+    for(int i=1; i<n; i++){
+        dp[i] = 1;
+        for(int j=0; j<i; j++)
+            if(arr[i] > arr[j] && dp[i] < dp[j] + 1)
+                dp[i] = dp[j] + 1;
+    }
+    return *max_element(dp, dp+n);
+}
+int LongestIncreasingSubsequence_BinarySearch(vector<int>& arr){
+    int n = arr.size();
+    vector<int> result;
+    result.push_back(arr[0]);
+    for(int i=1; i<n; i++){
+        if(arr[i] > result.back())
+            result.push_back(arr[i]);
+        else{
+            int low = lower_bound(result.begin(), result.end(), arr[i])-result.begin();
+            result[low] = arr[i];
+        }
+    }
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl;
+    return result.size();
 }
 
+// Longest Subsequence that Difference between adjacents in 1
+int LongestSubSequenceWithDiffOne_DP(vector<int>& arr, int n){// O(n^2)
+    vector<int> dp(n, 1);
+    for(int i=1; i<n; i++)
+        for(int j=0; j<i; j++)
+            if(arr[i] == arr[j]+1 || arr[i] == arr[j]-1)
+                dp[i] = max(dp[i], dp[j]+1);
+    int result = 1;
+    for(int i=0; i<n; i++)
+        if(result < dp[i])
+            result = dp[i];
+    return result;
+}
+int LongestSubSequenceWithDiffOne_DP2(vector<int>& arr){// O(n)
+    int n = arr.size();
+    if(n==1)
+        return 1;
+    unordered_map<int, int> m;
+    int result = 1;
+    for(int i=0; i<n; i++){
+        if(m.count(arr[i]+1) > 0 || m.count(arr[i]-1) > 0)
+            m[arr[i]] = 1 + max(m[arr[i]+1], m[arr[i]-1]);
+        else
+            m[arr[i]] = 1;
+        result = max(result, m[arr[i]]);
+    }
+    return result;
+}
 
+// Maximum size Square Sub-Matrix with all 1
+void PrintMaxSizeSquareWithAllOne(vector<vector<int>>& grid){// O(m * n)
+    int r = grid.size();
+    int c = grid[0].size();
+    vector<vector<int>> dp(r, vector<int>(c, -1));
+    for(int i=0; i<r; i++)
+        dp[i][0] = grid[i][0];
+    for(int j=0; j<c; j++)
+        dp[0][j] = grid[0][j];
+    for(int i=1; i<r; i++){
+        for(int j=1; j<c; j++){
+            if(grid[i][j] == 1)
+                dp[i][j] = min(dp[i][j-1], min(dp[i-1][j], dp[i-1][j-1])) + 1;
+            else
+                dp[i][j] = 0;
+        }
+    }
+    int max_dp = dp[0][0];
+    int max_i = 0;
+    int max_j = 0;
+    for(int i=0; i<r; i++)
+        for(int j=0; j<c; j++)
+            if(max_dp < dp[i][j]){
+                max_dp = dp[i][j];
+                max_i = i;
+                max_j = j;
+            }
+    for(int i=max_i; i > max_i - max_dp; i--){
+        for(int j=max_j; j > max_j - max_dp; j--)
+            cout << grid[i][j] << " ";
+        cout << endl;
+    }
+    
+}
+void PrintMaxSizeSquareWithAllOne_OptimalSpace(vector<vector<int>>& grid){
+    int r = grid.size();
+    int c = grid[0].size();
+    int max_val = 0;
+    vector<vector<int>> dp(2, vector<int>(c, 0));
+    for(int i=0; i<r; i++)
+        for(int j=0; j<c; j++){
+            int entry = grid[i][j];
+            if(entry && j)
+                entry = 1 + min(dp[1][j-1], min(dp[0][j-1], dp[1][j]));
+            dp[0][j] = dp[1][j];
+            dp[1][j] = entry;
+            max_val = max(max_val, entry);
+        }
+    for(int i=0; i<max_val; i++, cout << endl)
+        for(int j=0; j<max_val; j++)
+            cout << "1 ";
+}
 
+// Min Cost Path
+int MinCostPath_Recursion(vector<vector<int>>& cost, int m, int n){// O(m * n^3)
+    if(n < 0 || m < 0)
+        return INT_MAX;
+    else if(m == 0 && n == 0)
+        return cost[m][n];
+    else
+        return cost[m][n] + min(MinCostPath_Recursion(cost, m-1, n-1), min(MinCostPath_Recursion(cost, m, n-1), MinCostPath_Recursion(cost, m-1, n)));
+}
+int MinCostPath_DPmemo(vector<vector<int>>& cost, int m, int n, vector<vector<int>>& dp){// O(m * n)
+    if(n < 0 || m < 0)
+        return INT_MAX;
+    else if(n == 0 && m == 0)
+        return cost[m][n];
+    if(dp[m][n] != -1)
+        return dp[m][n];
+    dp[m][n] = cost[m][n] + min(MinCostPath_DPmemo(cost, m-1, n-1, dp), min(MinCostPath_DPmemo(cost, m-1, n, dp), MinCostPath_DPmemo(cost, m, n-1, dp)));
+    return dp[m][n];
+}
+int MinCostPath_DPtable(vector<vector<int>>& cost, int m, int n){// O(m * n)
+    int r = cost.size();
+    int c = cost[0].size();
+    vector<vector<int>> dp(r, vector<int>(c, INF));
+    dp[0][0] = cost[0][0];
+    for(int i=1; i<=m ; i++)
+        dp[i][0] = dp[i-1][0] + cost[i][0];
+    for(int j=1; j<=n; j++)
+        dp[0][j] = dp[0][j-1] + cost[0][j];
+    for(int i=1; i<=m; i++)
+        for(int j=1; j<=n; j++)
+            dp[i][j] = min(dp[i-1][j-1], min(dp[i][j-1], dp[i-1][j])) + cost[i][j];
+    return dp[m][n];
+}
+struct Cell{
+    int x, y, cost;
+};
+class CellCompare{
+public:
+    bool operator()(Cell& a, Cell& b){
+        return a.cost > b.cost;
+    }
+};
+bool MinCostPath_Safe(int x, int y, int r, int c){
+    return x >= 0 && x < r && y >= 0 && y < c;
+}
+int MinCostPath_Dijkstra(vector<vector<int>>& cost, int m, int n){// O(V + E * log V) [V = E = n * m]
+    int r = cost.size();
+    int c = cost[0].size();
+    vector<int> dx = {1, -1, 0, 0, 1, 1, -1, -1};
+    vector<int> dy = {0, 0, 1, -1, 1, -1, 1, -1};
+    int dir = dx.size();
+    vector<vector<int>> dp(r, vector<int>(c, INF));
+    vector<vector<bool>> visited(r, vector<bool>(c, false));
+    priority_queue<Cell, vector<Cell>, CellCompare> pq;
+    dp[0][0] = cost[0][0];
+    pq.push({0, 0, cost[0][0]});
+    while(!pq.empty()){
+        Cell cell = pq.top();
+        pq.pop();
+        int x = cell.x;
+        int y = cell.y;
+        if(visited[x][y])
+            continue;
+        visited[x][y] = true;
+        for(int i=0; i<dir; i++){
+            int x_next = x + dx[i];
+            int y_next = y + dy[i];
+            if(MinCostPath_Safe(x_next, y_next, r, c) && !visited[x_next][y_next]){
+                dp[x_next][y_next] = min(dp[x_next][y_next], dp[x][y] + cost[x_next][y_next]);
+                pq.push({x_next, y_next, dp[x_next][y_next]});
+            }
+        }
+    }
+    return dp[m][n];
+}
+
+// Minimum number of jumps to reach end
+int MinJumpToEnd_Recursion(vector<int>& arr, int l, int r){// O(n^n)
+    if(r == l)
+        return 0;
+    if(arr[l] == 0)
+        return INT_MAX;
+    int min_jump = INT_MAX;
+    for(int i=l+1; i<=r && i<= l + arr[l]; i++){
+        int jump = MinJumpToEnd_Recursion(arr, i, r);
+        if(jump != INT_MAX && min_jump > jump +1)
+            min_jump = jump + 1;
+    }
+    return min_jump;
+}
+int MinJumpToEnd_DPmemo(vector<int>& arr, int l, int r, vector<int>& dp){// O(n^2)
+    if(l == r)
+        return 0;
+    if(dp[l] != -1)
+        return dp[l];
+    int min_jump = INT_MAX -1;
+    for(int i=arr[l]; i>=1; --i)
+        if(l + i <= r)
+            min_jump = min(min_jump, 1 + MinJumpToEnd_DPmemo(arr, l+i, r, dp));
+    return dp[l] = min_jump;
+}
+int MinJumpToEnd_DPtable(vector<int>& arr){// O(n^2)
+    int n = arr.size();
+    vector<int> jump(n, INF);
+    if(n == 0 || arr[0] == 0)
+        return INF;
+    jump[0] = 0;
+    for(int i=1; i<n; i++){
+        jump[i] = INF;
+        for(int j=0; j<i; j++)
+            if(i <= j + arr[j] && jump[j] != INF){
+                jump[i] = min(jump[i], jump[j] + 1);
+                break;
+            }
+    }
+    return jump[n-1];
+}
 
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<int> arr = {10, 22, 9, 33, 21, 50, 41, 60};
+    vector<int> arr = {1, 3, 5, 8, 9, 2, 6, 7, 6, 8, 9};
     int n = arr.size();
-    int max = 1;
-    cout << LongestIncreasingSubsequence_Recursion(arr, n, max) << " ";
+    vector<int> dp(n, -1);
+    cout << MinJumpToEnd_DPmemo(arr, 0, n-1, dp);
     return 0;
 }
 
