@@ -32,6 +32,7 @@
         "iosfwd": "cpp",
         "algorithm": "cpp",
         "condition_variable": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "complex": "cpp"
     }
 }

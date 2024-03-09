@@ -2440,7 +2440,7 @@ int Fibonacci_DP(int n){// O(n)
         f[i] = f[i-1] + f[i-2];
     return f[n];
 }
-void MultiplyMaxtirx(int f[2][2], int m[2][2]){
+void MultiplyMatrix(int f[2][2], int m[2][2]){
     int x = f[0][0] * m[0][0] + f[0][1] * m[1][0];
     int y = f[0][0] * m[0][1] + f[0][1] * m[1][1];
     int z = f[1][0] * m[0][0] + f[1][1] * m[1][0];
@@ -2455,9 +2455,9 @@ void Power(int f[2][2], int n){
         return;
     int m[2][2] = {{1, 1}, {1, 0}};
     Power(f, n/2);
-    MultiplyMaxtirx(f, f);
+    MultiplyMatrix(f, f);
     if(n%2 != 0)
-        MultiplyMaxtirx(f, m);
+        MultiplyMatrix(f, m);
 }
 int Finonacci_PowerOfMatrix(int n){// O(log n)
     int f[2][2] = {{1, 1}, {1, 0}};
@@ -2465,6 +2465,40 @@ int Finonacci_PowerOfMatrix(int n){// O(log n)
         return 0;
     Power(f, n-1);
     return f[0][0];
+}
+void MultiplyVariableMatrix(vector<vector<int>>& a, vector<vector<int>>& b){
+    int r = a.size();
+    int c = a[0].size();
+    vector<vector<int>> result(r, vector<int>(c, 0));
+    for(int i=0; i<r; i++)
+        for(int j=0; j<c; j++)
+            for(int k=0; k<r; k++)
+                result[i][j] = a[i][k] * b[k][j];
+    for(int i=0; i<r; i++)
+        for(int j=0; j<c; j++)
+            a[i][j] = result[i][j];
+}
+int PowerVariableMatrix(vector<vector<int>>& mat, int n){
+    int r = mat.size();
+    int c = mat[0].size();
+    vector<vector<int>> m(r, vector<int>(c, 0));
+    m[0][0] = m[0][1] = m[1][0] = m[2][1] = 1;
+    if(n == 1)
+        return mat[0][0] + mat[0][1];
+    PowerVariableMatrix(mat, n>>1);
+    MultiplyVariableMatrix(mat, mat);
+    if(n & 1)
+        MultiplyVariableMatrix(mat, m);
+    return mat[0][0] + mat[0][1];
+}
+int Finonacci_MatrixExponentiation(int n){
+    vector<vector<int>> mat(3, vector<int>(3, 0));
+    mat[0][0] = mat[0][1] = mat[1][0] = mat[2][1] = 1;
+    if(n == 0)
+        return 0;
+    if(n == 1 || n == 2)
+        return 1;
+    return PowerVariableMatrix(mat, n-2);
 }
 
 // Catalan Number
@@ -2999,15 +3033,207 @@ int MinJumpToEnd_DPtable(vector<int>& arr){// O(n^2)
     }
     return jump[n-1];
 }
+int MinJumpToEnd_Greedy(vector<int>& arr){// O(n)
+    int n = arr.size();
+    if(n <= 1)
+        return 0;
+    if(arr[0] >= n-1)// if first element guarantees 1 jump
+        return 1;
+    if(arr[0] == 0)// can't jump
+        return -1;
+    int max_reach = arr[0];
+    int step = arr[0];
+    int jump = 1;
+    for(int i=1; i<n; i++){// possible jump distance
+        if(i == n-1)// end point
+            return jump;
+        if(arr[i] >= n-1-i)// can reach end point from arr[i]
+            return jump + 1;
+        max_reach = max(max_reach, i+arr[i]);
+        step--;
+        if(step == 0){
+            jump++;
+            if(i >= max_reach)
+                return -1;
+            step = max_reach - i;
+        }
+    }
+    return -1;
+}
+
+// Longest Common Substring
+int LongestCommonSubstring_OptimalSpace(string s1, string s2){// O(m * n)
+    int m = s1.length();
+    int n = s2.length();
+    int result = 0;
+    int len[2][n];
+    int cur_r = 0;
+    for(int i=0; i<=m ; i++){
+        for(int j=0; j<=n; j++){
+            if(i==0 || j==0)
+                len[cur_r][j] = 0;
+            else if(s1[i-1] == s2[j-1]){
+                len[cur_r][j] = len[1-cur_r][j-1] + 1;
+                result = max(result, len[cur_r][j]);
+            }
+            else
+                len[cur_r][j] = 0;
+        }
+        cur_r = 1 - cur_r;
+    }
+    return result;
+}
+int LongestCommonSubstring_OptimalSpace2(string s1, string s2){// O(m * n)
+    int m = s1.length();
+    int n = s2.length();
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    int result = 0;
+    for(int i=1; i<=m; i++){
+        for(int j=1; j<=n; j++){
+            if(s1[i-1] == s2[j-1]){
+                dp[i][j] = dp[i-1][j-1] + 1;
+                if(dp[i][j] > result)
+                    result = dp[i][j];
+            }
+            else
+                dp[i][j] = 0;
+        }
+    }
+    return result;
+}
+int LongestCommonSubstring_DP(string s1, string s2){// O(m * n)
+    int m = s1.length();
+    int n = s2.length();
+    int suffix[m+1][n+1];
+    int result = 0;
+    for(int i=0; i<=m; i++){
+        for(int j=0; j<=n; j++){
+            if(i==0 || j==0)
+                suffix[i][j] = 0;
+            else if(s1[i-1] == s2[j-1]){
+                suffix[i][j] = suffix[i-1][j-1] + 1;
+                result = max(result, suffix[i][j]);
+            }
+            else
+                suffix[i][j] = 0;
+        }
+    }
+    return result;
+}
+int LongestCommonSubstring_Recursion(string s1, string s2, int m, int n, int count){// O(2^max(m,n))
+    if(m == 0 || n == 0)
+        return count;
+    if(s1[m-1] == s2[n-1])
+        count = LongestCommonSubstring_Recursion(s1, s2, m-1, n-1, count+1);
+    count = max(count, max(LongestCommonSubstring_Recursion(s1, s2, m, n-1, 0), LongestCommonSubstring_Recursion(s1, s2, m-1, n, 0)));
+    return count;
+}
+
+// Count ways to reach the nth stair using step 1, 2 or 3
+int WaysToReachStairEnd_Recursion(int n){// O(3^n)
+    if(n == 0)
+        return 1;
+    else if(n < 0)
+        return 0;
+    else
+        return WaysToReachStairEnd_Recursion(n-3) + WaysToReachStairEnd_Recursion(n-2) + WaysToReachStairEnd_Recursion(n-1);
+}
+int WaysToReachStairEnd_DP(int n){// O(n)
+    int result[n+1];
+    result[0] = 1;
+    result[1] = 1;
+    result[2] = 2;
+    for(int i=3; i<=n; i++)
+        result[i] = result[i-1] + result[i-2] + result[i-3];
+    return result[n];
+}
+vector<vector<int>> Mult(const vector<vector<int>>& a, const vector<vector<int>>& b, int k){
+    vector<vector<int>> c(k+1, vector<int>(k+1));
+    for(int i=1; i<=k; i++)
+        for(int j=1; j<=k; j++)
+            for(int z=1; z<=k; z++)
+                c[i][j] = c[i][j] + a[i][z] * b[z][j];
+    return c;
+}
+vector<vector<int>> Power(const vector<vector<int>>& matrix, int n, int k){
+    if(n == 1)
+        return matrix;
+    if(n & 1)
+        return Mult(matrix, Power(matrix, n-1, k), k);
+    else{
+        vector<vector<int>> x = Power(matrix, n>>1, k);
+        return Mult(x, x, k);
+    }
+}
+int WaysToReachStairEnd_MatrixExponentiation(int n){// O(log n)
+    int k = 3;
+    if(n == 0)
+        return 1;
+    if(n == 1)
+        return 1;
+    if(n == 2)
+        return 2;
+    int f1[k+1] = {};
+    f1[1] = 1;
+    f1[2] = 2;
+    f1[3] = 4;
+    vector<vector<int>> matrix(k+1, vector<int>(k+1));
+    for(int i=1; i<=k; i++)
+        for(int j=1; j<=k; j++){
+            if(i < k){
+                if(j == i+1)
+                    matrix[i][j] = 1;
+                else
+                    matrix[i][j] = 0;
+                continue;
+            }
+            matrix[i][j] = 1;
+        }
+    matrix = Power(matrix, n-1, k);
+    int sum = 0;
+    for(int i=1; i<=k; i++)
+        sum += matrix[1][i] * f1[i];
+    return sum;
+}
+int WaysToReachStairEnd_FourVar(int n){// O(n)
+    int a = 1, b = 2,  c = 4, d = 0;
+    if(n == 0 || n == 1 || n == 2)
+        return n;
+    if(n == 3)
+        return c;
+    for(int i=4; i<=n; i++){
+        d = c + b + a;
+        a = b;
+        b = c;
+        c = d;
+    }
+    return d;
+}
+int WaysToReachStairEnd_DPmemo(int n, vector<int>& dp){// O(n)
+    if(n == 0)
+        return 1;
+    else if(n < 0)
+        return 0;
+    if(dp[n] != -1)
+        return dp[n];
+    return dp[n] = WaysToReachStairEnd_DPmemo(n-3, dp) + WaysToReachStairEnd_DPmemo(n-2, dp) + WaysToReachStairEnd_DPmemo(n-1, dp);
+}
+
+// Count Unique Paths in Matrix
+
+
+
+
+// Unique Paths in a Grid with Obstables
+
 
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<int> arr = {1, 3, 5, 8, 9, 2, 6, 7, 6, 8, 9};
-    int n = arr.size();
-    vector<int> dp(n, -1);
-    cout << MinJumpToEnd_DPmemo(arr, 0, n-1, dp);
+    int n = 4;
+    vector<int> dp(n+1, -1);
+    cout << WaysToReachStairEnd_DPmemo(n, dp);
     return 0;
 }
 

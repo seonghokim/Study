@@ -686,14 +686,23 @@
     int n = arr.size();
     cout << MinJumpToEnd_Recursion(arr, 0, n-1); */
 
+// Longest Common Substring
+/*     string s1 = "GeeksforGeeks";
+    string s2 = "GeeksQuiz";
+    cout << LongestCommonSubstring_OptimalSpace(s1, s2); */
+/*     string s1 = "GeeksforGeeks";
+    string s2 = "GeeksQuiz";
+    int m = s1.length();
+    int n = s2.length();
+    cout << LongestCommonSubstring_Recursion(s1, s2, m, n, 0); */
 
-
-
-
-
-
-
-
+// Count ways to reach the nth stair using step 1, 2 or 3
+/*     int n = 4;
+    cout << WaysToReachStairEnd_Recursion(n); */
+/*     int n = 4;
+    cout << WaysToReachStairEnd_MatrixExponentiation(n); */
+/*     int n = 4;
+    cout << WaysToReachStairEnd_FourVar(n); */
 
 
 
