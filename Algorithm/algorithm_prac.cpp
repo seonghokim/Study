@@ -8,6 +8,7 @@ using namespace std;
 
 #define INF 0x3f3f3f3f
 #define endl "\n"
+#define ALPHABET 26
 /* void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
 void CheckLargestNum(long n1, long n2, long n3);
@@ -565,9 +566,9 @@ void FindMissingRepearingNum(vector<int>& arr){
     // x is repeating number
     // y is missing number
 }
-
+//---------------------------------------------------------
 //----------------------- BackTracking --------------------
-
+//---------------------------------------------------------
 // Knight's tour algorithm
 const int SIZE = 6;
 bool IsSafeMovement(int x, int y, int arr[SIZE][SIZE]){
@@ -1012,9 +1013,9 @@ void PermutateStringWithNextPermutation(string str){
     for(auto k : res)
         cout << k << endl;
 }
-
+//---------------------------------------------------
 //----------------------- Greedy --------------------
-
+//---------------------------------------------------
 // Acitivity Selection Problem
 void PrintMaxActivities(vector<pair<int,int>>& work, vector<int>& result){
     // work.first = end time, work.second = start time
@@ -3220,20 +3221,428 @@ int WaysToReachStairEnd_DPmemo(int n, vector<int>& dp){// O(n)
 }
 
 // Count Unique Paths in Matrix
-
-
-
+int CountUniquePath_Recursion(int m, int n){// O(2^n)
+    if(m == 1 || n == 1)
+        return 1;
+    return CountUniquePath_Recursion(m-1, n) + CountUniquePath_Recursion(m, n-1);
+}
+int CountUniquePath_DPmemo(int m, int n, vector<vector<int>>& dp){// O(m * n)
+    if(m == 1 || n == 1)
+        return dp[m][n] = 1;
+    if(dp[m][n] == 0)
+        dp[m][n] = CountUniquePath_DPmemo(m-1, n, dp) + CountUniquePath_DPmemo(m, n-1, dp);
+    return dp[m][n];
+}
+int CountUniquePath_DPtable(int m, int n){// O(m * n)
+    vector<vector<int>> dp(m, vector<int>(n, 0));
+    for(int i=0; i<m; i++)
+        dp[i][0] = 1;
+    for(int i=0; i<n; i++)
+        dp[0][i] = 1;
+    for(int i=1; i<m; i++)
+        for(int j=1; j<n; j++)
+            dp[i][j] = dp[i-1][j] + dp[i][j-1];
+    return dp[m-1][n-1];
+}
+int CountUniquePath_DPOptimalspace(int m, int n){
+    vector<int> dp(n, 0);
+    dp[0] = 1;
+    for(int i=0; i<m; i++)
+        for(int j=1; j<n; j++)
+            dp[j] += dp[j-1];
+    return dp[n-1];
+}
+int CountUniquePath_Combinatorics(int m, int n){// O(max(m, n))
+    int path = 1;
+    for(int i=n; i<(m+n-1); i++){
+        path *= i;
+        path /= (i-n+1);
+    }
+    return path;
+}
 
 // Unique Paths in a Grid with Obstables
+int UniquePathWithObstacle_Recursion(vector<vector<int>>& grid, int i, int j){// O(2^(m*n))
+    int r = grid.size();
+    int c = grid[0].size();
+    if(i == r || j == c)
+        return 0;
+    if(grid[i][j] == 1)
+        return 0;
+    if(i == r-1 && j == c-1)
+        return 1;
+    return UniquePathWithObstacle_Recursion(grid, i+1, j) + UniquePathWithObstacle_Recursion(grid, i, j+1);
+}
+int UniquePathWithObstacle_DPmemo(vector<vector<int>>& grid, vector<vector<int>>& path, int i, int j){// O(m*n)
+    int r = grid.size();
+    int c = grid[0].size();
+    if(i == r || j == c)
+        return 0;
+    if(grid[i][j] == 1)
+        return 0;
+    if(i == r-1 && j == c-1)
+        return 1;
+    if(path[i][j] != -1)
+        return path[i][j];
+    return path[i][j] = UniquePathWithObstacle_DPmemo(grid, path, i+1, j) + UniquePathWithObstacle_DPmemo(grid, path, i, j+1);
+}
+int UniquePathWithObstacle_DPtable(vector<vector<int>>& grid){// O(m * n)
+    int r = grid.size();
+    int c = grid[0].size();
+    vector<vector<int>> dp(r, vector<int>(c, 0));
+    if(grid[0][0] == 0)
+        dp[0][0] = 1;
+    for(int i=1; i<r; i++)
+        if(grid[i][0] == 0)
+            dp[i][0] = dp[i-1][0];
+    for(int i=1; i<c; i++)
+        if(grid[0][i] == 0)
+            dp[0][i] = dp[0][i-1];
+    for(int i=1; i<r; i++)
+        for(int j=1; j<c; j++)
+            if(grid[i][j] == 0)
+                dp[i][j] = dp[i-1][j] + dp[i][j-1];
+    return dp[r-1][c-1];
+}
+int UniquePathWithObstacle_DPOptimalSpace(vector<vector<int>>& grid){// O(m * n)
+    int r = grid.size();
+    int c = grid[0].size();
+    if(grid[0][0])
+        return 0;
+    grid[0][0] = 1;
+    for(int i=1; i<r; i++){
+        if(grid[i][0] == 0)
+            grid[i][0] = grid[i-1][0];
+        else
+            grid[i][0] = 0;
+    }
+    for(int i=1; i<c; i++){
+        if(grid[0][i] == 0)
+            grid[0][i] = grid[0][i-1];
+        else
+            grid[0][i] = 0;
+    }
+    for(int i=1; i<r; i++)
+        for(int j=1; j<c; j++){
+            if(grid[i][j] == 0)
+                grid[i][j] = grid[i-1][j] + grid[i][j-1];
+            else
+                grid[i][j] = 0;
+        }
+    return grid[r-1][c-1];
+}
 
+// 0/1 Knapsack Problem
+int Knapsack_Recursion(int cap, vector<int>& weight, vector<int>& profit, int n){// O(2^n)
+    if(n == 0 || cap == 0)
+        return 0;
+    if(weight[n-1] > cap)
+        return Knapsack_Recursion(cap, weight, profit, n-1);
+    return max(profit[n-1] + Knapsack_Recursion(cap-weight[n-1], weight, profit, n-1), Knapsack_Recursion(cap, weight, profit, n-1));
+}
+int Knapsack_DPmemo(int cap, vector<int>& weight, vector<int>& profit, int n, vector<vector<int>>& dp){// O(n * cap)
+    if(n < 0)
+        return 0;
+    if(dp[n][cap] != -1)
+        return dp[n][cap];
+    if(weight[n] > cap){
+        dp[n][cap] = Knapsack_DPmemo(cap, weight, profit, n-1, dp);
+        return dp[n][cap];
+    }
+    return dp[n][cap] = max(profit[n] + Knapsack_DPmemo(cap-weight[n], weight, profit, n-1, dp), Knapsack_DPmemo(cap, weight, profit, n-1, dp));
+}
+int Knapsack_DPtable(int cap, vector<int>& weight, vector<int>& profit, int n){// O(n * cap)
+    vector<vector<int>> dp(n+1, vector<int>(cap+1, 0));
+    for(int i=0; i<=n ; i++){
+        for(int j=0; j<=cap; j++){
+            if(i == 0 || j == 0)
+                dp[i][j] = 0;
+            else if(weight[i-1] <= j)
+                dp[i][j] = max(profit[i-1]+dp[i-1][j-weight[i-1]], dp[i-1][j]);
+            else
+                dp[i][j] = dp[i-1][j];
+        }
+    }
+    vector<int> max_weight;
+    int result = dp[n][cap];
+    int w = cap;
+    for(int i=n; i>0 && result > 0; i--){
+        if(result == dp[i-1][w])
+            continue;
+        else{
+            max_weight.push_back(weight[i-1]);
+            result -= profit[i-1];
+            w -= weight[i-1];
+        }
+    }
+    for(auto t : max_weight)
+        cout << t << " ";
+    cout << endl;
+    return dp[n][cap];
+}
+int Knapsack_DPOptimalSpace(int cap, vector<int>& weight, vector<int>& profit, int n){
+    vector<int> dp(cap+1, 0);
+    for(int i=1; i<=n; i++)
+        for(int j=cap; j>=0; j--)
+            if(weight[i-1] <= j)
+                dp[j] = max(dp[j], dp[j-weight[i-1]]+profit[i-1]);
+    return dp[cap];
+}
+
+// Unbounded Knapsack
+int UnboundedKnapsack_Recursion(int cap, vector<int>& weight, vector<int>& profit, int n){// O(cap * n)
+    if(n == 0)
+        return cap/weight[0]*profit[0];
+    int notTake = 0 + UnboundedKnapsack_Recursion(cap, weight, profit, n-1);
+    int take = INT_MIN;
+    if(weight[n] <= cap)
+        take = profit[n] + UnboundedKnapsack_Recursion(cap-weight[n], weight, profit, n);
+    return max(take, notTake);
+}
+int UnboundedKnapsack_DPmemo(int cap, vector<int>& weight, vector<int>& profit, int n, vector<vector<int>>& dp){// O(cap * n)
+    if(n == 0)
+        return cap/weight[0]*profit[0];
+    if(dp[n][cap] != -1)
+        return dp[n][cap];
+    int notTake = 0 + UnboundedKnapsack_DPmemo(cap, weight, profit, n-1, dp);
+    int take = INT_MIN;
+    if(weight[n] <= cap)
+        take = profit[n] + UnboundedKnapsack_DPmemo(cap-weight[n], weight, profit, n, dp);
+    return dp[n][cap] = max(take, notTake);
+}
+int UnboundedKnapsack_DPOptimalSpace(int cap, vector<int>& weight, vector<int>& profit, int n){// O(cap * n)
+    vector<int> dp(cap+1, 0);
+    for(int i=0; i<=cap; i++)
+        for(int j=0; j<n; j++)
+            if(weight[j] <= i)
+                dp[i] = max(dp[i], dp[i-weight[j]]+profit[j]);
+    return dp[cap];
+}
+
+// Egg Dropping Puzzle
+int EggDrop_Recursion(int n, int k){
+    if(k == 1 || k == 0)
+        return k;
+    if(n == 1)
+        return k;
+    int min_val = INT_MAX, result;
+    for(int i=1; i<=k; i++){
+        result = max(EggDrop_Recursion(n-1, i-1), EggDrop_Recursion(n, k-i));
+        if(result < min_val)
+            min_val = result;
+    }
+    return min_val + 1;
+}
+int EggDrop_DPtable(int n, int k){// O(n * k^2)
+    vector<vector<int>> dp(n+1, vector<int>(k+1, INT_MAX));
+    int result;
+    for(int i=1; i<=n ; i++){
+        dp[i][1] = 1;
+        dp[i][0] = 0;
+    }
+    for(int i=1; i<=k; i++)
+        dp[1][i] = i;
+    for(int i=2; i<=n; i++){
+        for(int j=2; j<=k; j++){
+            for(int x=1; x<=j; x++){
+                result = 1 + max(dp[i-1][x-1], dp[i][j-x]);
+                if(result < dp[i][j])
+                    dp[i][j] = result;
+            }
+        }
+    }
+    return dp[n][k];
+}
+int EggDrop_DPmemo(int n, int k, vector<vector<int>>& dp){// O(n * k^2)
+    if(dp[n][k] != -1)
+        return dp[n][k];
+    if(k == 1 || k == 0)
+        return k;
+    if (n == 1)
+        return k;
+    int min_val = INT_MAX, result;
+    for(int i=1; i<=k; i++){
+        result = max(EggDrop_DPmemo(n-1, i-1, dp), EggDrop_DPmemo(n, k-i, dp));
+        if(result < min_val)
+            min_val = result;
+    }
+    return dp[n][k] = min_val + 1;
+}
+int EggDrop_DPOptimal(int n, int k){// O(n * k)
+    vector<vector<int>> dp(k+1, vector<int>(n+1, 0));
+    int m = 0;// num of move
+    while(dp[m][n] < k){
+        m++;
+        for(int i=1; i<=n; i++)
+            dp[m][i] = 1 + dp[m-1][i-1] + dp[m-1][i];
+    }
+    return m;
+}
+int EggDrop_DPOptimalSpace(int n, int k){// O(n * log k)
+    vector<int> dp(n+1, 0);
+    int i;
+    for(i=0; dp[n] < k ; i++)
+        for(int j=n; j>0; j--)
+            dp[j] += 1 + dp[j-1];
+    for(auto t : dp)
+        cout << t << " ";
+    return i;
+}
+
+// Word Break Problem
+bool WordBreak_RecursionPrefix(const vector<string>& dic, const string& str){// O(2^n)
+    if(str.empty())
+        return true;
+    int len = str.length();
+    for(int i=1; i<=len; i++){
+        string prefix = str.substr(0, i);
+        if(find(dic.begin(), dic.end(), prefix) != dic.end() && WordBreak_RecursionPrefix(dic, str.substr(i)))
+            return true;
+    }
+    return false;
+}
+bool CheckWordInDictionary(const string& str){
+    vector<string> dic = {
+        "mobile", "samsung", "sam", "sung", "man", "mango",
+        "icecream", "and", "go", "i", "like", "ice", "cream",
+        "love"
+    };
+    int size = dic.size();
+    for(int i=0; i<size; i++)
+        if(dic[i].compare(str) == 0)
+            return true;
+    return false;
+}
+bool WordBreak_RecursionSuffixPrefix(const string& str){// O(2^n)
+    int size = str.size();
+    if(size == 0)
+        return true;
+    for(int i=1; i<=size; i++){
+        if(CheckWordInDictionary(str.substr(0, i)) && WordBreak_RecursionSuffixPrefix(str.substr(i, size-i)))
+            return true;
+    }
+    return false;
+}
+bool WordBreak_DPtable(const string& str){// O(n^3)
+    int size = str.size();
+    if(size == 0)
+        return true;
+    vector<bool> dp(size+1, false);
+    for(int i=1; i<=size; i++){
+        if(dp[i] == false && CheckWordInDictionary(str.substr(0, i)))
+            dp[i] = true;
+        if(dp[i] == true){
+            if(i == size)
+                return true;
+            for(int j=i+1; j<=size; j++){
+                if(dp[j] == false && CheckWordInDictionary(str.substr(i, j-i)))
+                    dp[j] = true;
+                if(j==size && dp[j] == true)
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+bool WordBreak_DPOptimal(const string& str){// O(n^2) [n>s] or O(n*s) [s>n], [s = length of longest word in dic, n = length of input string]
+    int n = str.size();
+    if(n == 0)
+        return true;
+    vector<bool> dp(n+1, 0);
+    vector<int> matched_idx;
+    matched_idx.push_back(-1);
+    for(int i=0; i<n; i++){
+        int size_m = matched_idx.size();
+        bool f = false;
+        for(int j=size_m-1; j>=0; j--){
+            string sub = str.substr(matched_idx[j]+1, i-matched_idx[j]);
+            if(CheckWordInDictionary(sub)){
+                f = true;
+                break;
+            }
+        }
+        if(f == true){
+            dp[i] = 1;
+            matched_idx.push_back(i);
+        }
+    }
+    return dp[n-1];
+}
+bool WordBreak_HashMap(unordered_map<string, bool>& mp, const string& str){// O(2^n)
+    int size = str.size();
+    if(size == 0)
+        return true;
+    string temp = "";
+    for(int i=0; i<size; i++){
+        temp += str[i];
+        if(mp.find(temp) != mp.end() && WordBreak_HashMap(mp, str.substr(i+1)))
+            return true;
+    }
+    return false;
+}
+struct TrieNode{
+    TrieNode* child[ALPHABET];
+    bool isEnd;
+};
+TrieNode* GetTrieNode(){
+    TrieNode* node = new TrieNode;
+    node->isEnd = false;
+    for(int i=0; i<ALPHABET; i++)
+        node->child[i] = NULL;
+    return node;
+}
+void Insert_Trie(TrieNode* root, string key){
+    TrieNode* node = root;
+    for(int i=0; i<key.length(); i++){
+        int word = key[i] - 'a';
+        if(!node->child[word])
+            node->child[word] = GetTrieNode();
+        node = node->child[word];
+    }
+    node->isEnd = true;
+}
+bool Search_Trie(TrieNode* root, string key){
+    TrieNode* node = root;
+    for(int i=0; i<key.length(); i++){
+        int word = key[i] - 'a';
+        if(!node->child[word])
+            return false;
+        node = node->child[word];
+    }
+    return node != NULL && node->isEnd;
+}
+bool WordBreak_Trie(const string& str, TrieNode* root){// O(m * n) [m: length of longest word in dic, n: length of input string]
+    int size = str.size();
+    if(size == 0)
+        return true;
+    for(int i=1; i<=size; i++)
+        if(Search_Trie(root, str.substr(0, i)) && WordBreak_Trie(str.substr(i, size-i), root))
+            return true;
+    return false;
+}
+void WordBreak_Print_Backtracking(string str, int n, string result){// O(2^n)
+    for(int i=1; i<=n; i++){
+        string prefix = str.substr(0, i);
+        if(CheckWordInDictionary(prefix)){
+            if(i == n){
+                result += prefix;
+                cout << result << endl;
+                return;
+            }
+            WordBreak_Print_Backtracking(str.substr(i,n-i), n-i, result + prefix + " ");
+        }
+    }
+}
 
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    int n = 4;
-    vector<int> dp(n+1, -1);
-    cout << WaysToReachStairEnd_DPmemo(n, dp);
+    string a = "iloveicecreamandmango";
+    string b = "ilovesamsungmobile";
+    WordBreak_Print_Backtracking(a, a.size(), "");
+    cout<<  endl;
+    WordBreak_Print_Backtracking(b, b.size(), "");
     return 0;
 }
 

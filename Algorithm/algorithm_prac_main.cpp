@@ -703,38 +703,125 @@
     cout << WaysToReachStairEnd_MatrixExponentiation(n); */
 /*     int n = 4;
     cout << WaysToReachStairEnd_FourVar(n); */
+/*     int n = 4;
+    vector<int> dp(n+1, -1);
+    cout << WaysToReachStairEnd_DPmemo(n, dp); */
 
+// Count Unique Paths in Matrix
+/*     int m = 3;
+    int n = 3;
+    cout << CountUniquePath_Recursion(m, n); */
+/*     int m = 3;
+    int n = 3;
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    cout << CountUniquePath_DPmemo(m, n, dp); */
+/*     int m = 3;
+    int n = 3;
+    cout << CountUniquePath_DPOptimalspace(m, n); */
+/*     int m = 3;
+    int n = 3;
+    cout << CountUniquePath_Combinatorics(m, n); */
 
+// Unique Paths in a Grid with Obstables
+/*     vector<vector<int>> grid = {
+        {0, 0, 0},
+        {0, 1, 0},
+        {0, 0, 0}
+    };
+    cout << UniquePathWithObstacle_Recursion(grid, 0, 0); */
+/*     vector<vector<int>> grid = {
+        {0, 0, 0},
+        {0, 1, 0},
+        {0, 0, 0}
+    };
+    int r = grid.size();
+    int c = grid[0].size();
+    vector<vector<int>> path(r, vector<int>(c, -1));
+    cout << UniquePathWithObstacle_DPmemo(grid, path, 0, 0); */
 
+// 0/1 Knapsack Problem
+/*     vector<int> profit = {60, 100, 120};
+    vector<int> weight = {10, 20, 30};
+    int cap = 50;
+    int n = profit.size();
+    cout << Knapsack_Recursion(cap, weight, profit, n); */
+/*     vector<int> profit = {60, 100, 120};
+    vector<int> weight = {10, 20, 30};
+    int cap = 50;
+    int n = profit.size();
+    vector<vector<int>> dp(n, vector<int>(cap+1, -1));
+    cout << Knapsack_DPmemo(cap, weight, profit, n-1, dp); */
 
+// Unbounded Knapsack
+/*     vector<int> profit = {10, 30, 20};
+    vector<int> weight = {5, 10, 15};
+    int cap = 100;
+    int n = profit.size();
+    vector<vector<int>> dp(n, vector<int>(cap+1, -1));
+    cout << UnboundedKnapsack_DPmemo(cap, weight, profit, n-1, dp); */
+/*     vector<int> profit = {10, 30, 20};
+    vector<int> weight = {5, 10, 15};
+    int cap = 100;
+    int n = profit.size();
+    cout << UnboundedKnapsack_DPOptimalSpace(cap, weight, profit, n); */
 
+// Egg Dropping Puzzle
+/*     int n = 2, k = 10;
+    cout << EggDrop_DPtable(n, k); */
+/*     int n = 2, k = 10;
+    vector<vector<int>> dp(n+1, vector<int>(k+1, -1));
+    cout << EggDrop_DPmemo(n, k, dp); */
+/*     int n = 2, k = 10;
+    cout << EggDrop_DPOptimal(n, k); */
+/*     int n = 2, k = 10;
+    cout << EggDrop_DPOptimalSpace(n, k); */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Word Break Problem
+/*     vector<string> dic = {
+        "mobile", "samsung", "sam", "sung", "man", "mango",
+        "icecream", "and", "go", "i", "like", "ice", "cream" 
+    };
+    cout << WordBreak_Recursion(dic, "ilikesamsung"); */
+/*     cout << WordBreak_RecursionSuffixPrefix("ilikesamsung") << endl;
+    cout << WordBreak_RecursionSuffixPrefix("iiiiiiii") << endl;
+    cout << WordBreak_RecursionSuffixPrefix("") << endl;
+    cout << WordBreak_RecursionSuffixPrefix("ilikelikeimangoiii") << endl;
+    cout << WordBreak_RecursionSuffixPrefix("samsungandmango") << endl;
+    cout << WordBreak_RecursionSuffixPrefix("samsungandmangok") << endl; */
+/*     cout << WordBreak_DPOptimal("ilikesamsung") << endl;
+    cout << WordBreak_DPOptimal("iiiiiiii") << endl;
+    cout << WordBreak_DPOptimal("") << endl;
+    cout << WordBreak_DPOptimal("ilikelikeimangoiii") << endl;
+    cout << WordBreak_DPOptimal("samsungandmango") << endl;
+    cout << WordBreak_DPOptimal("samsungandmangok") << endl; */
+/*     vector<string> dic = {
+        "mobile", "samsung", "sam", "sung", "man", "mango",
+        "icecream", "and", "go", "i", "like", "ice", "cream" 
+    };
+    string str = "samsungandmangok";
+    unordered_map<string, bool> mp;
+    for(auto k: dic)
+        mp[k] = true;
+    cout << WordBreak_HashMap(mp, str); */
+/*     vector<string> dic = {
+        "mobile", "samsung", "sam", "sung", "man", "mango",
+        "icecream", "and", "go", "i", "like", "ice", "cream" 
+    };
+    int n = dic.size();
+    TrieNode* root = GetTrieNode();
+    for(int i=0; i<n; i++)
+        Insert_Trie(root, dic[i]);
+    cout << WordBreak_Trie("ilikesamsung", root) << endl;
+    cout << WordBreak_Trie("iiiiiiii", root) << endl;
+    cout << WordBreak_Trie("", root) << endl;
+    cout << WordBreak_Trie("ilikelikeimangoiii", root) << endl;
+    cout << WordBreak_Trie("samsungandmango", root) << endl;
+    cout << WordBreak_Trie("samsungandmangok", root) << endl; */
+/*     string a = "iloveicecreamandmango";
+    string b = "ilovesamsungmobile";
+    WordBreak_Print_Backtracking(a, a.size(), "");
+    cout<<  endl;
+    WordBreak_Print_Backtracking(b, b.size(), ""); */
 
 
 
