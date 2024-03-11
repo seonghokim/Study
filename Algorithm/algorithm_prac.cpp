@@ -3634,15 +3634,97 @@ void WordBreak_Print_Backtracking(string str, int n, string result){// O(2^n)
     }
 }
 
+// Vertex Cover Problem
+struct Node{
+    int data;
+    int vc;
+    Node *left, *right;
+};
+Node* NewNode(int data){
+    Node* new_node = new Node;
+    new_node->data = data;
+    new_node->vc = 0;
+    new_node->left = new_node->right = nullptr;
+    return new_node;
+}
+int VertexCoverBinaryTree_Recursion(Node* root){
+    if(root == nullptr)
+        return 0;
+    if(root->left == nullptr && root->right == nullptr)
+        return 0;
+    int included = 1 + VertexCoverBinaryTree_Recursion(root->left) + VertexCoverBinaryTree_Recursion(root->right);
+    int excluded = 0;
+    if(root->left)
+        excluded += 1 + VertexCoverBinaryTree_Recursion(root->left->left) + VertexCoverBinaryTree_Recursion(root->left->right);
+    if(root->right)
+        excluded += 1 + VertexCoverBinaryTree_Recursion(root->right->left) + VertexCoverBinaryTree_Recursion(root->right->right);
+    return min(included, excluded);
+}
+int VertexCoverBinaryTree_DPtable(Node* root){// O(n)
+    if(root == nullptr)
+        return 0;
+    if(root->left == nullptr && root->right == nullptr)
+        return 0;
+    int included = 1 + VertexCoverBinaryTree_DPtable(root->left) + VertexCoverBinaryTree_DPtable(root->right);
+    int excluded = 0;
+    if(root->left)
+        excluded += 1 + VertexCoverBinaryTree_DPtable(root->left->left) + VertexCoverBinaryTree_DPtable(root->left->right);
+    if(root->right)
+        excluded += 1 + VertexCoverBinaryTree_DPtable(root->right->left) + VertexCoverBinaryTree_DPtable(root->right->right);
+    return min(included, excluded);
+}
+void AddEdge(vector<int> adj[], int x, int y){
+    adj[x].push_back(y);
+    adj[y].push_back(x);
+}
+void TreeDFS(vector<int> adj[], vector<int> dp[], int src, int par){
+    for(auto child : adj[src])
+        if(child != par)
+            TreeDFS(adj, dp, child, src);
+    for(auto child : adj[src])
+        if(child != par){
+            dp[src][0] += dp[child][1];// Excluded
+            dp[src][1] += min(dp[child][1], dp[child][0]);// Included
+        }
+}
+void VertexCoverNormalTree_DPtable(vector<int> adj[], int n){
+    vector<int> dp[n+1];
+    for(int i=1; i<=n; i++){
+        dp[i].push_back(0);// Excluded
+        dp[i].push_back(1);// Included
+    }
+    TreeDFS(adj, dp, 1, -1);
+    cout << min(dp[1][0], dp[1][1]) << endl;
+}
+
+// Tile Stacking Problem
+int TileStacking_DPtable(int n, int m, int k){// O(m * n)
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    vector<vector<int>> sum(m+1, vector<int>(n+1, 0));
+    for(int i=1; i<=n; i++)
+        sum[0][i] = 1;
+    for(int i=0; i<=m; i++)
+        sum[i][0] = 1;
+    for(int i=1; i<=m; i++){
+        for(int j=1; j<=n; j++){
+            dp[i][j] = sum[i-1][j];
+            if(j > k)
+                dp[i][j] -= sum[i-1][j-k-1];
+        }
+        for(int j=1; j<=n; j++)
+            sum[i][j] = dp[i][j] + sum[i][j-1];
+    }
+    return dp[m][n];
+}
+
+
+
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    string a = "iloveicecreamandmango";
-    string b = "ilovesamsungmobile";
-    WordBreak_Print_Backtracking(a, a.size(), "");
-    cout<<  endl;
-    WordBreak_Print_Backtracking(b, b.size(), "");
+    int n = 3, m = 3, k = 2;
+    cout << TileStacking_DPtable(n, m, k) << endl;
     return 0;
 }
 

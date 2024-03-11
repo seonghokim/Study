@@ -823,10 +823,35 @@
     cout<<  endl;
     WordBreak_Print_Backtracking(b, b.size(), ""); */
 
-
-
-
-
+// Vertex Cover Problem
+/*     Node* root = NewNode(20);
+    root->left = NewNode(8);
+    root->left->left = NewNode(4);
+    root->left->right = NewNode(12);
+    root->left->right->left = NewNode(10);
+    root->left->right->right = NewNode(14);
+    root->right = NewNode(22);
+    root->right->right = NewNode(25);
+    cout << VertexCoverBinaryTree_Recursion(root); */
+/*     Node* root = NewNode(20);
+    root->left = NewNode(8);
+    root->left->left = NewNode(4);
+    root->left->right = NewNode(12);
+    root->left->right->left = NewNode(10);
+    root->left->right->right = NewNode(14);
+    root->right = NewNode(22);
+    root->right->right = NewNode(25);
+    cout << VertexCoverBinaryTree_DPtable(root); */
+/*     int n = 8;
+    vector<int> adj[n+1];
+    AddEdge(adj, 1, 2);
+    AddEdge(adj, 1, 7);
+    AddEdge(adj, 2, 3);
+    AddEdge(adj, 2, 6);
+    AddEdge(adj, 3, 4);
+    AddEdge(adj, 3, 8);
+    AddEdge(adj, 3, 5);
+    VertexCoverNormalTree_DPtable(adj, n); */
 
 
 
