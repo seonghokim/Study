@@ -853,15 +853,49 @@
     AddEdge(adj, 3, 5);
     VertexCoverNormalTree_DPtable(adj, n); */
 
+// Tile Stacking Problem
+/*     int n = 3, m = 3, k = 2;
+    cout << TileStacking_DPtable(n, m, k) << endl; */
+
+// Box Stacking Problem
+/*     Box arr[] = {{4, 6, 7}, {1, 2, 3}, {4, 5, 6}, {10, 12, 32}};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    cout << BoxStacking_DPtable(arr, n) << endl; */
+/*     vector<int> length = {4, 1, 4, 10};
+    vector<int> width = {6, 2, 5, 12};
+    vector<int> height = {7, 3, 6, 32};
+    int n = length.size();
+    cout << BoxStacking_DPmemo(height, width, length, n) << endl; */
+
+// Partition Problem
+/*     vector<int> arr = {3, 1, 5, 9, 12};
+    int n = arr.size();
+    cout << FindPartition_Recursion(arr, n); */
+/*     vector<int> arr = {3, 1, 5, 9, 12};
+    int n = arr.size();
+    cout << FindPartition_DPmemo(arr, n); */
 
 
 
+// Longest Palindromic Subsequence(LPS)
 
 
+// Longest Common Increasing Subsequence(LCS + LIS)
 
 
+// Find All Distinct Subset Sum of Array
 
 
+// Weighted Job Scheduling
+
+
+// Count Derangements
+
+
+// Minimum Insertion to Form a Palindrome
+
+
+// Ways to Arrange Balls such that Adjacent Balls are of Different Types
 
 
 

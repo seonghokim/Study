@@ -3699,11 +3699,14 @@ void VertexCoverNormalTree_DPtable(vector<int> adj[], int n){
 
 // Tile Stacking Problem
 int TileStacking_DPtable(int n, int m, int k){// O(m * n)
+    //n: height, m: species of tile, k: max number of tile that we can use
+    //dp[i][j] ==> i: kind of tile, j: height, dp = number of stacking method
+    //sum[i][j] ==> sum of dp[i][0]~dp[i][j]
     vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
     vector<vector<int>> sum(m+1, vector<int>(n+1, 0));
-    for(int i=1; i<=n; i++)
+    for(int i=1; i<=n; i++)//no tile
         sum[0][i] = 1;
-    for(int i=0; i<=m; i++)
+    for(int i=0; i<=m; i++)//not stacking
         sum[i][0] = 1;
     for(int i=1; i<=m; i++){
         for(int j=1; j<=n; j++){
@@ -3712,10 +3715,174 @@ int TileStacking_DPtable(int n, int m, int k){// O(m * n)
                 dp[i][j] -= sum[i-1][j-k-1];
         }
         for(int j=1; j<=n; j++)
-            sum[i][j] = dp[i][j] + sum[i][j-1];
+            sum[i][j] = dp[i][j] + sum[i][j-1];// 1+dp[i][1~n]
     }
     return dp[m][n];
 }
+
+// Box Stacking Problem
+struct Box{
+    int h, w, d;
+};
+int CompareBox(const void* a, const void* b){
+    return (*(Box *)b).d * (*(Box *)b).w - (*(Box *)a).d * (*(Box *)a).w;
+}
+int BoxStacking_DPtable(Box arr[], int n){// O(n^2)
+    Box dp[3*n];
+    int idx = 0;
+    for(int i=0; i<n; i++){
+        dp[idx].h = arr[i].h;
+        dp[idx].d = max(arr[i].d, arr[i].w);
+        dp[idx].w = min(arr[i].d, arr[i].w);
+        idx++;
+        dp[idx].h = arr[i].w;
+        dp[idx].d = max(arr[i].h, arr[i].d);
+        dp[idx].w = min(arr[i].h, arr[i].d);
+        idx++;
+        dp[idx].h = arr[i].d;
+        dp[idx].d = max(arr[i].h, arr[i].w);
+        dp[idx].w = min(arr[i].h, arr[i].w);
+        idx++;
+    }
+    n = 3 * n;
+    qsort(dp, n, sizeof(dp[0]), CompareBox);// Dec order
+    int max_h[n];//store only height
+    for(int i=0; i<n; i++)
+        max_h[i] = dp[i].h;// copy
+    for(int i=1; i<n; i++)// i: top box's index(check if cur box can be put over bigger box)
+        for(int j=0; j<i; j++)// j: bigger size box's index
+            if(dp[i].w < dp[j].w && dp[i].d < dp[j].d && max_h[i] < max_h[j] + dp[i].h)
+                max_h[i] = max_h[j] + dp[i].h;// if cur box place on top of bigger box, update max height
+    int max_val = -1;
+    for(int i=0; i<n; i++)
+        if(max_val < max_h[i])
+            max_val = max_h[i];
+    return max_val;
+}
+int FindMaxHeight_BoxStacking(vector<Box>& boxes, int bottom, int idx, vector<int>& dp){
+    if(idx < 0)
+        return 0;
+    if(dp[idx] != -1)
+        return dp[idx];
+    int max_h = 0;
+    for(int i=idx; i>=0; i--)
+        if(bottom == -1 || boxes[i].d < boxes[bottom].d && boxes[i].w < boxes[bottom].w)
+            max_h = max(max_h, FindMaxHeight_BoxStacking(boxes, i, i-1, dp)+boxes[i].h);
+    return dp[idx] = max_h;
+}
+int BoxStacking_DPmemo(vector<int>& height, vector<int>& width, vector<int>& length, int n){// O(n^2)
+    vector<Box> boxes;
+    vector<int> dp(3*n+1, -1);
+    Box box;
+    for(int i=0; i<n; i++){
+        box.h = height[i];
+        box.d = max(length[i], width[i]);
+        box.w = min(length[i], width[i]);
+        boxes.push_back(box);
+        box.h = width[i];
+        box.d = max(length[i], height[i]);
+        box.w = min(length[i], height[i]);
+        boxes.push_back(box);
+        box.h = length[i];
+        box.d = max(height[i], width[i]);
+        box.w = min(height[i], width[i]);
+        boxes.push_back(box);
+    }
+    sort(boxes.begin(), boxes.end(), [](Box b1, Box b2){
+        return (b1.d * b1.w) < (b2.d * b2.w);//Ascending order
+    });
+    return FindMaxHeight_BoxStacking(boxes, -1, boxes.size()-1, dp);
+}
+
+// Partition Problem
+bool IsEqualSumOfSubset_Recursion(vector<int>& arr, int n, int sum){
+    if(sum == 0)
+        return true;
+    if(n == 0 && sum != 0)
+        return false;
+    if(arr[n-1] > sum)// Ignore last element
+        return IsEqualSumOfSubset_Recursion(arr, n-1, sum);
+    return IsEqualSumOfSubset_Recursion(arr, n-1, sum) || IsEqualSumOfSubset_Recursion(arr, n-1, sum-arr[n-1]);
+}
+bool FindPartition_Recursion(vector<int>& arr, int n){
+    int sum = 0;
+    for(auto k : arr)
+        sum += k;
+    if(sum & 1)
+        return false;
+    return IsEqualSumOfSubset_Recursion(arr, n, sum/2);
+}
+bool IsEqualSumOfSubset_DPmemo(vector<int>& arr, int n, int sum, vector<vector<int>>& dp){
+    if(sum == 0)
+        return true;
+    if(n == 0 && sum != 0)
+        return false;
+    if(dp[n][sum] != -1)
+        return dp[n][sum];
+    if(arr[n-1] > sum)// Ignore last element
+        return IsEqualSumOfSubset_DPmemo(arr, n-1, sum, dp);
+    return dp[n][sum] = IsEqualSumOfSubset_DPmemo(arr, n-1, sum, dp) || IsEqualSumOfSubset_DPmemo(arr, n-1, sum-arr[n-1], dp);
+}
+bool FindPartition_DPmemo(vector<int>& arr, int n){
+    int sum = 0;
+    for(auto k : arr)
+        sum += k;
+    if(sum & 1)
+        return false;
+    vector<vector<int>> dp(n+1, vector<int>(sum+1, -1));
+    return IsEqualSumOfSubset_DPmemo(arr, n, sum/2, dp);
+}
+bool FindPartition_DPtable(vector<int>& arr, int n){
+    int sum = 0;
+    for(auto k : arr)
+        sum += k;
+    if(sum & 1)
+        return false;
+    vector<vector<bool>> dp((sum/2)+1, vector<bool>(n+1, false));
+    for(int i=0; i<=n; i++)// sum == 0
+        dp[0][i] = true;
+    for(int i=1; i<= sum>>1; i++)// sum != 0 && n == 0
+        dp[i][0] = false;
+    for(int i=1; i<=sum>>1 ; i++){
+        for(int j=1; j<=n; j++){
+            dp[i][j] = dp[i][j-1];
+            if(i >= arr[j-1])
+                dp[i][j] = dp[i][j] || dp[i-arr[j-1]][j-1];
+        }
+    }
+    return dp[sum>>1][n];
+}
+bool FindPartition_DPOptimalSpace(vector<int>& arr, int n){
+    int sum = 0;
+    for(auto k : arr)
+        sum += k;
+    if(sum & 1)
+        return false;
+    vector<bool> dp((sum>>1)+1, false);
+    for(int i=0; i<n ; i++)
+        for(int j=(sum>>1); j>=arr[i]; j--)
+            if(dp[j-arr[i]] == true || j == arr[i])
+                dp[j] = true;
+    return dp[sum>>1];
+}
+
+// Longest Palindromic Subsequence(LPS)
+
+
+// Longest Common Increasing Subsequence(LCS + LIS)
+
+
+// Find All Distinct Subset Sum of Array
+
+// Weighted Job Scheduling
+
+
+// Count Derangements
+
+// Minimum Insertion to Form a Palindrome
+
+// Ways to Arrange Balls such that Adjacent Balls are of Different Types
+
 
 
 
@@ -3723,8 +3890,9 @@ int TileStacking_DPtable(int n, int m, int k){// O(m * n)
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    int n = 3, m = 3, k = 2;
-    cout << TileStacking_DPtable(n, m, k) << endl;
+    vector<int> arr = {3, 1, 5, 9, 12};
+    int n = arr.size();
+    cout << FindPartition_DPOptimalSpace(arr, n);
     return 0;
 }
 
