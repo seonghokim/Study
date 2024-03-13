@@ -875,27 +875,65 @@
     int n = arr.size();
     cout << FindPartition_DPmemo(arr, n); */
 
-
-
 // Longest Palindromic Subsequence(LPS)
-
+/*     string str = "GEEKSFORGEEKS";
+    int n = str.length();
+    cout << LongestPalindromicSubsequence_Recursion(str, 0, n-1); */
+/*     string str = "GEEKSFORGEEKS";
+    string str2 = str;
+    reverse(str2.begin(), str2.end());
+    int n = str.length();
+    vector<vector<int>> dp(n+1, vector<int>(n+1, -1));
+    cout << LongestPalindromicSubsequence_DPmemo(str, str2, n, n, dp); */
+/*     string str = "GEEKSFORGEEKS";
+    cout << LongestPalindromicSubsequence_DPtable(str); */
 
 // Longest Common Increasing Subsequence(LCS + LIS)
-
+/*     vector<int> arr1 = {3, 4, 9, 1};
+    vector<int> arr2 = {5, 3, 8, 9, 10, 2, 1};
+    cout << LongestCommonIncSubsequence_DP(arr1, arr2); */
 
 // Find All Distinct Subset Sum of Array
-
+/*     vector<int> arr = {2, 3, 4, 5, 6};
+    int n = arr.size();
+    set<int> s;
+    DistinctSubsetSum_Naive(arr, 0, 0, s);
+    for(auto it=s.begin(); it != s.end(); it++)
+        cout << *it << " "; */
+/*     vector<int> arr = {2, 3, 4, 5, 6};
+    DistinctSubsetSum_DPtable(arr); */
+/*     vector<int> arr = {2, 3, 4, 5, 6};
+    DistinctSubsetSum_DPBitSet(arr); */
 
 // Weighted Job Scheduling
-
+/*     vector<Jobs> arr = {{3, 10, 20}, {1, 2, 50}, {6, 19, 100}, {2, 100, 200}};
+    sort(arr.begin(), arr.end(), CompareJobsEnd);
+    int n = arr.size();
+    cout << GetMaxProfitJobs_Recursion(arr, n); */
+/*     vector<Jobs> arr = {{3, 10, 20}, {1, 2, 50}, {6, 19, 100}, {2, 100, 200}};
+    cout << GetMaxProfitJobs_DPtable(arr); */
+/*     vector<Jobs> arr = {{3, 10, 20}, {1, 2, 50}, {6, 19, 100}, {2, 100, 200}};
+    cout << GetMaxProfitJobs_DPBinarySearch(arr); */
 
 // Count Derangements
-
+/*     int n = 4;
+    cout << CountDerangement_Recursion(n); */
+/*     int n = 4;
+    cout << CountDerangement_DPtable(n); */
+/*     int n = 4;
+    cout << CountDerangement_DPOptimalSpace(n); */
 
 // Minimum Insertion to Form a Palindrome
+/*     string str = "geeks";
+    cout << CountMinInsertionForPalindrome_Recursion(str, 0, str.size()-1); */
+/*     string str = "geeks";
+    cout << CountMinInsertionForPalindrome_DPtable(str); */
+/*     string str = "geeks";
+    cout << CountMinInsertionForPalindrome_LCS(str); */
+/*     string str = "geeks";
+    cout << CountMinInsertionForPalindrome_LCSOptimalSpcae(str); */
+    
 
-
-// Ways to Arrange Balls such that Adjacent Balls are of Different Types
 
 
 

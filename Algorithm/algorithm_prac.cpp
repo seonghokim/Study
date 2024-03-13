@@ -2771,6 +2771,8 @@ int LCS_DPOptimalspace(string s1, string s2){// O(m*n)
     vector<int> prev(n+1, 0), cur(n+1, 0);
     for(int i=1; i<m+1; i++){
         for(int j=1; j<n+1; j++){
+            if(i == 0 || j == 0)
+                prev[j] = 0;
             if(s1[i-1] == s2[j-1])
                 cur[j] = 1 + prev[j-1];
             else
@@ -3867,21 +3869,234 @@ bool FindPartition_DPOptimalSpace(vector<int>& arr, int n){
 }
 
 // Longest Palindromic Subsequence(LPS)
-
+int LongestPalindromicSubsequence_Recursion(string& str, int i, int j){// O(2^n)
+    if(i == j)// one char
+        return 1;
+    if(str[i] == str[j] && i+1 == j)//only 2 char
+        return 2;
+    if(str[i] == str[j])
+        return LongestPalindromicSubsequence_Recursion(str, i+1, j-1)+2;
+    return max(LongestPalindromicSubsequence_Recursion(str, i, j-1), LongestPalindromicSubsequence_Recursion(str, i+1, j));
+}
+int LongestPalindromicSubsequence_DPmemo(string& s1, string& s2, int i, int j, vector<vector<int>>& dp){
+    if(i == 0 || j == 0)
+        return 0;
+    if(dp[i][j] != -1)
+        return dp[i][j];
+    if(s1[i-1] == s2[j-1])
+        return dp[i][j] = 1 + LongestPalindromicSubsequence_DPmemo(s1, s2, i-1, j-1, dp);
+    return dp[i][j] = max(LongestPalindromicSubsequence_DPmemo(s1, s2, i-1, j, dp), LongestPalindromicSubsequence_DPmemo(s1, s2, i, j-1, dp));
+}
+int LongestPalindromicSubsequence_DPtable(string& s){// O(n^2)
+    int n = s.length();
+    string s2 = s;
+    reverse(s2.begin(), s2.end());
+    vector<vector<int>> dp(n+1, vector<int>(n+1, 0));
+    for(int i=1; i<=n; i++){
+        for(int j=1; j<=n; j++){
+            if(s[i-1] == s2[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    return dp[n][n];
+}
 
 // Longest Common Increasing Subsequence(LCS + LIS)
-
+int LongestCommonIncSubsequence_DP(vector<int>& arr1, vector<int>& arr2){
+    int n = arr1.size();
+    int m = arr2.size();
+    int longlength_arr = n > m ? n : m;
+    int shortlengt_arr = n > m ? m : n;
+    vector<int> dp(longlength_arr, 0);
+    for(int i=0; i<shortlengt_arr; i++){
+        int curlength = 0;
+        for(int j=0; j<longlength_arr; j++){
+            if(arr1[i] == arr2[j] && curlength+1 > dp[j])// cur+1 > dp[i] ==> length of LCIS is not updated yet
+                dp[j] = curlength + 1;
+            if(arr1[i] > arr2[j] && dp[j] > curlength)// because subsequence is increasing , certainly updated dp's value(>0) is exist
+                curlength = dp[j];
+        }
+    }
+    int result = 0;
+    for(int i=0; i<longlength_arr; i++)
+        if(dp[i] > result)
+            result = dp[i];
+    return result;
+}
 
 // Find All Distinct Subset Sum of Array
+void DistinctSubsetSum_Naive(vector<int>& arr, int sum, int cur_idx, set<int>& s){
+    int n = arr.size();
+    if(cur_idx > n)
+        return;
+    if(cur_idx == n){
+        s.insert(sum);
+        return;
+    }
+    DistinctSubsetSum_Naive(arr, sum + arr[cur_idx], cur_idx+1, s);
+    DistinctSubsetSum_Naive(arr, sum, cur_idx+1, s);
+}
+void DistinctSubsetSum_DPtable(vector<int>& arr){// O(n * sum)
+    int n = arr.size();
+    int sum = 0;
+    for(auto k : arr)
+        sum += k;
+    vector<vector<bool>> dp(n+1, vector<bool>(sum+1, false));
+    for(int i=0; i<=n; i++)// Sum is 0
+        dp[i][0] = true;
+    for(int i=1; i<=n ; i++){
+        dp[i][arr[i-1]] = true;//element is only 1
+        for(int j=1; j<=sum; j++){
+            if(dp[i-1][j] == true){// if already subset's sum is calculated,
+                dp[i][j] = true;// true if sum is the same even as the num of elements increases
+                dp[i][j+arr[i-1]] = true;// and, true even if previous element is added to sum
+            }
+        }
+    }
+    for(int i=0; i<=sum; i++)
+        if(dp[n][i] == true)
+            cout << i << " ";
+}
+void DistinctSubsetSum_DPBitSet(vector<int>& arr){// O(n * s / w) [s: sum of array element, w: word size of system(32bit/64bit)]
+    int n = arr.size();
+    const int max_bit = 40;
+    bitset<max_bit> dp;
+    dp[0] = 1;// integer 0
+    for(int i=0; i<n; i++)
+        dp |= dp << arr[i];
+    for(int i=0; i<max_bit ; i++)
+        if(dp[i] == 1)
+            cout << i << " ";
+}
 
 // Weighted Job Scheduling
-
+struct Jobs{
+    int start, end, profit;
+};
+bool CompareJobsEnd(Jobs s1, Jobs s2){
+    return s1.end < s2.end;
+}
+int GetIndexOfNotConflictJob(vector<Jobs>& arr, int i){
+    for(int j=i-1; j>=0 ; j--)
+        if(arr[j].end <= arr[i-1].start)
+            return j;
+    return -1;
+}
+int GetMaxProfitJobs_Recursion(vector<Jobs>& arr, int n){
+    if(n == 1)
+        return arr[n-1].profit;
+    int included = arr[n-1].profit;
+    int i = GetIndexOfNotConflictJob(arr, n);
+    if(i != -1)
+        included += GetMaxProfitJobs_Recursion(arr, i+1);
+    int excluded = GetMaxProfitJobs_Recursion(arr, n-1);
+    return max(included, excluded);
+}
+int GetMaxProfitJobs_DPtable(vector<Jobs>& arr){// O(n^2)
+    sort(arr.begin(), arr.end(), CompareJobsEnd);
+    int n = arr.size();
+    vector<int> dp(n, 0);
+    dp[0] = arr[0].profit;
+    for(int i=1; i<n; i++){
+        int included = arr[i].profit;
+        int l = GetIndexOfNotConflictJob(arr, i);
+        if(l != -1)
+            included += dp[l];
+        dp[i] = max(included, dp[i-1]);
+    }
+    return dp[n-1];
+}
+int Jobs_BinarySearch(vector<Jobs>& arr, int i){
+    // end is ordered in ascending
+    // So, always arr[mid].end < arr[mid+1].end is true
+    int l = 0, h = i-1;
+    while(l <= h){
+        int mid = (l+h)>>1;
+        if(arr[mid].end <= arr[i].start){
+            if(arr[mid+1].end <= arr[i].start)
+                l = mid + 1;
+            else
+                return mid;
+        }
+        else
+            h = mid - 1;
+    }
+    return -1;
+}
+int GetMaxProfitJobs_DPBinarySearch(vector<Jobs>& arr){// O(n log n)
+    sort(arr.begin(), arr.end(), CompareJobsEnd);
+    int n = arr.size();
+    vector<int> dp(n, 0);
+    dp[0] = arr[0].profit;
+    for(int i=1; i<n; i++){
+        int included = arr[i].profit;
+        int l = Jobs_BinarySearch(arr, i);
+        if(l != -1)
+            included += dp[l];
+        dp[i] = max(included, dp[i-1]);
+    }
+    return dp[n-1];
+}
 
 // Count Derangements
+int CountDerangement_Recursion(int n){// O(2^n)
+    if(n == 1 || n == 2)
+        return n-1;
+    return (n-1) * (CountDerangement_Recursion(n-1) + CountDerangement_Recursion(n-2));
+}
+int CountDerangement_DPtable(int n){// O(n)
+    vector<int> dp(n+1, 0);
+    dp[1] = 0, dp[2] = 1;
+    for(int i=3; i<=n; i++)
+        dp[i] = (i-1) * (dp[i-1] + dp[i-2]);
+    return dp[n];
+}
+int CountDerangement_DPOptimalSpace(int n){// O(n)
+    if(n == 1 || n == 2)
+        return n-1;
+    int a = 0, b = 1;
+    for(int i=3; i<=n; i++){
+        int cur = (i-1) * (a + b);
+        a = b;
+        b = cur;
+    }
+    return b;
+}
 
 // Minimum Insertion to Form a Palindrome
-
-// Ways to Arrange Balls such that Adjacent Balls are of Different Types
+int CountMinInsertionForPalindrome_Recursion(string& str, int l, int r){// O(2^n)
+    if(l > r)// not found
+        return INT_MAX;
+    if(l == r)// 1 char
+        return 0;
+    if(l == r-1)// 2 char
+        return str[l] == str[r] ? 0 : 1;
+    return str[l] == str[r] ? CountMinInsertionForPalindrome_Recursion(str, l+1, r-1):
+                              min(CountMinInsertionForPalindrome_Recursion(str, l, r-1),
+                              CountMinInsertionForPalindrome_Recursion(str, l+1, r))+1;
+}
+int CountMinInsertionForPalindrome_DPtable(string& str){// O(n^2)
+    int n = str.size();
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+    for(int gap=1; gap<n; ++gap)
+        for(int l=0, r=gap; r<n; ++l, ++r)
+            dp[l][r] = str[l] == str[r] ? dp[l+1][r+1] : min(dp[l][r-1], dp[l+1][r])+1;
+    return dp[0][n-1];
+}
+int CountMinInsertionForPalindrome_LCS(string& str){// O(n^2)
+    int n = str.size();
+    string str2 = str;
+    reverse(str2.begin(), str2.end());
+    return (n-LCS_DPtable(str, str2, n, n));
+}
+int CountMinInsertionForPalindrome_LCSOptimalSpcae(string& str){// O(n^2)
+    int n = str.size();
+    string str2 = str;
+    reverse(str2.begin(), str2.end());
+    return (n-LCS_DPOptimalspace(str, str2));
+}
 
 
 
@@ -3890,9 +4105,8 @@ bool FindPartition_DPOptimalSpace(vector<int>& arr, int n){
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<int> arr = {3, 1, 5, 9, 12};
-    int n = arr.size();
-    cout << FindPartition_DPOptimalSpace(arr, n);
+    string str = "geeks";
+    cout << CountMinInsertionForPalindrome_LCSOptimalSpcae(str);
     return 0;
 }
 
