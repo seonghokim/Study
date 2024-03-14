@@ -296,7 +296,7 @@ int main() {
     cout << "Average Waiting Time= " << avg_wt << endl;
     cout << "Average Turnaround Time= " << avg_tat << endl;
 } */
-#include <iostream>
+/* #include <iostream>
 using namespace std;
  
 /* A utility function to check whether a word
@@ -305,6 +305,7 @@ using namespace std;
   of strings for dictionary is definitely not
   a good idea. We have used for simplicity of
   the program*/
+  /* 
 int dictionaryContains(string &word)
 {
     string dictionary[] = {"mobile","samsung","sam","sung",
@@ -368,4 +369,4 @@ int main()
     cout << "\nSecond Test:\n";
     wordBreak("ilovesamsungmobile");
     return 0;
-}
+} */ */

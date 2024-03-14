@@ -9,6 +9,7 @@ using namespace std;
 #define INF 0x3f3f3f3f
 #define endl "\n"
 #define ALPHABET 26
+
 /* void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
 void CheckLargestNum(long n1, long n2, long n3);
@@ -566,9 +567,13 @@ void FindMissingRepearingNum(vector<int>& arr){
     // x is repeating number
     // y is missing number
 }
-//---------------------------------------------------------
-//----------------------- BackTracking --------------------
-//---------------------------------------------------------
+
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ------------------------------ BackTracking ----------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+
 // Knight's tour algorithm
 const int SIZE = 6;
 bool IsSafeMovement(int x, int y, int arr[SIZE][SIZE]){
@@ -1013,9 +1018,13 @@ void PermutateStringWithNextPermutation(string str){
     for(auto k : res)
         cout << k << endl;
 }
-//---------------------------------------------------
-//----------------------- Greedy --------------------
-//---------------------------------------------------
+
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// --------------------------------- Greedy -------------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+
 // Acitivity Selection Problem
 void PrintMaxActivities(vector<pair<int,int>>& work, vector<int>& result){
     // work.first = end time, work.second = start time
@@ -2305,6 +2314,12 @@ void FindMinCoins(int v){
     for(auto k : result)
         cout << k << " ";
 }
+
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// -------------------------- Dynamic Programming -------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 // Count ways to assign unique cap to every person
 long long int CountWaysToAssignCap(int mask, int cap, vector<int> caplist[101], vector<vector<int>>& dp, int allmask){
@@ -4098,15 +4113,116 @@ int CountMinInsertionForPalindrome_LCSOptimalSpcae(string& str){// O(n^2)
     return (n-LCS_DPOptimalspace(str, str2));
 }
 
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ----------------------------- Pattern Search ---------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
+// Naive Pattern Search
+void NaivePatternSearch(string& s1, string& p1, vector<int>& result){// O(n^2)
+    int n = s1.size();
+    int m = p1.size();
+    for(int i=0; i<n-m; i++){
+        int j;
+        for(j=0; j<m; j++)
+            if(s1[i+j] != p1[j])
+                break;
+        if(j == m)
+            result.push_back(i);
+    }
+}
 
-
+// Rabin-Karp Pattern Search
+void RabinKarpPatternSearch(string& s1, string& p1, int p, vector<int>& result){// O(n*m)
+    // init hash = s1[i] * base^(m-1-i) % p ==> s1[i] * base^(i) (i= 0, 1, 2, ...);
+    // hash = (hash-(s1[i-m] * base^(m-1))%p) * base + s1[i];
+    int n = s1.size();
+    int m = p1.size();
+    int hash_s1 = 0;
+    int hash_p1 = 0;
+    int base = 256;
+    int power = 1;
+    // Pre-calculation of Hash
+    for(int i=0; i<m-1; i++)
+        power = (power * base) % p;// base^(m-1) % p
+    for(int i=0; i<m; i++){
+        // Normally, hash += s1[i] * base^(i) (i= 0, 1, 2, ...);
+        // hash_p1 += p1[i] * pow(base , i);
+        // hash_s1 += s1[i] * pow(base, i);
+        // hash_p1 %= p; // prevent overflow
+        // hash_s1 %= p; // prevent overflow
+        // OR
+        hash_p1 =(hash_p1 * base + p1[i])% p;
+        hash_s1 =(hash_s1 * base + s1[i])% p;
+    }
+    for(int i=0; i<=n-m ; i++){
+        int j;
+        if(hash_p1 == hash_s1){// smae hash value
+            for(j=0; j<m; j++)
+                if(s1[i+j] != p1[j])// check if same char
+                    break;
+            if(j == m)
+                result.push_back(i);
+        }
+        if(i <n-m){// if string's index increases, update hash value including (i+m) index and excluding current index
+            hash_s1 = (base * (hash_s1 - s1[i] * power) + s1[i+m]) % p;
+            if(hash_s1 < 0)
+                hash_s1 = hash_s1 + p;
+        }
+    }
+}
+// KMP(Knuth Morris Pratt) Pattern Search
+void LPS(string& p1, vector<int>& lps){
+    int len = 0, i = 1;
+    int m = p1.size();
+    lps[0] = 0;
+    while(i < m){
+        if(p1[i] == p1[len]){
+            lps[i] = ++len;
+            i++;
+        }
+        else{
+            if(len != 0)
+                len = lps[len-1];
+            else
+                lps[i++] = 0;
+        }
+    }
+}
+void KMPPatternSearch(string& s1, string& p1, vector<int>& result){// O(n + m)
+    int n = s1.size();
+    int m = p1.size();
+    vector<int> lps(m, 0);
+    int i=0, j=0;
+    LPS(p1, lps);
+    while((n-i) >= (m-j)){
+        if(p1[j] == s1[i])
+            i++, j++;
+        if(j == m){
+            result.push_back(i-j);
+            j = lps[j-1];
+        }
+        else if(i < n && p1[j] != s1[i]){
+            if(j != 0)
+                j = lps[j-1];
+            else
+                i++;
+        }
+    }
+}
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    string str = "geeks";
-    cout << CountMinInsertionForPalindrome_LCSOptimalSpcae(str);
+    string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    int mod = INT_MAX;
+    RabinKarpPatternSearch(s1, p1, mod, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl;
     return 0;
 }
 

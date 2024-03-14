@@ -933,10 +933,24 @@
 /*     string str = "geeks";
     cout << CountMinInsertionForPalindrome_LCSOptimalSpcae(str); */
     
+// Naive Pattern Search
+/*     string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    NaivePatternSearch(s1, p1, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
+// Rabin-Karp Pattern Search
+/*     string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    int mod = INT_MAX;
+    RabinKarpPatternSearch(s1, p1, mod, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
 
-
-
-
-
+// KMP(Knuth Morris Pratt) Pattern Search
 
 
