@@ -9,6 +9,7 @@ using namespace std;
 #define INF 0x3f3f3f3f
 #define endl "\n"
 #define ALPHABET 26
+#define CHAR_SIZE 256
 
 /* void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
@@ -4172,20 +4173,19 @@ void RabinKarpPatternSearch(string& s1, string& p1, int p, vector<int>& result){
         }
     }
 }
+
 // KMP(Knuth Morris Pratt) Pattern Search
-void LPS(string& p1, vector<int>& lps){
-    int len = 0, i = 1;
+void LongestPrefixSuffix(string& p1, vector<int>& lps){// O(n)
+    int count = 0, i = 1;
     int m = p1.size();
     lps[0] = 0;
     while(i < m){
-        if(p1[i] == p1[len]){
-            lps[i] = ++len;
-            i++;
-        }
-        else{
-            if(len != 0)
-                len = lps[len-1];
-            else
+        if(p1[i] == p1[count])
+            lps[i++] = ++count;// suffix's preffix
+        else{// p1[i] != p1[len]
+            if(count != 0)//Find start point(matching point)
+                count = lps[count-1];//Find matching char from max length of suffix to 0
+            else// if len == 0
                 lps[i++] = 0;
         }
     }
@@ -4195,7 +4195,7 @@ void KMPPatternSearch(string& s1, string& p1, vector<int>& result){// O(n + m)
     int m = p1.size();
     vector<int> lps(m, 0);
     int i=0, j=0;
-    LPS(p1, lps);
+    LongestPrefixSuffix(p1, lps);
     while((n-i) >= (m-j)){
         if(p1[j] == s1[i])
             i++, j++;
@@ -4212,14 +4212,91 @@ void KMPPatternSearch(string& s1, string& p1, vector<int>& result){// O(n + m)
     }
 }
 
+// Z Pattern Search(Longest Common Prefix)
+void GetZArray(string& str, vector<int>& Z){
+    int n = str.size();
+    int L = 0, R = 0, k;
+    for(int i=1; i<n; i++){
+        if(i > R){// Not match & not included range [L, R]
+            L = R = i;// Init L, R to current index
+            while(R < n && str[R-L] == str[R])// Compare str[i]~ with pattern(from start to end) 
+                R++;
+            Z[i] = R - L;//matched substring(prefix) length
+            R--;// Matched substring's last index
+        }
+        else{// L <= i <= R
+            k = i - L;// k means patter's index (L<= k <= R)
+            if(Z[k] < R-i+1)// no prefix substring/ substring length from index i to index R
+                Z[i] = Z[k];// get pattern's Z value
+            else{// Z[k] >= R-i+1
+                L = i;
+                while(R < n && str[R-L] == str[R])
+                    R++;
+                Z[i] = R - L;
+                R--;
+            }
+        }
+    }
+}
+vector<int> GetZArray2(string s) {
+    int n = s.size();
+    vector<int> z(n);
+    int l = 0, r = 0;
+    for(int i = 1; i < n; i++) {
+        if(i < r)
+            z[i] = min(r - i, z[i - l]);
+        while(i + z[i] < n && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if(i + z[i] > r) {
+            l = i;
+            r = i + z[i];
+        }
+    }
+    return z;
+}
+void ZPatternSearch(string& s1, string& p1, vector<int>& result){// O(n + m)
+    string concat = p1 + "$" + s1;
+    int size_concat = concat.size();
+    vector<int> Z(size_concat, 0);
+    GetZArray(concat, Z);
+    for(int i=0; i<size_concat; i++)
+        if(Z[i] == p1.size())
+            result.push_back(i-p1.size()-1);
+}
+
+// Boyer Moore Pattern Search
+void BadCharHeuristic(string& p1, int m, vector<int>& bad){
+    for(int i=0; i<m; i++)// char of pattern's last occurence position
+        bad[p1[i]] = i;
+}
+void BoyerMoorePatternSearch(string& s1, string& p1, vector<int>& result){
+    int n = s1.size();
+    int m = p1.size();
+    vector<int> bad(CHAR_SIZE, -1);// key: char, value: index
+    BadCharHeuristic(p1, m, bad);
+    int shift =0 ;
+    while(shift <= (n-m)){
+        int j = m-1;// pattern's last word
+        while(j >= 0 && p1[j] == s1[shift+j])
+            j--;
+        if(j < 0){// Found pattern
+            result.push_back(shift);
+            shift += (shift+m < n) ? m - bad[s1[shift+m]] : 1;
+        }
+        else
+            shift += max(1, j-bad[s1[shift+j]]);// max is used for avoiding negative value
+    }
+}
+
+
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
     string s1 = "aabaacaadaabaaabaa";
     string p1 = "aaba";
     vector<int> result;
-    int mod = INT_MAX;
-    RabinKarpPatternSearch(s1, p1, mod, result);
+    BoyerMoorePatternSearch(s1, p1, result);
     for(auto k : result)
         cout << k << " ";
     cout << endl;

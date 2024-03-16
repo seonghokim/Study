@@ -952,5 +952,89 @@
     cout << endl; */
 
 // KMP(Knuth Morris Pratt) Pattern Search
+/*     string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    KMPPatternSearch(s1, p1, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
+
+// Z (Linear time) Pattern Search
+/*     string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    ZPatternSearch(s1, p1, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
+
+// Boyer Moore Pattern Search
+/*     string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    BoyerMoorePatternSearch(s1, p1, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
