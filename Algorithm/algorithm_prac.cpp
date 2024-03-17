@@ -4269,7 +4269,7 @@ void BadCharHeuristic(string& p1, int m, vector<int>& bad){
     for(int i=0; i<m; i++)// char of pattern's last occurence position
         bad[p1[i]] = i;
 }
-void BoyerMoorePatternSearch(string& s1, string& p1, vector<int>& result){
+void BoyerMoorePatternSearch(string& s1, string& p1, vector<int>& result){// O(n * m)
     int n = s1.size();
     int m = p1.size();
     vector<int> bad(CHAR_SIZE, -1);// key: char, value: index
@@ -4288,18 +4288,132 @@ void BoyerMoorePatternSearch(string& s1, string& p1, vector<int>& result){
     }
 }
 
+// C++ Library Pattern Search
+void STLPatternSearch(string& s1, string& p1, vector<int>& result){
+    int found = s1.find(p1);
+    while(found != string::npos){
+        result.push_back(found);
+        found = s1.find(p1, found+1);
+    }
+}
+
+// Aho-Corasick Pattern Search
+int MatchingMachine(vector<string>& p1, int m, vector<vector<int>>& g, vector<int>& f, vector<int>& out){
+    int state = 1;
+    for(int i=0; i<m; i++){
+        string word = p1[i];// get ith pattern
+        int cur_state = 0;// it means node number for understanding
+        for(int j=0; j<word.length(); j++){// in i th pattern
+            int ch = word[j] - 'a';
+            if(g[cur_state][ch] == -1)
+                g[cur_state][ch] = state++;// store next state(next node)
+            cur_state = g[cur_state][ch];// move next state(next node)
+        }
+        out[cur_state] |= (1 << i);// it means that pattern[i] is located at index cur_state 
+    }
+    for(int i=0; i<ALPHABET; i++)// it indicates word not included in pattern
+        if(g[0][i] == -1)
+            g[0][i] = 0;// next node of word not included in pattern is 0(root)
+    queue<int> q;// have next node
+    for(int i=0; i<ALPHABET; i++)
+        if(g[0][i] != 0){//if word is included in Pattern
+            f[g[0][i]] = 0; //if mismatching occurs, go to root(find index having Longest Prefix)
+            q.push(g[0][i]);
+        }
+    while(!q.empty()){//BFS
+        int next = q.front();
+        q.pop();
+        for(int i=0; i<ALPHABET; i++){
+            if(g[next][i] != -1){// if next node connects next next node
+                int fail = f[next];
+                while(g[fail][i] == -1)
+                    fail = f[fail];
+                fail = g[fail][i];// Find index having Longest prefix
+                f[g[next][i]] = fail;// failure function update
+                out[g[next][i]] |= out[fail];
+                q.push(g[next][i]);
+            }
+        }
+    }
+    return state;
+}
+void AhoCorasickPatternSearch(vector<string>& p1, string& s1, vector<pair<string, pair<int, int>>>& result){
+    int m = p1.size();
+    int totalLength_p1 = 0;
+    for(auto k : p1)
+        totalLength_p1 += k.length();
+    int n = s1.size();
+    vector<vector<int>> g(totalLength_p1+1, vector<int>(ALPHABET+1, -1));
+    vector<int> f(totalLength_p1+1, -1);
+    vector<int> out(totalLength_p1+1, 0);
+    MatchingMachine(p1, m, g, f, out);
+    int cur_state = 0;
+    for(int i=0; i<n; i++){
+        int ch = s1[i]-'a';
+        while(g[cur_state][ch] == -1)// if word isn't exist in input string
+            cur_state = f[cur_state];// find LP
+        cur_state = g[cur_state][ch];// move next node
+        if(out[cur_state] == 0)//if match not found, move next word in input string
+            continue;
+        for(int j=0; j<m; j++)
+            if(out[cur_state] & (1 << j))
+                //result.push_back(make_pair(p1[j], make_pair(i-p1[j].length()+1, i)));
+                result.push_back({p1[j], make_pair(i-p1[j].length()+1, i)});
+    }
+}
+
+// Anagram Substring Pattern Search
+void AnagramSubstringPatternSearch_Brute(string& s1, string& p1, vector<int>& result){
+    int m = p1.size();
+    int n = s1.size();
+    string sorted_p1 = p1;
+    sort(sorted_p1.begin(), sorted_p1.end());
+    string temp;
+    for(int i=0; i<=n-m; i++){
+        temp = "";
+        for(int j=i; j<m+i; j++)
+            temp.push_back(s1[j]);
+        sort(temp.begin(), temp.end());
+        if(sorted_p1 == temp)
+            result.push_back(i);
+    }
+}
+bool Compare_string(vector<char>& s1, vector<char>& p1){
+    int size = s1.size();
+    for(int i=0; i<size; i++)
+        if(s1[i] != p1[i])
+            return false;
+    return true;
+}
+void AnagramSubstringPatternSearch_RabinKarp(string& s1, string& p1, vector<int>& result){
+    int m = p1.size();
+    int n = s1.size();
+    vector<char> count_p1(ALPHABET, 0);
+    vector<char> count_s1(ALPHABET, 0);
+    for(int i=0; i<m; i++){
+        count_p1[p1[i]]++;
+        count_s1[s1[i]]++;
+    }
+    for(int i=m; i<n; i++){
+        if(Compare_string(count_s1, count_p1))
+            result.push_back(i-m);
+        count_s1[s[i]]++;
+        count_p1[s1[i-m]]--;
+    }
+    if(Compare_string(count_s1, count_p1))
+        result.push_back(n-m);
+}
 
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    string s1 = "aabaacaadaabaaabaa";
-    string p1 = "aaba";
+    string s1 = "bacdgabcda";
+    string p1 = "abcd";
     vector<int> result;
-    BoyerMoorePatternSearch(s1, p1, result);
+    AnagramSubstringPatternSearch_Brute(s1, p1,  result);
     for(auto k : result)
-        cout << k << " ";
-    cout << endl;
+        cout << k << endl;
     return 0;
 }
 

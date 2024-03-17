@@ -978,11 +978,30 @@
         cout << k << " ";
     cout << endl; */
 
+// C++ Library Pattern Search
+/*     string s1 = "aabaacaadaabaaabaa";
+    string p1 = "aaba";
+    vector<int> result;
+    STLPatternSearch(s1, p1, result);
+    for(auto k : result)
+        cout << k << " ";
+    cout << endl; */
 
+// Aho-Corasick Pattern Search
+/*     string s1 = "ahishers";
+    vector<string> p1 = {"he", "she", "hers", "his"};
+    vector<pair<string, pair<int, int>>> result;
+    AhoCorasickPatternSearch(p1, s1,  result);
+    for(auto k : result)
+        cout << k.first << " = ("<< k.second.first << ":"<< k.second.second << ")" << endl; */
 
-
-
-
+// Anagram Substring Search
+/*     string s1 = "bacdgabcda";
+    string p1 = "abcd";
+    vector<int> result;
+    AnagramSubstringPatternSearch_Brute(s1, p1,  result);
+    for(auto k : result)
+        cout << k << endl; */
 
 
 
