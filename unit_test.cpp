@@ -58,7 +58,7 @@ int main()
  
     return 0;
 } */
-#include <bits/stdc++.h>
+/* #include <bits/stdc++.h>
 using namespace std;
 #define N 4
 
@@ -119,4 +119,88 @@ int main()
 {
     solveNQ();
     return 0;
+} */
+
+// C++ program to implement wildcard
+// pattern matching algorithm
+#include <bits/stdc++.h>
+using namespace std;
+
+// Function that matches input str with
+// given wildcard pattern
+bool strmatch(char str[], char pattern[], int m, int n)
+{
+	// lookup table for storing results of
+	// subproblems
+	vector<bool> prev(m + 1, false), curr(m + 1, false);
+
+	// empty pattern can match with empty string
+	prev[0] = true;
+
+	// fill the table in bottom-up fashion
+	for (int i = 1; i <= n; i++) {
+
+		bool flag = true;
+		for (int ii = 1; ii < i; ii++) {
+			if (pattern[ii - 1] != '*') {
+				flag = false;
+				break;
+			}
+		}
+		curr[0] = flag; // for every row we are assigning
+						// 0th column value.
+		for (int j = 1; j <= m; j++) {
+			// Two cases if we see a '*'
+			// a) We ignore ‘*’ character and move
+			// to next character in the pattern,
+			//	 i.e., ‘*’ indicates an empty sequence.
+			// b) '*' character matches with ith
+			//	 character in input
+			if (pattern[i - 1] == '*')
+				curr[j] = curr[j - 1] || prev[j];
+
+			// Current characters are considered as
+			// matching in two cases
+			// (a) current character of pattern is '?'
+			// (b) characters actually match
+			else if (pattern[i - 1] == '?'
+					|| str[j - 1] == pattern[i - 1])
+				curr[j] = prev[j - 1];
+
+			// If characters don't match
+			else
+				curr[j] = false;
+		}
+		prev = curr;
+	}
+
+	return prev[m];
+}
+
+int main()
+{
+	char str[] = "baaabab";
+	char pattern[] = "*****ba*****ab";
+	// char pattern[] = "ba*****ab";
+	// char pattern[] = "ba*ab";
+	// char pattern[] = "a*ab";
+	// char pattern[] = "a*****ab";
+	// char pattern[] = "*a*****ab";
+	// char pattern[] = "ba*ab****";
+	// char pattern[] = "****";
+	// char pattern[] = "*";
+	// char pattern[] = "aa?ab";
+	// char pattern[] = "b*b";
+	// char pattern[] = "a*a";
+	// char pattern[] = "baaabab";
+	// char pattern[] = "?baaabab";
+	// char pattern[] = "*baaaba*";
+
+	if (strmatch(str, pattern, strlen(str),
+				strlen(pattern)))
+		cout << "Yes" << endl;
+	else
+		cout << "No" << endl;
+
+	return 0;
 }

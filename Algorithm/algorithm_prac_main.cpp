@@ -1002,18 +1002,39 @@
     AnagramSubstringPatternSearch_Brute(s1, p1,  result);
     for(auto k : result)
         cout << k << endl; */
+/*     string s1 = "bacdgabcda";
+    string p1 = "abcd";
+    vector<int> result;
+    AnagramSubstringPatternSearch_RabinKarp(s1, p1,  result);
+    for(auto k : result)
+        cout << k << endl; */
 
+// Trie of all suffixes
+/*     string s1 = "bacdgabcda";
+    SuffixTrie s(s1);
+    s.Search("a");
+    s.Search("ab"); */
 
+// Wildcard Pattern Matching
+/*     string s1 = "baaabab";
+    string p1 = "**ba**ab";
+    cout << WildcardPatternMatch_Backtracking(s1, p1) << endl; */
+/*     string s1 = "baaabab";
+    string p1 = "**ba**ab";
+    int n = s1.size(), m = p1.size();
+    vector<vector<int>> dp(n+1, vector<int>(m+1, -1));
+    cout << WildcardPatternMatch_DPmemo(s1, p1, n, m, dp) << endl; */
+/*     string s1 = "baaabab";
+    string p1 = "*ba*ab";
+    cout << WildcardPatternMatch_DPOptimalSpace(s1, p1) << endl; */
+/*     string s1 = "baaabab";
+    string p1 = "***ba**ab";
+    cout << WildcardPatternMatch_Greedy(s1, p1) << endl; */
 
-
-
-
-
-
-
-
-
-
+// Wildcard Pattern Matching ver2
+/*     string s1 = "abcdhghgbcd";
+    string p1 = "abc*bcd";
+    cout << WildcardPatternMatch(s1, p1, 0, 0) << endl; */
 
 
 

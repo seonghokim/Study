@@ -4174,6 +4174,24 @@ void RabinKarpPatternSearch(string& s1, string& p1, int p, vector<int>& result){
     }
 }
 
+// Longest Prefix Suffix
+int LongestPrefixSuffix(string s){
+    int size = s.size();
+    vector<int> arr(size, 0);
+    int i = 1, j = 0;
+    while(i<size){
+        if(s[i] == s[j])
+            arr[i++] = ++j;
+        else{
+            if(j == 0)
+                i++;
+            else
+                j = arr[j-1];
+        }
+    }
+    return arr[size-1];
+}
+
 // KMP(Knuth Morris Pratt) Pattern Search
 void LongestPrefixSuffix(string& p1, vector<int>& lps){// O(n)
     int count = 0, i = 1;
@@ -4378,42 +4396,226 @@ void AnagramSubstringPatternSearch_Brute(string& s1, string& p1, vector<int>& re
             result.push_back(i);
     }
 }
-bool Compare_string(vector<char>& s1, vector<char>& p1){
-    int size = s1.size();
-    for(int i=0; i<size; i++)
-        if(s1[i] != p1[i])
+bool Compare_string(vector<char>& count_s1, vector<char>& count_p1){
+    for(int i=0; i<CHAR_SIZE; i++)
+        if(count_s1[i] != count_p1[i])
             return false;
     return true;
 }
-void AnagramSubstringPatternSearch_RabinKarp(string& s1, string& p1, vector<int>& result){
+void AnagramSubstringPatternSearch_RabinKarp(string& s1, string& p1, vector<int>& result){// O(m * n)
     int m = p1.size();
     int n = s1.size();
-    vector<char> count_p1(ALPHABET, 0);
-    vector<char> count_s1(ALPHABET, 0);
+    vector<char> count_p1(CHAR_SIZE, 0);
+    vector<char> count_s1(CHAR_SIZE, 0);
     for(int i=0; i<m; i++){
         count_p1[p1[i]]++;
         count_s1[s1[i]]++;
     }
     for(int i=m; i<n; i++){
-        if(Compare_string(count_s1, count_p1))
+        if(Compare_string(count_s1, count_p1))// compare current block(pattern size)
             result.push_back(i-m);
-        count_s1[s[i]]++;
-        count_p1[s1[i-m]]--;
+        count_s1[s1[i]]++;//add next element
+        count_s1[s1[i-m]]--;//remove first element in block
     }
-    if(Compare_string(count_s1, count_p1))
+    if(Compare_string(count_s1, count_p1))// compare last element
         result.push_back(n-m);
 }
 
+// Trie of all suffixes
+class SuffixTrieNode{
+    SuffixTrieNode* child[CHAR_SIZE];
+    list<int>* index;
+public:
+    SuffixTrieNode(){
+        index = new list<int>;
+        for(int i=0; i<CHAR_SIZE; i++)
+            child[i] = NULL;
+    }
+    ~SuffixTrieNode(){
+        delete index;
+    }
+    void InsertSuffix(string s, int idx){
+        index->push_back(idx);
+        if(s.length() > 0){
+            char c = s.at(0);
+            if(child[c] == NULL)
+                child[c] = new SuffixTrieNode();
+            child[c]->InsertSuffix(s.substr(1), idx+1);
+        }
+    }
+    list<int>* Search(string s){
+        if(s.length() == 0)
+            return index;
+        if(child[s.at(0)] != NULL)
+            return child[s.at(0)]->Search(s.substr(1));
+        else return NULL;
+    }
+};
+class SuffixTrie{
+    SuffixTrieNode root;
+public:
+    SuffixTrie(string s){
+        for(int i=0; i<s.length(); i++)
+            root.InsertSuffix(s.substr(i), i);
+    }
+    void Search(string p){
+        list<int> *result = root.Search(p);
+        if(result == NULL)
+            return;
+        else{
+            list<int>::iterator it;
+            int m = p.length();
+            for(it=result->begin(); it != result->end(); it++)
+                cout << *it-m << endl;
+        }
+    }
+};
+
+// Wildcard Pattern Matching
+bool WildcardPatternMatch_Backtracking(string& s, string& p){// O(m * n)
+    int s_idx = 0, p_idx = 0;
+    int m = p.size();
+    int n = s.size();
+    int wc_lastidx = -1, s_backidx = -1, wc_nextidx = -1;
+    while(s_idx < n){
+        if(p_idx < m && (p[p_idx] == '?' || p[p_idx] == s[s_idx]))
+            ++s_idx, ++p_idx;
+        else if(p_idx < m && p[p_idx] == '*'){
+            wc_lastidx = p_idx;
+            wc_nextidx = ++p_idx;
+            s_backidx = s_idx;
+        }
+        else if(wc_lastidx == -1)// not match, no wildcard
+            return false;
+        else{// no match, * isn't empty sequence
+            p_idx = wc_nextidx;
+            s_idx = ++s_backidx;
+        }
+    }
+    for(int i = p_idx; i<m; i++)//When '*' appears behind 
+        if(p[i] != '*')
+            return false;
+    return true;
+}
+bool WildcardPatternMatch_DPtable(string& s, string& p){// O(m * n)
+    int m = p.size();
+    int n = s.size();
+    if(m == 0)
+        return n==0;
+    vector<vector<bool>> dp(n+1, vector<bool>(m+1, false));
+    dp[0][0] = true;// empty pattern and input string
+    for(int j=1; j<=m; j++)
+        if(p[j-1] == '*')
+            dp[0][j] = dp[0][j-1];
+    for(int i=1; i<=n; i++){
+        for(int j=1; j<=m; j++){
+            if(p[j-1] == '*')
+                dp[i][j] = dp[i][j-1] || dp[i-1][j];
+            else if(p[j-1] == '?' || s[i-1] == p[j-1])
+                dp[i][j] = dp[i-1][j-1];
+            else
+                dp[i][j] = false;
+        }
+    }
+    return dp[n][m];
+}
+bool WildcardPatternMatch_DPmemo(string& s, string& p, int n, int m, vector<vector<int>>& dp){// O(m * n)
+    if(n < 0 && m < 0)
+        return 1;
+    if(m < 0)
+        return 0;
+    if(n < 0){
+        while(m >= 0){
+            if(p[m] != '*')
+                return 0;
+            m--;
+        }
+        return 1;
+    }
+    if(dp[n][m] == -1){
+        if(p[m] == '*')
+            return dp[n][m] = WildcardPatternMatch_DPmemo(s, p, n-1, m, dp) || WildcardPatternMatch_DPmemo(s, p, n, m-1, dp);
+        else{
+            if(p[m] != s[n] && p[m] != '?')
+                return dp[n][m] = 0;
+            else
+                return dp[n][m] = WildcardPatternMatch_DPmemo(s, p, n-1, m-1, dp);
+        }
+    }
+    return dp[n][m];
+}
+bool WildcardPatternMatch_DPOptimalSpace(string& s, string& p){// O(m * n)
+    int m = p.size();
+    int n = s.size();
+    vector<bool> prev(n+1, false), cur(n+1, false);
+    prev[0] = true;
+    for(int i=1; i<=m; i++){
+        bool flag = true;
+        for(int k=1; k<i; k++)
+            if(p[k-1] != '*'){
+                flag = false;
+                break;
+            }
+        cur[0] = flag;
+        for(int j=1; j<=n; j++){
+            if(p[i-1] == '*')
+                cur[j] = cur[j-1] || prev[j];
+            else if(p[i-1] == '?' || s[j-1] == p[i-1])
+                cur[j] = prev[j-1];
+            else
+                cur[j] = false;
+        }
+        prev = cur;
+    }
+    return prev[n];
+}
+bool WildcardPatternMatch_Greedy(string& s, string& p){// O(n)
+    int m = p.size();
+    int n = s.size();
+    int i = 0, j = 0, start = -1, match = 0;
+    while(i < n){
+        if(j<m && (p[j] == '?' || p[j] == s[i]))
+            i++, j++;
+        else if(j<m && p[j] == '*'){
+            start = j;// keep position of last * in pattern
+            match = i;// keep position of proper match started in input string
+            j++;// move next word in pattern
+        }
+        else if(start != -1){// no match but * exists in pattern
+            j = start + 1;
+            match++;
+            i = match;
+        }
+        else
+            return false;
+    }
+    while(j<m && p[j] == '*')
+        j++;
+    return j == m;
+}
+
+// Wildcard Pattern Matching ver2
+bool WildcardPatternMatch(string& s, string& p, int i, int j){// O(n)
+    if(p[i] == '\0' && s[j] == '\0')// end of string
+        return true;
+    if(p[i] == '*')//remove consecutive * 
+        while(p[i+1] == '*')
+            i++;
+    if(p[i] == '*' && p[i+1] != '\0' && s[j] == '\0')
+        return false;
+    if(p[i] == '?' || p[i] == s[j])
+        return WildcardPatternMatch(s, p, i+1, j+1);
+    if(p[i] == '*')
+        return WildcardPatternMatch(s, p, i+1, j) || WildcardPatternMatch(s, p, i, j+1);
+    return false;
+}
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    string s1 = "bacdgabcda";
-    string p1 = "abcd";
-    vector<int> result;
-    AnagramSubstringPatternSearch_Brute(s1, p1,  result);
-    for(auto k : result)
-        cout << k << endl;
+    string s1 = "abcdhghgbcd";
+    string p1 = "abc*bcd";
+    cout << WildcardPatternMatch(s1, p1, 0, 0) << endl;
     return 0;
 }
 
