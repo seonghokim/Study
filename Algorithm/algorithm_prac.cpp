@@ -2467,11 +2467,11 @@ void MultiplyMatrix(int f[2][2], int m[2][2]){
     f[1][0] = z;
     f[1][1] = w;
 }
-void Power(int f[2][2], int n){
+void Power_Matrix(int f[2][2], int n){
     if(n==0 || n==1)
         return;
     int m[2][2] = {{1, 1}, {1, 0}};
-    Power(f, n/2);
+    Power_Matrix(f, n/2);
     MultiplyMatrix(f, f);
     if(n%2 != 0)
         MultiplyMatrix(f, m);
@@ -2480,7 +2480,7 @@ int Finonacci_PowerOfMatrix(int n){// O(log n)
     int f[2][2] = {{1, 1}, {1, 0}};
     if(n == 0)
         return 0;
-    Power(f, n-1);
+    Power_Matrix(f, n-1);
     return f[0][0];
 }
 void MultiplyVariableMatrix(vector<vector<int>>& a, vector<vector<int>>& b){
@@ -3174,13 +3174,13 @@ vector<vector<int>> Mult(const vector<vector<int>>& a, const vector<vector<int>>
                 c[i][j] = c[i][j] + a[i][z] * b[z][j];
     return c;
 }
-vector<vector<int>> Power(const vector<vector<int>>& matrix, int n, int k){
+vector<vector<int>> Power_2DMatrix(const vector<vector<int>>& matrix, int n, int k){
     if(n == 1)
         return matrix;
     if(n & 1)
-        return Mult(matrix, Power(matrix, n-1, k), k);
+        return Mult(matrix, Power_2DMatrix(matrix, n-1, k), k);
     else{
-        vector<vector<int>> x = Power(matrix, n>>1, k);
+        vector<vector<int>> x = Power_2DMatrix(matrix, n>>1, k);
         return Mult(x, x, k);
     }
 }
@@ -3208,7 +3208,7 @@ int WaysToReachStairEnd_MatrixExponentiation(int n){// O(log n)
             }
             matrix[i][j] = 1;
         }
-    matrix = Power(matrix, n-1, k);
+    matrix = Power_2DMatrix(matrix, n-1, k);
     int sum = 0;
     for(int i=1; i<=k; i++)
         sum += matrix[1][i] * f1[i];
@@ -4610,12 +4610,276 @@ bool WildcardPatternMatch(string& s, string& p, int i, int j){// O(n)
     return false;
 }
 
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ---------------------------- Divide & Conquer --------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+
+// Power(x, n)
+long Power_Naive(int x, int n){// O(n)
+    long long pow  = 1;
+    for(int i=0; i<n; i++)
+        pow *= x;
+    return pow;
+}
+long Power_Recursion(int x, int n){// O(n)
+    if(n == 0)
+        return 1;
+    if(x == 0)
+        return 0;
+    return x * Power_Recursion(x, n-1);
+}
+long Power_DivideConquer(int x, int n){// O(n)
+    if(n == 0)
+        return 1;
+    else if(n & 1)
+        return x * Power_DivideConquer(x, n/2) * Power_DivideConquer(x, n/2);
+    else
+        return Power_DivideConquer(x, n/2) * Power_DivideConquer(x, n/2);
+}
+long Power_DivideConquerOtp(int x, int n){// O(log n)
+    long temp;
+    if(n == 0)
+        return 1;
+    temp = Power_DivideConquer(x, n>>1);
+    if(n & 1)
+        return x * temp * temp;
+    else
+        return temp * temp;
+}
+double Power_DivideConquerOtpWithNeg(double x, int n){// O(log |n|)
+    double temp;
+    if(n == 0)
+        return 1;
+    temp = Power_DivideConquerOtpWithNeg(x, n/2);
+    if((n & 1) == 0)// must insert () for opeartor precedence
+        return temp * temp;
+    else{
+        if(n > 0)
+            return x * temp * temp;
+        else
+            return temp * temp / x;
+    }
+}
+long Power_InBuilt(int x, int n){// O(log n)
+    return pow(x, n);
+}
+long Power_BinaryOperator(int x, int n){// O(log n)
+    int result = 1;
+    while(n > 0){
+        if(n & 1)
+            result *= x;
+        x *= x;
+        n >>= 1;
+    }
+    return result;
+}
+long Power_Log2(int x, int n){// O(1)
+    return round(pow(2, log2(x)*n));
+}
+long Power_ExpoLog(int x, int n){// O(1)
+    double res = exp(log(x) * n);
+    res = round(res);
+    return res;
+}
+
+// Karatsuba Algorithm for Fast Multiplication
+int MakeEqualStringLength(string& s1, string& s2){
+    int len1 = s1.size();
+    int len2 = s2.size();
+    if(len1 < len2){
+        for(int i=0; i<len2-len1; i++)
+            s1 = '0' + s1;
+        return len2;
+    }
+    else if(len1 > len2)
+        for(int i=0; i<len1-len2; i++)
+            s2 = '0' + s2;
+    return len1;
+}
+string AddBitToString(string s1, string s2){// Ripple Carry Adder
+    string res;
+    int len = MakeEqualStringLength(s1, s2);
+    int carry = 0;
+    for(int i=len-1; i>=0; i--){// from LSB
+        int first = s1.at(i) - '0';
+        int second = s2.at(i) -'0';
+        int sum = first ^ second ^ carry + '0';// Sum = A xor B xor Carry (2bit adder), +'0' is used for converting integer to ASCII
+        res = (char)sum + res;
+        carry = (first & second) | (second & carry) | (first & carry);// Cout = A*B + A*Cin + B*Cin
+    }
+    if(carry)
+        res = '1' + res;
+    return res;
+}
+int MultipleSingleBit(string& s1, string& s2){
+    return (s1[0]-'0') * (s2[0]-'0');
+}
+long int KaratsubaMultiple(string s1, string s2){
+    // X = Xl * 2^(n/2) + Xr [ Xl and Xr contain leftmost and rightmost n/2 bits of X]
+    // Y = Yl * 2^(n.2) + Yr [ Yl and Yr contain leftmost and rightmost n/2 bits of Y]
+    // left = floor(n/2), right = ceil(n/2) [if n is odd, left < right]
+    // XY = 2^(2ceil(n/2)) XlYl + 2^(ceil(n/2)) * [(Xl+Xr)(Yl+Yr) - XlYl - XrYr] + XrYr
+    int n =MakeEqualStringLength(s1, s2);
+    if(n == 0)
+        return 0;
+    if(n == 1)
+        return MultipleSingleBit(s1, s2);
+    int l = n/2;// auto floor()
+    int r = n-l;// remainder / ceil()
+    string xl = s1.substr(0, l);
+    string xr = s1.substr(l, r);
+    string yl = s2.substr(0, l);
+    string yr = s2.substr(l, r);
+    long int p1 = KaratsubaMultiple(xl, yl);// XlYl
+    long int p2 = KaratsubaMultiple(xr, yr);// XrYr
+    long int p3 = KaratsubaMultiple(AddBitToString(xl, xr), AddBitToString(yl, yr));// (Xl+Xr)(Yl+Yr)
+    return p1 * (1<<(2*r)) + (p3-p1-p2) * (1<<r) + p2;
+}
+class BinaryMultiplier{// O(n^2)
+public:
+    string MakeMultiplication(string s1, string s2){
+        string sum = "";
+        for(int i=0; i<s2.length(); i++){
+            int digit = s2[i] - '0';
+            if(digit == 1){
+                string shift = MakeShift(s1, s2.size()-(i+1));
+                sum = AddBinary(shift, sum);
+            }
+            else
+                continue;
+        }
+        return sum;
+    }
+    string MakeShift(string& s1, int n){
+        string shift = s1;
+        for(int i=0; i<n; i++)
+            shift = shift + '0';
+        return shift;
+    }
+    string AddBinary(string& s1, string& s2){
+        string res = "";
+        int s = 0;
+        int i = s1.size()-1, j = s2.size()-1;
+        while(i >= 0 || j >= 0 || s == 1){
+            s += (i>=0) ? s1[i] - '0' : 0;
+            s += (j>=0) ? s2[j] - '0' : 0;
+            res = char(s % 2 + '0') + res;
+            s >>= 1;
+            i--;
+            j--;
+        }
+        return res;
+    }
+    void BinaryStringToDecimal(string res){
+        cout << "Binary: " << res << endl;
+        unsigned long long int val = 0;
+        for(int i=res.length()-1; i>=0; i--)
+            if(res[i] == '1')
+                val += pow(2, res.length()-1-i);
+        cout << "Decimal: " << val << endl;
+    }
+};
+class Karatsuba{// O(n^2)
+public:
+    int MakeEqualLength(string& s1, string& s2){
+        int len1 = s1.size();
+        int len2 = s2.size();
+        if(len1 < len2){
+            for(int i=0; i<len2-len1; i++)
+                s1 = '0' + s1;
+            return len2;
+        }
+        else if(len1 > len2)
+            for(int i=0; i<len1-len2; i++)
+                s2 = '0' + s2;
+        return len1;
+    }
+    string AddString(string s1, string s2){
+        string res;
+        int n = MakeEqualLength(s1, s2);
+        int carry = 0;
+        for(int i=n-1; i>=0; i--){
+            int first = s1.at(i)-'0';
+            int second = s2.at(i)-'0';
+            int sum = (first ^ second ^ carry) + '0';
+            res = (char)sum + res;
+            carry = (first & second) | (second & carry) | (first & carry);
+        }
+        if(carry)
+            res = '1' + res;
+        return res;
+    }
+    string Multiply(string s1, string s2){
+        int n = MakeEqualLength(s1, s2);
+        if(n == 1)
+            return (s2[0]-'0' == 1) && (s1[0]-'0' == 1) ? "1" : "0";
+        int l = n >> 1;
+        int r = n - l;
+        string xl = s1.substr(0, l);
+        string xr = s1.substr(l, r);
+        string yl = s2.substr(0, l);
+        string yr = s2.substr(l, r);
+        string p1 = Multiply(xl, yl);
+        string p2 = Multiply(xr, yr);
+        string p3 = Multiply(AddString(xl, xr), AddString(yl, yr));
+        return AddString(AddString(MakeShift(p1, 2*(n-n/2)), p2), MakeShift(Substraction(p3, AddString(p1, p2)), n-(n/2)));
+    }
+    string DecimalToBinary(long long int n){
+        string res = "";
+        if(n <= 0)
+            return "0";
+        else{
+            int i = 0;
+            while(n > 0){
+                long long int num = n % 2;
+                stringstream ss;
+                ss << num;
+                res = ss.str() + res;
+                n >>= 1;
+                i++;
+            }
+            return res;
+        }
+    }
+    string Substraction(string s1, string s2){
+        int n = MakeEqualLength(s1, s2);
+        int diff;
+        string res;
+        for(int i=n-1; i>=0; i--){
+            diff = (s1[i]-'0') - (s2[i]-'0');
+            if(diff >= 0)
+                res = DecimalToBinary(diff) + res;
+            else{
+                for(int j=i-1; j>=0; j--){
+                    s1[j] = (s1[j]-'0'-1) % 10 + '0';
+                    if(s1[j] != '1')
+                        break;
+                }
+                res = DecimalToBinary(diff+2) + res;
+            }
+        }
+        return res;
+    }
+    string MakeShift(string s1, int n){
+        string shift = s1;
+        for(int i=0; i<n; i++)
+            shift = shift + '0';
+        return shift;
+    }
+};
+
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    string s1 = "abcdhghgbcd";
-    string p1 = "abc*bcd";
-    cout << WildcardPatternMatch(s1, p1, 0, 0) << endl;
+    int a = -1;
+    int b = 5;
+    int c = 0;
+    cout << (a >> 31) << endl;
+    cout << (b >> 31) << endl;
+    cout << (c >> 31) << endl;
     return 0;
 }
 

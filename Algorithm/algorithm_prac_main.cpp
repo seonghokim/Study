@@ -1036,18 +1036,57 @@
     string p1 = "abc*bcd";
     cout << WildcardPatternMatch(s1, p1, 0, 0) << endl; */
 
+// Power(x, n)
+/*     int x = 5;
+    int n = 2;
+    cout << Power_Naive(x, n) << endl; */
+/*     int x = 5;
+    int n = 2;
+    cout << Power_Recursion(x, n) << endl; */
+/*     int x = 5;
+    int n = 2;
+    cout << Power_DivideConquer(x, n) << endl; */
+/*     double x = 5;
+    int n = -3;
+    cout << Power_DivideConquerOtpWithNeg(x, n) << endl; */
+/*     double x = 5;
+    int n = 2;
+    cout << Power_InBuilt(x, n) << endl; */
+/*     double x = 5;
+    int n = 3;
+    cout << Power_BinaryOperator(x, n) << endl; */
+/*     double x = 5;
+    int n = 3;
+    cout << Power_Log2(x, n) << endl; */
+/*     double x = 5;
+    int n = 3;
+    cout << Power_ExpoLog(x, n) << endl; */
 
-
-
-
-
-
-
-
-
-
-
-
+// Karatsuba Algorithm for Fast Multiplication
+/*     string s1 = "1100";
+    string s2 = "1010";
+    cout << KaratsubaMultiple(s1, s2) << endl; */
+/*     string s1 = "1100";
+    string s2 = "1010";
+    int len1 = s1.size();
+    int len2 = s2.size();
+    int general_len = s1.size();
+    if(len1 < len2){
+        for(int i=0; i<len2-len1; i++)
+            s1 = '0' + s1;
+        general_len = s1.size();
+    }
+    else if(len1 > len2){
+        for(int i=0; i<len1-len2; i++)
+            s2 = '0' + s2;
+        general_len = s2.size();
+    }
+    BinaryMultiplier obj;
+    string classic = obj.MakeMultiplication(s1, s2);
+    obj.BinaryStringToDecimal(classic);
+    Karatsuba obj2;
+    string kara = obj2.Multiply(s1, s2);
+    obj.BinaryStringToDecimal(kara); */
 
 
 
