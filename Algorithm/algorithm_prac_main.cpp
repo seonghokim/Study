@@ -1088,8 +1088,23 @@
     string kara = obj2.Multiply(s1, s2);
     obj.BinaryStringToDecimal(kara); */
 
-
-
+// Convex Hull
+/*     vector<pair<int, int>> a;
+    a.push_back(make_pair(0, 0));
+    a.push_back(make_pair(1, -4));
+    a.push_back(make_pair(-1, -5));
+    a.push_back(make_pair(-5, -3));
+    a.push_back(make_pair(-3, -1));
+    a.push_back(make_pair(-1, -3));
+    a.push_back(make_pair(-2, -2));
+    a.push_back(make_pair(-1, -1));
+    a.push_back(make_pair(-2, -1));
+    a.push_back(make_pair(-1, 1));
+    int n = a.size();
+    sort(a.begin(), a.end());
+    vector<pair<int, int >>  ans = Divide(a);
+    for(auto e : ans)
+        cout << e.first << " " << e.second << endl; */
 
 
 
