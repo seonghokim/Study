@@ -1106,14 +1106,20 @@
     for(auto e : ans)
         cout << e.first << " " << e.second << endl; */
 
+// Jarvis's Convex Hull
+/*     vector<Point> p = {{2,2}, {4,3}, {5,4}, {0,3}, {0,2}, {0,0}, {2,1}, {2,0}, {4,0}};
+    int n = p.size();
+    ConvexHull_Jarvis(p, n); */
 
+// Convex Hull using Graham Scan
+/*     vector<Point> p = {{0,3}, {1,1}, {2,2}, {4,4}, {0,0}, {1,2}, {3,1}, {3,3}};
+    int n = p.size();
+    ConvexHull_GrahamScan(p, n); */
 
-
-
-
-
-
-
+// QuickHull for Convex Hull
+/*     vector<pair<int, int>> p = {{0,3}, {1,1}, {2,2}, {4,4}, {0,0}, {1,2}, {3,1}, {3,3}};
+    int n = p.size();
+    PrintHull(p, n); */
 
 
 

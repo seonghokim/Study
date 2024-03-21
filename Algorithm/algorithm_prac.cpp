@@ -4896,21 +4896,21 @@ bool ComparePoint(pair<int, int> p1, pair<int, int> p2){
     int two = DetermineQuadrant(temp2);
     if(one != two)
         return one < two;
-    return temp1.second * temp2.first < temp2.second * temp1.first;
+    return temp1.second * temp2.first < temp2.second * temp1.first;// P's orientation < Q's orientation
 }
 vector<pair<int, int>> Merger(vector<pair<int, int>> a, vector<pair<int, int>> b){// O(n)
     int n1 = a.size();
     int n2 = b.size();
     int ia = 0, ib = 0;
-    for(int i=1; i<n1; i++)
+    for(int i=1; i<n1; i++)//rightmost point
         if(a[i].first > a[ia].first)
             ia = i;
-    for(int i=1; i<n2; i++)
+    for(int i=1; i<n2; i++)//leftmost point
         if(b[i].first < b[ib].first)
             ib = i;
     int inda = ia, indb = ib;
     bool done = false;
-    while(!done){
+    while(!done){// Find upper tangent
         done = true;
         while(OrientationOfThreePoint(b[indb], a[inda], a[(inda+1)%n1]) >= 0)
             inda = (inda + 1) % n1;
@@ -4923,7 +4923,7 @@ vector<pair<int, int>> Merger(vector<pair<int, int>> a, vector<pair<int, int>> b
     inda = ia, indb = ib;
     done = false;
     int g = 0;
-    while(!done){
+    while(!done){// Find lower tangent
         done = true;
         while(OrientationOfThreePoint(a[inda], b[indb], b[(indb+1)%n2]) >= 0)
             indb = (indb + 1) % n2;
@@ -4933,7 +4933,7 @@ vector<pair<int, int>> Merger(vector<pair<int, int>> a, vector<pair<int, int>> b
         }
     }
     int lowera = inda, lowerb = indb;
-    vector<pair<int, int>> ret;
+    vector<pair<int, int>> ret;// contain convex hull after merging two convex hulls in counterclockwise order
     int ind = uppera;
     ret.push_back(a[uppera]);
     while (ind != lowera){
@@ -4948,7 +4948,7 @@ vector<pair<int, int>> Merger(vector<pair<int, int>> a, vector<pair<int, int>> b
     }
     return ret;
 }
-vector<pair<int, int>> BruteHull(vector<pair<int, int>> a){
+vector<pair<int, int>> ConvexHull_Brute(vector<pair<int, int>> a){
     set<pair<int, int>> s;
     for(int i=0; i<a.size(); i++){
         for(int j=i+1; j<a.size(); j++){
@@ -4981,14 +4981,14 @@ vector<pair<int, int>> BruteHull(vector<pair<int, int>> a){
         ret[i].first *= n;
         ret[i].second *= n;
     }
-    sort(ret.begin(), ret.end(), ComparePoint);
+    sort(ret.begin(), ret.end(), ComparePoint);// counterclockwise order sort
     for(int i=0; i<n; i++)
         ret[i] = make_pair(ret[i].first/n, ret[i].second/n);
     return ret;
 }
 vector<pair<int, int>> Divide(vector<pair<int, int>> a){// O(n log n)
     if(a.size() <= 5)
-        return BruteHull(a);
+        return ConvexHull_Brute(a);
     vector<pair<int, int>> left, right;
     for(int i=0; i<a.size()/2; i++)
         left.push_back(a[i]);
@@ -4999,25 +4999,157 @@ vector<pair<int, int>> Divide(vector<pair<int, int>> a){// O(n log n)
     return Merger(left_hull, right_hull);
 }
 
+// Jarvis's Convex Hull
+struct Point{
+    int x, y;
+};
+int Orientation(Point p, Point q, Point r){
+    int val = (q.y-p.y)*(r.x-q.x) - (q.x-p.x)*(r.y-q.y);
+    if(val == 0)
+        return 0;
+    return val > 0 ? 1 : 2;
+}
+bool IntersectOnCollinear(Point p, Point q, Point r){
+    return (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) && q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y));
+}
+void ConvexHull_Jarvis(vector<Point> p, int n){// O(m * n)/ O(n^2)
+    if(n < 3)
+        return;
+    vector<Point> hull;
+    int l = 0;
+    for(int i=1; i<n; i++){
+        if(p[i].x < p[l].x)
+            l = i;
+        else if(p[i].x == p[l].x && p[i].y < p[l].y)
+            l = i;
+    }
+    int cur = l, q;
+    do{
+        hull.push_back(p[cur]);
+        q = (cur + 1) % n;
+        for(int i=0; i<n; i++){
+            if(Orientation(p[cur], p[i], p[q]) == 2)
+                q = i;
+            if(cur != i && Orientation(p[cur], p[i], p[q]) == 0 && IntersectOnCollinear(p[cur], p[q], p[i]))
+                q = i;
+        }
+        cur = q;
+    } while(cur != l);
+    for(auto k : hull)
+        cout << "(" << k.x << "," << k.y << ")\n";
+}
+
+// Convex Hull using Graham Scan
+Point p0;
+Point NextToTop(stack<Point>& s){
+    Point p = s.top();
+    s.pop();
+    Point res = s.top();
+    s.push(p);
+    return res;//value under stack top
+}
+void PointSwap(Point& p1, Point& p2){
+    Point temp = p1;
+    p1 = p2;
+    p2 = temp;
+}
+int DistanceSquare(Point p1, Point p2){
+    return (p1.x-p2.x) * (p1.x-p2.x) + (p1.y-p2.y) * (p1.y-p2.y);
+}
+int ComparePointOrient(const void *vp1, const void *vp2){
+    Point *p1 = (Point*)vp1;
+    Point *p2 = (Point*)vp2;
+    int o = Orientation(p0, *p1, *p2);
+    if(o == 0)
+        return DistanceSquare(p0, *p2) >= DistanceSquare(p0, *p1) ? -1 : 1;
+    return (o == 2) ? -1 : 1;
+}
+void ConvexHull_GrahamScan(vector<Point>& p, int n){// O(n log n)
+    int ymin = p[0].y, min = 0;
+    for(int i=1; i<n; i++)//Find leftmost point
+        if(p[i].y < ymin || ymin == p[i].y && p[i].x < p[min].x)
+            ymin = p[i].y , min = i;
+    swap(p[0], p[min]);
+    p0 = p[0];
+    qsort(&p[1], n-1, sizeof(Point), ComparePointOrient);
+    int m = 1;
+    for(int i=1; i<n; i++){// if points are located on same line, remove element
+        while(i < n-1 && Orientation(p0, p[i], p[i+1]) == 0)
+            i++;
+        p[m] = p[i];
+        m++; 
+    }
+    if(m < 3)
+        return;
+    stack<Point> s;
+    s.push(p[0]);
+    s.push(p[1]);
+    s.push(p[2]);
+    for(int i=3; i<m; i++){
+        while(s.size() > 1 && Orientation(NextToTop(s), s.top(), p[i]) != 2)
+            s.pop();
+        s.push(p[i]);
+    }
+    while(!s.empty()){
+        Point temp = s.top();
+        cout << "(" << temp.x << "," << temp.y << ")\n";
+        s.pop();
+    }
+}
+
+// QuickHull for Convex Hull
+set<pair<int,int>> hull;
+int FindSide(pair<int,int> p1, pair<int,int> p2, pair<int,int> p3){
+    int val = (p3.second-p1.second)*(p2.first-p1.first) - (p2.second-p1.second)*(p3.first-p1.first);
+    if(val > 0)
+        return 1;
+    else if(val < 0)
+        return -1;
+    return 0;
+}
+int LineDistance(pair<int,int> p1, pair<int,int> p2, pair<int,int> p3){
+    return abs((p3.second-p1.second)*(p2.first-p1.first) - (p2.second-p1.second)*(p3.first-p1.first));
+}
+void ConvexHull_Quick(vector<pair<int,int>> a, int n, pair<int,int> p1, pair<int,int> p2, int side){
+    int ind = -1;
+    int max_dist = 0;
+    for(int i=0; i<n; i++){
+        int temp = LineDistance(p1, p2, a[i]);
+        if(FindSide(p1, p2, a[i]) == side && temp > max_dist){
+            ind = i;
+            max_dist = temp;
+        }
+    }
+    if(ind == -1){
+        hull.insert(p1);
+        hull.insert(p2);
+        return;
+    }
+    ConvexHull_Quick(a, n, a[ind], p1, -FindSide(a[ind], p1, p2));
+    ConvexHull_Quick(a, n, a[ind], p2, -FindSide(a[ind], p2, p1));
+}
+void PrintHull(vector<pair<int,int>> a, int n){// O(n^2) / O(n log n)
+    if(n < 3)
+        return;
+        int min_x = 0, max_x = 0;
+        for(int i=1; i<n; i++){
+            if(a[i].first < a[min_x].first)
+                min_x = i;
+            if(a[i].first > a[max_x].first)
+                max_x = i;
+        }
+        ConvexHull_Quick(a, n, a[min_x], a[max_x], 1);
+        ConvexHull_Quick(a, n, a[min_x], a[max_x], -1);
+        for(auto k : hull)
+            cout << "(" << k.first << "," << k.second << ")\n";
+}
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<pair<int, int>> a;
-    a.push_back(make_pair(0, 0));
-    a.push_back(make_pair(1, -4));
-    a.push_back(make_pair(-1, -5));
-    a.push_back(make_pair(-5, -3));
-    a.push_back(make_pair(-3, -1));
-    a.push_back(make_pair(-1, -3));
-    a.push_back(make_pair(-2, -2));
-    a.push_back(make_pair(-1, -1));
-    a.push_back(make_pair(-2, -1));
-    a.push_back(make_pair(-1, 1));
-    int n = a.size();
-    sort(a.begin(), a.end());
-    vector<pair<int, int >>  ans = Divide(a);
-    for(auto e : ans)
-        cout << e.first << " " << e.second << endl;
+    vector<pair<int, int>> p = {{0,3}, {1,1}, {2,2}, {4,4}, {0,0}, {1,2}, {3,1}, {3,3}};
+    int n = p.size();
+    PrintHull(p, n);
     return 0;
 }
 
