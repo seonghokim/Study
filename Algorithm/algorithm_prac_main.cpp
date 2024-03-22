@@ -1121,14 +1121,30 @@
     int n = p.size();
     PrintHull(p, n); */
 
+// Median of 2 Sorted Array of Same Size
+/*     vector<int> a = {1, 12, 15, 26, 38};
+    vector<int> b = {2, 13, 17, 30, 45};
+    int n = a.size();
+    cout << GetMedianOf2SortedSameSizeArr_ver1(a, b, n) << endl; */
+/*     vector<int> a = {1, 12, 15, 26, 38};
+    vector<int> b = {2, 13, 17, 30, 45};
+    int n = a.size();
+    cout << GetMedianOf2SortedSameSizeArr_ver2(a, b, n) << endl; */
+/*     vector<int> a = {1, 12, 15, 26, 38};
+    vector<int> b = {2, 13, 17, 30, 45};
+    int n = a.size();
+    cout << GetMedianOf2SortedSameSizeArr_BinarySearch(a, b, n) << endl; */
 
-
-
-
-
-
-
-
+// Median of 2 Sorted Array of Different Size
+/*     vector<int> a = {1, 12, 15, 26, 38};
+    vector<int> b = {2, 13, 17, 30, 45};
+    cout << GetMedianOf2SortedDiffSizeArr_Naive(a, b) << endl; */
+/*     vector<int> a = {1};//, 12, 15, 26, 38
+    vector<int> b = {2, 13, 17, 30, 45};
+    cout << GetMedianOf2SortedDiffSizeArr_2Var(a, b) << endl; */
+/*     vector<int> a = {1};//, 12, 15, 26, 38
+    vector<int> b = {2, 13, 17, 30, 45};
+    cout << GetMedianOf2SortedDiffSizeArr_BinarySearch(a, b) << endl; */
 
 
 

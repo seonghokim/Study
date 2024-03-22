@@ -5144,12 +5144,187 @@ void PrintHull(vector<pair<int,int>> a, int n){// O(n^2) / O(n log n)
             cout << "(" << k.first << "," << k.second << ")\n";
 }
 
+// Median of 2 Sorted Array of Same Size
+int GetMedianOf2SortedSameSizeArr_ver1(vector<int>& a, vector<int>& b, int n){// O(n)
+    int m1 = -1, m2 = -1;
+    int i = 0, j = 0;
+    for(int k = 0; k<=n ; k++){
+        if(i == n){
+            m1 = m2;
+            m2 = b[0];
+            break;
+        }
+        else if(j == n){
+            m1 = m2;
+            m2 = a[0];
+            break;
+        }
+        if(a[i] <= b[j]){
+            m1 = m2;
+            m2 = a[i];
+            i++;
+        }
+        else{
+            m1 = m2;
+            m2 = b[j];
+            j++;
+        }
+    }
+    return (m1+m2)/2;
+}
+int GetMedianOf2SortedSameSizeArr_ver2(vector<int>& a, vector<int>& b, int n){// O(n log n)
+    int i = n-1, j = 0;
+    while(a[i] > b[j] && j < n && i > -1)
+        swap(a[i--], b[j++]);
+    sort(a.begin(), a.end());
+    sort(b.begin(), b.end());
+    return (a[n-1] + b[0]) / 2;
+}
+int GetMedianOf2SortedSameSizeArr_BinarySearch(vector<int>& a, vector<int>& b, int n){// O(log n)
+    int low = (int)-1e9, high = (int)1e9;
+    int pos = n;
+    double ans = 0.0;
+    while(low <= high){
+        int mid = (low+high) >> 1;
+        int ub = upper_bound(a.begin(), a.end(), mid) - a.begin() + upper_bound(b.begin(), b.end(), mid) - b.begin();
+        if(ub <= pos)
+            low = mid + 1;
+        else
+            high = mid - 1;
+    }
+    ans = low;
+    pos--;
+    low = (int)-1e9;
+    high = (int) 1e9;
+    while(low <= high){
+        int mid = (low + high) >> 1;
+        int ub = upper_bound(a.begin(), a.end(), mid) - a.begin() + upper_bound(b.begin(), b.end(), mid) - b.begin();
+        if(ub <= pos)
+            low = mid + 1;
+        else
+            high = mid - 1;
+    }
+    ans = (ans + low) / 2;
+    return ans;
+}
+
+// Median of 2 Sorted Array of Different Size
+int GetMedianOf2SortedDiffSizeArr_Naive(vector<int>& a, vector<int>& b){// O((n+m) * log(n+m))
+    int n = a.size();
+    int m = b.size();
+    int t = n + m;
+    vector<int> c(t, 0);
+    for(int k=0; k<t; k++){
+        if(k < n)
+            c[k] = a[k];
+        else
+            c[k] = b[k-n];
+    }
+    sort(c.begin(), c.end());
+    if(t % 2 == 0){
+        int z = t / 2;
+        int e = c[z];
+        int q = c[z-1];
+        return (e+q)/2;
+    }
+    else
+        return c[round(t/2)];
+}
+int GetMedianOf2SortedDiffSizeArr_2Var(vector<int>& a, vector<int>& b){// O(m + n)
+    int n = a.size();
+    int m = b.size();
+    int t = n + m;
+    int i = 0, j = 0;
+    int m1 = -1, m2 = -1;
+    for(int k=0; k<= t>>1; k++){
+        m1 = m2;
+        if(i != n && j != m)
+            m2 = a[i] > b[j] ? b[j++] : a[i++];
+        else if(i < n)
+            m2 = a[i++];
+        else
+            m2 = b[j++];
+    }
+    if(t % 2 == 1)
+        return m2;
+    else
+        return (m1 + m2) >> 1;
+}
+double GetMedianOf2SortedDiffSizeArr_BinarySearch(vector<int>& a, vector<int>& b){// O(min(log m, log n))
+    int n = a.size();
+    int m = b.size();
+    if(n > m)
+        return GetMedianOf2SortedDiffSizeArr_BinarySearch(b, a);
+    int s = 0;
+    int e = n;
+    int mid_merged = (n + m + 1) / 2;
+    while(s <= e){// for array a (n < m)
+        int mid = (s+e) / 2;
+        int la_size = mid;// array a's mid index
+        int lb_size = mid_merged - mid;//array b's mid index
+        int la = la_size > 0 ? a[la_size-1] : INT_MIN;// left a's last element
+        int lb = lb_size > 0 ? b[lb_size-1] : INT_MIN;// left b's last element
+        int ra = la_size < n ? a[la_size] : INT_MAX;// right a's first element
+        int rb = lb_size < m ? b[lb_size] : INT_MAX;// right b's first element
+        if(la <= rb && lb <= ra){
+            if((n+m) % 2 == 0)// if merged array's size is even number 
+                return (max(la, lb) + min(ra, rb)) / 2.0;
+            return max(la, lb);
+        }
+        else if(la > rb)//value in left is bigger than value in right, move mid to left
+            e = mid - 1;// small size arr's mid move left, big size arr's mid move right
+        else//lb > ra
+            s = mid + 1;
+    }
+    return 0.0;
+}
+
+// Painter's Partition Problem using Binary Search
+int GetMaxValue(vector<int>& arr, int n){
+    int max_val = INT_MIN;
+    for(int i=0; i<n; i++)
+        if(arr[i] > max_val)
+            max_val = arr[i];
+    return max_val;
+}
+int GetSumOfArray(vector<int>& arr, int n){
+    int sum = 0;
+    for(int i=0; i<n; i++)
+        sum += arr[i];
+    return sum;
+}
+int NumberOfPainter(vector<int>& arr, int n, int len){
+    int sum = 0, painter = 1;
+    for(int i=0; i<n; i++){
+        sum += arr[i];
+        if(sum > len){
+            sum = arr[i];
+            painter++;
+        }
+    }
+    return painter;
+}
+int PainterPartition(vector<int>& arr, int k){
+    int n = arr.size();
+    int l = GetMaxValue(arr, n);
+    int h = GetSumOfArray(arr, n);
+    while(l < h){
+        int mid = (l + h) >> 1;
+        int painter = NumberOfPainter(arr, n, mid);
+        if(painter <= k)
+            h = mid;
+        else
+            l = mid + 1;
+    }
+    return l;
+}
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<pair<int, int>> p = {{0,3}, {1,1}, {2,2}, {4,4}, {0,0}, {1,2}, {3,1}, {3,3}};
-    int n = p.size();
-    PrintHull(p, n);
+    vector<int> a = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int k = 3;
+    cout << PainterPartition(a, k) << endl;
     return 0;
 }
 
