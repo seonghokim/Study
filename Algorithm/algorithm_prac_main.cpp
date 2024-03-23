@@ -1146,6 +1146,86 @@
     vector<int> b = {2, 13, 17, 30, 45};
     cout << GetMedianOf2SortedDiffSizeArr_BinarySearch(a, b) << endl; */
 
+// Square Root of Integer
+/*     int x = 11;
+    cout << SquareRoot_Naive(x) << endl; */
+/*     int x = 11;
+    cout << SquareRoot_BinarySearch(x) << endl; */
+/*     int x = 11;
+    cout << SquareRoot_BuiltIn(x) << endl; */
+/*     int x = 11;
+    cout << SquareRoot_Exponential(x) << endl; */
+
+// Find frequency of each element in a limited range array in less than O(n) time
+/*     vector<int> a = {10, 20, 30, 30, 30, 40, 50, 50, 50, 50, 70};
+    FindFrequency_Naive(a); */
+/*     vector<int> a = {10, 20, 30, 30, 30, 40, 50, 50, 50, 50, 70};
+    FindFrequency_Hash(a); */
+/*     vector<int> a = {10, 20, 30, 30, 30, 40, 50, 50, 50, 50, 70};
+    int n = a.size();
+    vector<int> freq(a[n-1]+1, 0);
+    FindFrequency_BinarySearch(a, 0, n-1, freq);
+    for(int i=0; i<=a[n-1]; i++)
+        if(freq[i] != 0)
+            cout << i << " " << freq[i] << endl; */
+
+// Tiling Problem using Divide & Conquer
+/*     int k = 3;
+    int grid = pow(2,k);
+    vector<vector<int>> board(grid, vector<int>(grid, 0));
+    board[0][0] = -1;
+    TilingBoard(board, grid, 0, 0);
+    for(int i=0; i<grid; i++, printf("\n"))
+        for(int j=0; j<grid; j++)
+            printf("%2d ", board[i][j]); */
+
+// Skyline Problem
+/*     vector<Building> arr = {
+        {1, 11, 5}, {2, 6, 7}, {3, 13, 9},
+        {12, 7, 16}, {14, 3, 25}, {19, 18, 22},
+        {23, 13, 29}, {24, 4, 28}};
+    int n = arr.size();
+    Skyline* ptr = FindSkyline(arr, 0, n-1);
+    ptr->Print(); */
+/*     vector<vector<int>> arr = {
+        {1, 11, 5}, {2, 6, 7}, {3, 13, 9},
+        {12, 7, 16}, {14, 3, 25}, {19, 18, 22},
+        {23, 13, 29}, {24, 4, 28}};
+    Create_Skyline(arr); */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

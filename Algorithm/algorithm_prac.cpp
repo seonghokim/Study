@@ -5304,27 +5304,254 @@ int NumberOfPainter(vector<int>& arr, int n, int len){
     }
     return painter;
 }
-int PainterPartition(vector<int>& arr, int k){
+int PainterPartition(vector<int>& arr, int k){// O(n log (sum(arr)))
     int n = arr.size();
     int l = GetMaxValue(arr, n);
     int h = GetSumOfArray(arr, n);
     while(l < h){
         int mid = (l + h) >> 1;
         int painter = NumberOfPainter(arr, n, mid);
-        if(painter <= k)
-            h = mid;
+        if(painter <= k)//if target's value is close to low value,  
+            h = mid;// Update search range closer to low 
         else
             l = mid + 1;
     }
     return l;
 }
 
+// Square Root of Integer
+int SquareRoot_Naive(int x){// O(sqrt(x))
+    if(x == 0 || x == 1)
+        return x;
+    int i = 1, res = 1;
+    while(res <= x){
+        i++;
+        res = i * i;
+    }
+    return i-1;
+}
+int SquareRoot_BinarySearch(int x){// O(log x)
+    if(x == 0 || x == 1)
+        return x;
+    int s = 1, e = x/2, ans;
+    while(s <= e){
+        int mid = (s+e) >> 1;
+        int sqr = mid * mid;
+        if(sqr == x)
+            return mid;
+        if(sqr <= x){
+            s = mid + 1;
+            ans = mid;
+        }
+        else
+            e = mid - 1;
+    }
+    return ans;
+}
+int SquareRoot_BuiltIn(int x){// O(log x)
+    return sqrt(x); 
+}
+int SquareRoot_Exponential(int x){// O(1)
+    double res = exp(log(x)/2);
+    return floor(res);
+}
+
+// Find frequency of each element in a limited range array in less than O(n) time
+void FindFrequency_Naive(vector<int>& arr){// O(n)
+    int n = arr.size();
+    int freq = 1, idx = 1;
+    while(idx < n){
+        if(arr[idx-1] == arr[idx])
+            freq++, idx++;
+        else{
+            cout << arr[idx-1] << " " << freq << endl;
+            freq = 1, idx++;
+        }
+    }
+    cout << arr[idx-1] << " " << freq << endl;
+}
+void FindFrequency_Hash(vector<int>& arr){// O(n)
+    unordered_map<int, int> m;
+    int n = arr.size();
+    for(int i=0; i<n; i++)
+        m[arr[i]]++;
+    for(auto k : m)
+        cout << k.first << " " << k.second << endl;
+}
+void FindFrequency_BinarySearch(vector<int>& arr, int low, int high, vector<int>& freq){
+    if(arr[low] == arr[high])
+        freq[arr[low]] += high - low + 1;
+    else{
+        int mid = (low + high) >> 1;
+        FindFrequency_BinarySearch(arr, low, mid, freq);
+        FindFrequency_BinarySearch(arr, mid+1, high, freq);
+    }
+}
+
+// Tiling Problem using Divide & Conquer
+int count_tile = 0;
+void PlaceTileOnBoard(vector<vector<int>>& board, int x1, int y1, int x2, int y2, int x3, int y3){
+    count_tile++;
+    board[x1][y1] = board[x2][y2] = board[x3][y3] = count_tile;
+}
+int TilingBoard(vector<vector<int>>& board, int n, int x, int y){
+    int r, c;
+    if(n == 2){
+        count_tile++;
+        for(int i=0; i<n; i++)
+            for(int j=0; j<n; j++)
+                if(board[x+i][y+j] == 0)
+                    board[x+i][y+j] = count_tile;
+        return 0;
+    }
+    for(int i=x; i<x+n; i++)
+        for(int j=y; j<y+n; j++)
+            if(board[i][j] != 0)
+                r = i, c = j;
+    // L tile's quadrant
+    //  1 2
+    //  3 4
+    if(r<x+n/2 && c < y+n/2)// missing tile on quadrant 1
+        PlaceTileOnBoard(board, x+n/2, y+n/2-1, x+n/2, y+n/2, x+n/2-1, y+n/2);
+    else if(r >= x+n/2 && c < y+n/2)// missing tile on quadrant 2
+        PlaceTileOnBoard(board, x+n/2-1, y+n/2, x+n/2, y+n/2, x+n/2-1, y+n/2-1);
+    else if(r < x+n/2 && c >= y+n/2)// missing tile on quadrant 3
+        PlaceTileOnBoard(board, x+n/2, y+n/2-1, x+n/2, y+n/2, x+n/2-1, y+n/2-1);
+    else if(r >= x+n/2 && c>= y+n/2)// missing tile on quadrant 4
+        PlaceTileOnBoard(board, x+n/2-1, y+n/2, x+n/2, y+n/2-1, x+n/2-1, y+n/2-1);
+    
+    TilingBoard(board, n/2, x, y);//Quadrant 1
+    TilingBoard(board, n/2, x+n/2, y);//Quadrant 2
+    TilingBoard(board, n/2 , x, y+n/2);//Quadrant 3
+    TilingBoard(board, n/2, x+n/2, y+n/2);//Quadrant 4
+    return 0;
+}
+
+// Skyline Problem
+struct Building{
+    int left, height, right;
+};
+class Strip{
+    int left, height;
+public:
+    Strip(int l = 0, int h = 0){
+        left = l;
+        height = h;
+    }
+    friend class Skyline;
+};
+class Skyline{
+    Strip* arr;
+    int cap;
+    int n;
+public:
+    Skyline(int c){
+        cap = c;
+        arr = new Strip[c];
+        n = 0;
+    }
+    ~Skyline() {delete[] arr;}
+    int count() {return n;}
+    Skyline* Merge(Skyline* other){
+        Skyline* res = new Skyline(this->n + other->n);
+        int h1 = 0, h2 = 0;
+        int i = 0, j = 0;
+        while(i < this->n && j < other->n){
+            if(this->arr[i].left < other->arr[j].left){
+                int x1 = this->arr[i].left;
+                h1 = this->arr[i].height;
+                int maxh = max(h1, h2);
+                res->Append(new Strip(x1, maxh));
+                i++;
+            }
+            else{
+                int x2 = other->arr[j].left;
+                h2 = other->arr[j].height;
+                int maxh = max(h1, h2);
+                res->Append(new Strip(x2, maxh));
+                j++;
+            }
+        }
+        while(i < this->n){
+            res->Append(&arr[i]);
+            i++;
+        }
+        while(j < other->n){
+            res->Append(&other->arr[j]);
+            j++;
+        }
+        return res;
+    }
+    void Append(Strip* st){
+        if(n > 0 && arr[n-1].height == st->height)
+            return;
+        if(n > 0 && arr[n-1].left == st->left){
+            arr[n-1].height = max(arr[n-1].height, st->height);
+            return;
+        }
+        arr[n] = *st;
+        n++;
+    }
+    void Print(){
+        for(int i=0; i<n; i++)
+            cout << "(" << arr[i].left << "," << arr[i].height << ")\n";
+    }
+};
+Skyline* FindSkyline(vector<Building> arr, int l, int h){
+    if(l == h){
+        Skyline* res = new Skyline(2);
+        res->Append(new Strip(arr[l].left, arr[l].height));
+        res->Append(new Strip(arr[l].right, 0));
+        return res;
+    }
+    int mid = (l + h) / 2;
+    Skyline* sl = FindSkyline(arr, l, mid);
+    Skyline* sr = FindSkyline(arr, mid+1, h);
+    Skyline* res = sl->Merge(sr);
+    delete sl;
+    delete sr;
+    return res;
+}
+
+void Create_Skyline(vector<vector<int>>& b){
+    int n = b.size();
+    vector<pair<int, int>> wall;
+    int l, h, r;
+    for(int i=0; i<n; i++){
+        l = b[i][0];
+        h = b[i][1];
+        r = b[i][2];
+        wall.push_back({l, -h});
+        wall.push_back({r, h});
+    }
+    sort(wall.begin(), wall.end());
+    vector<pair<int, int>> skyline;
+    multiset<int> wall_left_h = {0};
+    int top = 0;
+    for(auto w : wall){
+        if(w.second < 0)
+            wall_left_h.insert(-w.second);
+        else
+            wall_left_h.erase(wall_left_h.find(w.second));
+        if(*wall_left_h.rbegin() != top){
+            top = *wall_left_h.rbegin();
+            skyline.push_back(make_pair(w.first, top));
+        }
+    }
+    for(auto k: skyline)
+        cout << "(" << k.first << "," << k.second << ")\n";
+}
+
+
+
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<int> a = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int k = 3;
-    cout << PainterPartition(a, k) << endl;
+    vector<vector<int>> arr = {
+        {1, 11, 5}, {2, 6, 7}, {3, 13, 9},
+        {12, 7, 16}, {14, 3, 25}, {19, 18, 22},
+        {23, 13, 29}, {24, 4, 28}};
+    Create_Skyline(arr);
     return 0;
 }
 
