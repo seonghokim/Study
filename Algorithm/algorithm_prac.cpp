@@ -5542,16 +5542,82 @@ void Create_Skyline(vector<vector<int>>& b){
         cout << "(" << k.first << "," << k.second << ")\n";
 }
 
+// Search in a row-wise and column-wise sorted 2D array
+void SearchAllSorted(vector<vector<int>>& mat, int sr, int er, int sc, int ec, int key){
+    int i = (sr + er) >> 1;
+    int j = (sc + ec) >> 1;
+    if(mat[i][j] == key)
+        cout << key << "," << i<< ", " << j << endl;
+    else{
+        if(i != er || j != sc)
+            SearchAllSorted(mat, sr, i, j, ec, key);
+        if(sr == er && sc + 1 == ec && mat[sr][ec] == key)
+            cout << key << "," << sr<< ", " << ec << endl;
+        if(mat[i][j] < key && i+1 <= er)
+            SearchAllSorted(mat, i+1, er, sc, ec, key);
+        else if(j-1 >= sc)
+            SearchAllSorted(mat, sr, er, sc, j-1, key);
+    }
+}
+bool SearchAllSorted_BinarySearch(vector<vector<int>>& mat, int r, int l, int h, int key){
+    while(l <= h){
+        int mid = (l + h) >> 1;
+        if(mat[r][mid] == key)
+            return true;
+        else if(mat[r][mid] < key)
+            l = mid + 1;
+        else
+            h = mid - 1;
+    }
+    return false;
+}
+void SearchAllSorted(vector<vector<int>>& mat, int key){// O(r log c)
+    int r = mat.size();
+    int c = mat[0].size();
+    for(int i=0; i<r; i++){
+        if(mat[i][0] <= key && mat[i][c-1] >= key)
+            if(SearchAllSorted_BinarySearch(mat, i, 0, c-1, key)){
+                cout << key <<"," << i << endl;
+            return;
+            }
+    }
+    cout << "Not found\n";
+}
+int SearchAllSorted_Fast(vector<vector<int>>& mat, int key){// O(n)
+    int n = mat.size();
+    if(n == 0)
+        return -1;
+    int small = mat[0][0], large = mat[n-1][n-1];
+    if(key < small || key > large)
+        return -1;
+    int i = 0, j = n-1;
+    while(i < n & j >= 0){
+        if(mat[i][j] == key){
+            cout << i << "," << j << endl;
+            return 1;
+        }
+        if(mat[i][j] > key)
+            j--;
+        else
+            i++;
+    }
+    cout << "Not found\n";
+    return 0;
+}
 
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<vector<int>> arr = {
-        {1, 11, 5}, {2, 6, 7}, {3, 13, 9},
-        {12, 7, 16}, {14, 3, 25}, {19, 18, 22},
-        {23, 13, 29}, {24, 4, 28}};
-    Create_Skyline(arr);
+    vector<vector<int>> mat = {
+        {10, 20, 30, 40},
+        {15, 25, 35, 45},
+        {27, 29, 37, 48},
+        {32, 33, 39, 50}
+    };
+    int size = mat.size();
+    int key = 50;
+    SearchAllSorted_Fast(mat, key);
     return 0;
 }
 

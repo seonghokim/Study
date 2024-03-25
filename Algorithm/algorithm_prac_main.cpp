@@ -1193,8 +1193,18 @@
         {23, 13, 29}, {24, 4, 28}};
     Create_Skyline(arr); */
 
-
-
+// Search in a row-wise and column-wise sorted 2D array
+/*     vector<vector<int>> mat = {
+        {10, 20, 30, 40},
+        {15, 25, 35, 45},
+        {27, 29, 37, 48},
+        {32, 33, 39, 50}
+    };
+    int size = mat.size();
+    int key = 50;
+    for(int i=0; i<size; i++)
+        for(int j=0; j<size; j++)
+            SearchAllSorted(mat, 0, size-1, 0, size-1, mat[i][j]); */
 
 
 
