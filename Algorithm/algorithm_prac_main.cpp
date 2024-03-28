@@ -1215,11 +1215,17 @@
     int key = 50;
     SearchAllSorted_Fast(mat, key); */
 
+// Check if point lies inside polygon
+/*     Point point = { 150, 85 };
+    vector<Point> polygon = {
+        { 186, 14 }, { 186, 44 }, { 175, 115 }, { 175, 85 }
+    };
+    cout << Point_in_polygon(point, polygon); */
 
-
-
-
-
+// Optimum Location of Point to Minimize Total Distance
+/*     Line l(1, -1, -3);
+    int points[5][2] = {{-3,-2}, {-1, 0}, {-1,2}, {1,2}, {3,4}};
+    cout << OptimalPoint(points, l); */
 
 
 

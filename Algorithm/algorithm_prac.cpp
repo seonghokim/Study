@@ -10,6 +10,7 @@ using namespace std;
 #define endl "\n"
 #define ALPHABET 26
 #define CHAR_SIZE 256
+#define EPS 1e-6
 
 /* void EvenOddCompare(long n);
 void SumOfEachEvenOddNum(long n);
@@ -4998,10 +4999,27 @@ vector<pair<int, int>> Divide(vector<pair<int, int>> a){// O(n log n)
     vector<pair<int, int>> right_hull = Divide(right);
     return Merger(left_hull, right_hull);
 }
+vector<pair<int, int>> RemovePoint(vector<pair<int, int>> a, vector<pair<int, int>> hull, pair<int, int> p){
+    bool found = false;
+    for(int i=0; i<hull.size() && !found; i++)
+        if(hull[i].first == p.first && hull[i].second == p.second)
+            found = true;
+    if(found == 0)
+        return hull;
+    for(int i=0; i<a.size(); i++)
+        if(a[i].first == p.first && a[i].second == p.second){
+            a.erase(a.begin()+i);
+            break;
+        }
+    sort(a.begin(), a.end());
+    return Divide(a);
+}
 
 // Jarvis's Convex Hull
 struct Point{
     int x, y;
+    Point(){}
+    Point(int x, int y): x(x), y(y) {}
 };
 int Orientation(Point p, Point q, Point r){
     int val = (q.y-p.y)*(r.x-q.x) - (q.x-p.x)*(r.y-q.y);
@@ -5605,19 +5623,73 @@ int SearchAllSorted_Fast(vector<vector<int>>& mat, int key){// O(n)
     return 0;
 }
 
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ------------------------------- Geometric ------------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+
+// Check if point lies inside polygon
+bool Point_in_polygon(Point point, vector<Point> polygon){
+    int num_vertices = polygon.size();
+    double x = point.x, y = point.y;
+    bool inside = false;
+    Point p1 = polygon[0], p2;
+    for (int i = 1; i <= num_vertices; i++){
+        p2 = polygon[i % num_vertices];
+        if (y > min(p1.y, p2.y) && y <= max(p1.y, p2.y) && x <= max(p1.x, p2.x)) {
+                    double x_intersection = (y - p1.y) * (p2.x - p1.x) / (p2.y - p1.y) + p1.x;
+                    if (p1.x == p2.x || x <= x_intersection)
+                        inside = !inside;
+        }
+        p1 = p2;
+    }
+    return inside;
+}
+
+// Optimum Location of Point to Minimize Total Distance
+struct Line{
+    int a, b, c;
+    Line(int a, int b, int c) : a(a), b(b), c(c){}
+};
+double Line_Distance(double x, double y, Point p){
+    return sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y));
+}
+double Compute_TotalDistance(Point p[], int n, Line l, double x){
+    double res = 0;
+    double y = -1 * (l.c + l.a * x) / l.b;
+    for(int i=0; i<n; i++)
+        res += Line_Distance(x, y, p[i]);
+    return res;
+}
+double OptimalPoint_TernarySearch(Point p[], int n, Line l){
+    double low = -1e6;
+    double high = 1e6;
+    while((high-low) > EPS){
+        double mid1 = (2*low+high)/3;
+        double mid2 = (low+2*high)/3;
+        double dist1 = Compute_TotalDistance(p, n, l, mid1);
+        double dist2 = Compute_TotalDistance(p, n, l, mid2);
+        if(dist1 < dist2)
+            high = mid2;
+        else
+            low = mid1;
+    }
+    return Compute_TotalDistance(p, n, l, (low+high)/2);
+}
+double OptimalPoint(int points[5][2], Line l){
+    Point p[5];
+    for(int i=0; i<5; i++)
+        p[i] = Point(points[i][0], points[i][1]);
+    return OptimalPoint_TernarySearch(p, 5, l);
+}
 
 int main(void){
     ios::sync_with_stdio(0);
 	cin.tie(0);
-    vector<vector<int>> mat = {
-        {10, 20, 30, 40},
-        {15, 25, 35, 45},
-        {27, 29, 37, 48},
-        {32, 33, 39, 50}
-    };
-    int size = mat.size();
-    int key = 50;
-    SearchAllSorted_Fast(mat, key);
+    Line l(1, -1, -3);
+    int points[5][2] = {{-3,-2}, {-1, 0}, {-1,2}, {1,2}, {3,4}};
+    cout << OptimalPoint(points, l);
     return 0;
 }
 
