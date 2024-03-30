@@ -1227,8 +1227,16 @@
     int points[5][2] = {{-3,-2}, {-1, 0}, {-1,2}, {1,2}, {3,4}};
     cout << OptimalPoint(points, l); */
 
-
-
+// CAPTCHA
+/*     string result = GenerateCaptcha(9);
+    cout << result << endl;
+    string input;
+    cout << "Enter above CAPTCHA: ";
+    cin >> input;
+    if(CheckCaptcha(result, input))
+        cout << "Matched!\n";
+    else
+        cout << "Not Matched :(\n"; */
 
 
 

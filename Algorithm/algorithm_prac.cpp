@@ -5648,48 +5648,73 @@ bool Point_in_polygon(Point point, vector<Point> polygon){
 }
 
 // Optimum Location of Point to Minimize Total Distance
-struct Line{
+struct Line{// ax+by+c = 0
     int a, b, c;
     Line(int a, int b, int c) : a(a), b(b), c(c){}
 };
-double Line_Distance(double x, double y, Point p){
+double Line_Distance(double x, double y, Point p){// dist (x,y) from p
     return sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y));
 }
 double Compute_TotalDistance(Point p[], int n, Line l, double x){
     double res = 0;
-    double y = -1 * (l.c + l.a * x) / l.b;
+    double y = -1 * (l.c + l.a * x) / l.b;// ax + by + c = 0
     for(int i=0; i<n; i++)
-        res += Line_Distance(x, y, p[i]);
+        res += Line_Distance(x, y, p[i]);// Sum of dist for all point set
     return res;
 }
 double OptimalPoint_TernarySearch(Point p[], int n, Line l){
     double low = -1e6;
     double high = 1e6;
     while((high-low) > EPS){
-        double mid1 = (2*low+high)/3;
-        double mid2 = (low+2*high)/3;
+        double mid1 = (2*low+high)/3;// low + (high-low)/3
+        double mid2 = (low+2*high)/3;// high - (high-low)/3
         double dist1 = Compute_TotalDistance(p, n, l, mid1);
         double dist2 = Compute_TotalDistance(p, n, l, mid2);
-        if(dist1 < dist2)
+        if(dist1 < dist2)//U shape graph
             high = mid2;
         else
             low = mid1;
     }
-    return Compute_TotalDistance(p, n, l, (low+high)/2);
+    return Compute_TotalDistance(p, n, l, (low+high)/2);// average point of line(low~high)
 }
 double OptimalPoint(int points[5][2], Line l){
     Point p[5];
     for(int i=0; i<5; i++)
-        p[i] = Point(points[i][0], points[i][1]);
+        p[i] = Point(points[i][0], points[i][1]);// point(x, y)
     return OptimalPoint_TernarySearch(p, 5, l);
+}
+
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ------------------------------- Randomized -----------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+
+// CAPTCHA
+bool CheckCaptcha(string& result, string& input){
+    return result.compare(input) == 0;
+}
+string GenerateCaptcha(int n){
+    time_t t;
+    srand(unsigned(time(&t)));
+    string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    string captcha = "";
+    while(n--)
+        captcha.push_back(chars[rand()%chars.size()]);
+    return captcha;
 }
 
 int main(void){
     ios::sync_with_stdio(0);
-	cin.tie(0);
-    Line l(1, -1, -3);
-    int points[5][2] = {{-3,-2}, {-1, 0}, {-1,2}, {1,2}, {3,4}};
-    cout << OptimalPoint(points, l);
+    string result = GenerateCaptcha(9);
+    cout << result << endl;
+    string input;
+    cout << "Enter above CAPTCHA: ";
+    cin >> input;
+    if(CheckCaptcha(result, input))
+        cout << "Matched!\n";
+    else
+        cout << "Not Matched :(\n";
     return 0;
 }
 
