@@ -123,7 +123,7 @@ int main()
 
 // C++ program to implement wildcard
 // pattern matching algorithm
-#include <bits/stdc++.h>
+/* #include <bits/stdc++.h>
 using namespace std;
 
 // Function that matches input str with
@@ -203,4 +203,4 @@ int main()
 		cout << "No" << endl;
 
 	return 0;
-}
+} */

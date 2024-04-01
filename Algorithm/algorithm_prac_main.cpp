@@ -1238,15 +1238,33 @@
     else
         cout << "Not Matched :(\n"; */
 
+// Randomized Binary Search
+/*     vector<int> arr = {2, 3, 4, 10, 40};
+    int n = arr.size();
+    int key = 10;
+    cout << RnadomizedBinarySearch_Iterative(arr, 0, n-1, key); */
 
+// Strong Password Suggester
+/*     string input = "Hello@123";
+    srand(time(NULL));
+    JudgePassword(input); */
 
-
-
-
-
-
-
-
+// Karger's algorithm for minimum cut
+/*     int v = 4;
+    int e = 5;
+    PureGraph* g = CreatePureGraph(v, e);
+    g->edge[0].src = 0;
+    g->edge[0].dest = 1;
+    g->edge[1].src = 0;
+    g->edge[1].dest = 2;
+    g->edge[2].src = 0;
+    g->edge[2].dest = 3;
+    g->edge[3].src = 1;
+    g->edge[3].dest = 3;
+    g->edge[4].src = 2;
+    g->edge[4].dest = 3;
+    srand(time(NULL));
+    cout << KargerMinCut(g) << endl; */
 
 
 

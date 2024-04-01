@@ -5704,17 +5704,173 @@ string GenerateCaptcha(int n){
     return captcha;
 }
 
+// Randomized Binary Search
+int GetRandom(int x, int y){
+    srand(time(NULL));
+    return (x + rand() % (y-x+1));
+}
+int RnadomizedBinarySearch_Recursion(vector<int>& arr, int l, int r, int key){
+    if(l <= r){
+        int mid = GetRandom(l, r);
+        if(arr[mid] == key)
+            return mid;
+        if(arr[mid] > key)
+            return RnadomizedBinarySearch_Recursion(arr, l, mid-1, key);
+        return RnadomizedBinarySearch_Recursion(arr, mid+1, r, key);
+    }
+    return -1;
+}
+int RnadomizedBinarySearch_Iterative(vector<int>& arr, int l, int r, int key){
+    while(l <= r){
+        int mid = GetRandom(l, r);
+        if(arr[mid] == key)
+            return mid;
+        if(arr[mid] < key)
+            l = mid + 1;
+        else
+            r = mid - 1;
+    }
+    return -1;
+}
+
+// Strong Password Suggester
+string AddCharToPassword(string str, int need){
+    int pos = 0;
+    string low = "abcdefghijklmnopqrstuvwxyz";
+    for(int i=0; i<need; i++){
+        pos = rand() % str.size();
+        str.insert(pos, 1, low[rand() % 26]);
+    }
+    return str;
+}
+string PasswordSuggester(int l, int u, int d, int s, string str){
+    string num = "0123456789";
+    string low = "abcdefghijklmnopqrstuvwxyz";
+    string up = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    string special = "@#$_()!";
+    int pos = 0;
+    if(l == 0){
+        pos = rand() % str.size();
+        str.insert(pos, 1, low[rand() % 26]);
+    }
+    if(u == 0){
+        pos = rand() % str.size();
+        str.insert(pos, 1, up[rand() % 26]);
+    }
+    if(d == 0){
+        pos = rand() % str.size();
+        str.insert(pos, 1, num[rand() % 10]);
+    }
+    if(s == 0){
+        pos = rand() % str.size();
+        str.insert(pos, 1, special[rand() % 7]);
+    }
+    return str;
+}
+void JudgePassword(string p){
+    int n = p.size();
+    int strong = 8;
+    int low = 0, up = 0, special = 0, num = 0, need = 0;
+    string suggest;
+    for(int i=0; i<n; i++){
+        if(p[i] >= 97 && p[i] <=122)
+            low = 1;
+        else if(p[i] >= 65 && p[i] <= 90)
+            up = 1;
+        else if(p[i] >=48 && p[i] <= 57)
+            num = 1;
+        else
+            special = 1;
+    }
+    if(low+up+num+special == 4){
+        cout << "Strong" << endl;
+        return;
+    }
+    else
+        cout << "Suggested Password" << endl;
+    for(int i=0; i<strong; i++){
+        suggest = PasswordSuggester(low, up, num, special, p);
+        need = 8 - suggest.size();
+        if(need > 0)
+            suggest = AddCharToPassword(suggest, need);
+        cout << suggest << endl;
+    }
+}
+
+// Karger's algorithm for minimum cut
+struct PureEdge{
+    int src, dest;
+};
+struct PureGraph{
+    int v, e;
+    PureEdge* edge;
+};
+struct Subset{
+    int parent, rank;
+};
+PureGraph* CreatePureGraph(int v, int e){
+    PureGraph* g = new PureGraph;
+    g->v = v;
+    g->e = e;
+    g->edge = new PureEdge[e];
+    return g;
+}
+int Karger_Find(vector<Subset>& subset, int i){
+    if(subset[i].parent != i)
+        subset[i].parent = Karger_Find(subset, subset[i].parent);
+    return subset[i].parent;
+}
+void Karger_Union(vector<Subset>& subset, int x, int y){
+    int xroot = Karger_Find(subset, x);
+    int yroot = Karger_Find(subset, y);
+    if(subset[xroot].rank < subset[yroot].rank)
+        subset[xroot].parent = yroot;
+    else if(subset[xroot].rank > subset[yroot].rank)
+        subset[yroot].parent = xroot;
+    else{
+        subset[yroot].parent = xroot;
+        subset[xroot].rank++;
+    }
+}
+int KargerMinCut(PureGraph* g){
+    int v = g->v, e = g->e;
+    PureEdge* edge = g->edge;
+    vector<Subset> subset(v);
+    for(int i=0; i<v; i++){
+        subset[i].parent = i;
+        subset[i].rank = 0;
+    }
+    int vertices = v;
+    while(vertices > 2){
+        int i = rand() % e;
+        int subset1 = Karger_Find(subset, edge[i].src);
+        int subset2 = Karger_Find(subset, edge[i].dest);
+        if(subset1 == subset2)
+            continue;
+        else{
+            cout << "Contracting Edge: " << edge[i].src << "-" << edge[i].dest << endl;
+            vertices--;
+            Karger_Union(subset, subset1, subset2);
+        }
+    }
+    int cut = 0;
+    for(int i=0; i<e; i++){
+        int subset1 = Karger_Find(subset, edge[i].src);
+        int subset2 = Karger_Find(subset, edge[i].dest);
+        if(subset1 != subset2)
+            cut++;
+    }
+    return cut;
+}
+
+
+
+
+
+
 int main(void){
     ios::sync_with_stdio(0);
-    string result = GenerateCaptcha(9);
-    cout << result << endl;
-    string input;
-    cout << "Enter above CAPTCHA: ";
-    cin >> input;
-    if(CheckCaptcha(result, input))
-        cout << "Matched!\n";
-    else
-        cout << "Not Matched :(\n";
+
     return 0;
 }
 
