@@ -2345,7 +2345,7 @@ long long int CountWaysToAssignCap(int mask, int cap, vector<int> caplist[101], 
 
 // Traverlling Salesman Problem
 vector<pair<int,int>> dirty;
-int X[] = {-1, 0, 0, 1};
+int X[] = {-1, 0, 0, 1};//top, right, left, bottom
 int Y[] = {0, 1, -1, 0};
 bool IsSafe_TravelSalesman(vector<vector<char>>& arr, int x, int y, int r, int c){
     if(x >= r || y >= c || x < 0 || y < 0 )
@@ -5863,14 +5863,191 @@ int KargerMinCut(PureGraph* g){
     return cut;
 }
 
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ----------------------------- Branch & Bound ---------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
+// 0/1 Knapsack
+struct KnapsackItem{
+    float weight;
+    int val;// = profit
+};
+struct KnapsackNode{
+    // level = level of node in tree / index in arr
+    // bound = upper bound of max profit in subtree of cur node
+    int level, profit, bound;
+    float weight;
+};
+bool CompareKnapsackItem(KnapsackItem a, KnapsackItem b){
+    // val / weight => max profit per unit weight 1 
+    double r1 = (double)a.val / a.weight;
+    double r2 = (double)b.val / b.weight;
+    return r1 > r2;
+}
+int KnapsackBound(KnapsackNode cur, int n, int w, vector<KnapsackItem> arr){
+    if(cur.weight >= w)//overflow knapsack capacity
+        return 0;
+    int profit_bound = cur.profit;
+    int j = cur.level + 1;//cur node's sub node's index
+    int total_weight = cur.weight;
+    while((j < n) && (total_weight + arr[j].weight) <= w){
+        total_weight += arr[j].weight;
+        profit_bound += arr[j].val;
+        j++;
+    }
+    if(j < n)// if next item can't be put in knapsack, include last item partially for upper bound
+        profit_bound += (w-total_weight) * arr[j].val/arr[j].weight;
+    return profit_bound;
+}
+int Knapsack_BranchNBound(int w, vector<KnapsackItem> arr, int n){// O(n^2)
+    sort(arr.begin(), arr.end(), CompareKnapsackItem);
+    queue<KnapsackNode> q;
+    KnapsackNode u, v;// u = cur node , v = next node
+    u.level = -1;//dummy node setting
+    u.profit = u.weight = 0;
+    q.push(u);
+    int max_profit = 0;
+    while(!q.empty()){
+        u = q.front();
+        q.pop();
+        if(u.level == -1)
+            v.level = 0;
+        if(u.level == n-1)
+            continue;
+        v.level = u.level + 1;//next node's level is increasing according to repetition of while statement
+        v.weight = u.weight + arr[v.level].weight;// if we select next node
+        v.profit = u.profit + arr[v.level].val;
+        if(v.weight <= w && v.profit > max_profit)
+            max_profit = v.profit;
+        v.bound = KnapsackBound(v, n, w, arr);
+        if(v.bound > max_profit)
+            q.push(v);
+        v.weight = u.weight;//if we don't select next node(level is increasing regardless of whether next node is selected or not)
+        v.profit = u.profit;
+        v.bound = KnapsackBound(v, n, w, arr);
+        if(v.bound > max_profit)
+            q.push(v);
+    }
+    return max_profit;
+}
 
+// 8 Puzzle
+struct PuzzleNode{
+    PuzzleNode* parent;
+    int mat[3][3];
+    int x, y, cost, level;
+};
+void Print8Puzzle(int mat[3][3]){
+    for(int i=0; i<3; i++, cout << endl)
+        for(int j=0; j<3; j++)
+            cout << mat[i][j] << " ";
+}
+PuzzleNode* CreatePuzzleNode(int mat[3][3], int x, int y, int x_new, int y_new, int level, PuzzleNode* parent){
+    PuzzleNode* node = new PuzzleNode;//x and y is coordinate of blank tile
+    node->parent = parent;
+    memcpy(node->mat, mat, sizeof(node->mat));
+    swap(node->mat[x][y], node->mat[x_new][y_new]);//move tile 1 pos()
+    node->cost = INT_MAX;
+    node->level = level;
+    node->x = x_new;
+    node->y = y_new;
+    return node;
+}
+int x_dir[] = {1, 0, -1, 0};//bottom, left, top, right;
+int y_dir[] = {0, -1, 0, 1}; 
+int CalcCostOfPuzzle(int input[3][3], int output[3][3]){
+    int count = 0;
+    for(int i=0; i<3; i++)
+        for(int j=0; j<3; j++)
+            if(input[i][j] && input[i][j] != output[i][j])
+                count++;
+    return count;
+}
+bool IsTileMoveSafe(int x, int y){
+    return (x >= 0 && x < 3 && y >= 0 && y < 3);
+}
+void PrintPuzzleMovementPath(PuzzleNode* cur){
+    if(cur == NULL)
+        return;
+    PrintPuzzleMovementPath(cur->parent);//trace until arriving root node
+    Print8Puzzle(cur->mat);//Print matrix progress from root to goal node 
+    cout << endl;
+}
+struct ComparePuzzleCost{
+    bool operator()(const PuzzleNode* l, const PuzzleNode* r)const{
+        return (l->cost + l->level) > (r->cost + r->level);
+    }
+};
+void EightPuzzle(int input[3][3], int output[3][3], int x, int y){
+    priority_queue<PuzzleNode*, vector<PuzzleNode*>, ComparePuzzleCost> pq;
+    PuzzleNode* root = CreatePuzzleNode(input, x, y, x, y, 0, NULL);
+    root->cost = CalcCostOfPuzzle(input, output);
+    pq.push(root);
+    while(!pq.empty()){
+        PuzzleNode* min = pq.top();
+        pq.pop();
+        if(min->cost == 0){
+            PrintPuzzleMovementPath(min);
+            return;
+        }
+        for(int i=0; i<4; i++){
+            if(IsTileMoveSafe(min->x + x_dir[i], min->y + y_dir[i])){
+                PuzzleNode* child = CreatePuzzleNode(min->mat, min->x, min->y, min->x+x_dir[i], min->y+y_dir[i], min->level+1, min);
+                child->cost = CalcCostOfPuzzle(child->mat, output);
+                pq.push(child);
+            }
+        }
+    }
+}
 
+// N Queen
+void PrintNQueen(vector<vector<int>>& board){
+    int n = board.size();
+    for(int i=0; i<n; i++, cout << endl)
+        for(int j=0; j<n; j++)
+            cout << board[i][j] << " ";
+}
+bool IsNQueenSafe(int r, int c, vector<bool>& rows, vector<bool>& ld, vector<bool>& rd){
+    int n = rows.size();
+    if(rows[r] == true || ld[r+c] == true || rd[r-c+n-1] == true)
+        return false;
+    return true;
+}
+bool NQueen_BNB(vector<vector<int>>& board, int c, vector<bool>& rows, vector<bool>& ld, vector<bool>& rd){
+    int n = board.size();
+    // number of diagonal = 2*n -1
+    // slash diagonal = row + col [left up = 0, right up = 7]
+    // backslash diagonal = row + (n-1) - col [left up = 7, right up = 0]
+    if(c >= n)
+        return true;
+    for(int i=0; i<n; i++){
+        if(IsNQueenSafe(i, c, rows, ld, rd) == true){
+            rows[i] = ld[i+c] = rd[i-c+n-1] = true;
+            board[i][c] = 1;
+            if(NQueen_BNB(board, c+1, rows, ld, rd) == true)
+                return true;
+            rows[i] = ld[i+c] = rd[i-c+n-1] = false;//backtracking, //remove if fail path
+            board[i][c] = 0;//remove if fail path
+        }
+    }
+    return false;
+}
 
 
 int main(void){
     ios::sync_with_stdio(0);
-
+    int n = 8;
+    vector<vector<int>> board(n, vector<int>(n, 0));
+    vector<bool> rows(n, false);
+    vector<bool> ld(2*n-1, false);
+    vector<bool> rd(2*n-1, false);
+    bool res = NQueen_BNB(board, 0, rows, ld, rd);
+    if(res == true)
+        PrintNQueen(board);
+    else
+        cout << "Not Exists" << endl;
     return 0;
 }
 

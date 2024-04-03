@@ -1266,14 +1266,42 @@
     srand(time(NULL));
     cout << KargerMinCut(g) << endl; */
 
+// 0/1 Knapsack Using Brach and Bound
+/*     int w = 50;
+    vector<KnapsackItem> arr = {{ 10, 60 }, { 20, 100 }, { 30, 120 }};
+    int n = arr.size();
+    cout << Knapsack_BranchNBound(w, arr, n);
+    cout << endl;
+    int W = 50;
+    Item arr2[] = { { 60, 10 }, { 100, 20 }, { 120, 30 } };
+    int N = sizeof(arr2) / sizeof(arr2[0]);
+    cout << FractionalKnapSack(W, arr2, N); */
 
+// 8 Puzzle
+/*     int input[3][3] = {
+        {1, 2, 3},
+        {5, 6, 0},
+        {7, 8, 4}
+    };
+    int output[3][3] = {
+        {1, 2, 3},
+        {5, 8, 6},
+        {0, 7, 4}
+    };
+    int x = 1, y = 2;
+    EightPuzzle(input, output, x, y); */
 
-
-
-
-
-
-
+// N Queen
+/*     int n = 5;
+    vector<vector<int>> board(n, vector<int>(n, 0));
+    vector<bool> rows(n, false);
+    vector<bool> ld(2*n-1, false);
+    vector<bool> rd(2*n-1, false);
+    bool res = NQueen_BNB(board, 0, rows, ld, rd);
+    if(res == true)
+        PrintNQueen(board);
+    else
+        cout << "Not Exists" << endl; */
 
 
 
