@@ -6035,19 +6035,296 @@ bool NQueen_BNB(vector<vector<int>>& board, int c, vector<bool>& rows, vector<bo
     return false;
 }
 
+// Traveling Salesman
+void CopyTravelingPath(vector<int>& cur_path, vector<int>& final_path){
+    int n = cur_path.size() - 1;
+    for(int i=0; i<n; i++)
+        final_path[i] = cur_path[i];
+    final_path[n] = cur_path[0];
+}
+int GetFirstMinCostFromVertex(vector<vector<int>>& adj, int i){
+    int n = adj.size();
+    int min_val = INT_MAX;
+    for(int k=0; k<n; k++)
+        if(adj[i][k] < min_val && i != k)
+            min_val = adj[i][k];
+    return min_val;
+}
+int GetSecondMinCostFromVertex(vector<vector<int>>& adj, int i){
+    int n = adj.size();
+    int first = INT_MAX, second = INT_MAX;
+    for(int j=0; j<n; j++){
+        if(i == j)
+            continue;
+        if(adj[i][j] <= first){
+            second = first;
+            first = adj[i][j];
+        }
+        else if(adj[i][j] <= second && adj[i][j] != first)
+            second = adj[i][j];
+    }
+    return second;
+}
+void TravelingSalesman_BNB_Calc(vector<vector<int>>& adj, int cur_bound, int cur_weight, int level, vector<int>& cur_path, vector<int>& final_path, vector<bool>& visited){
+    int n = adj.size();
+    if(level == n){// base case
+        if(adj[cur_path[level-1]][cur_path[0]] != 0){// if last node is connected start node
+            int cur_res = cur_weight + adj[cur_path[level-1]][cur_path[0]];// update total weight
+            if(cur_res < final_path[n+1]){
+                CopyTravelingPath(cur_path,final_path);//change path
+                final_path[n+1] = cur_res;//update min cost
+            }
+        }
+        return;
+    }
+    for(int i=0; i<n; i++){
+        if(adj[cur_path[level-1]][i] != 0 && visited[i] == false){// if we don't visit node
+            int temp = cur_bound;
+            cur_weight += adj[cur_path[level-1]][i];
+            if(level == 1)
+                cur_bound -= (GetFirstMinCostFromVertex(adj, cur_path[level-1])+GetFirstMinCostFromVertex(adj, i)) / 2;
+            else
+                cur_bound -= (GetSecondMinCostFromVertex(adj, cur_path[level-1]) + GetFirstMinCostFromVertex(adj, i)) / 2;
+            if(cur_bound + cur_weight < final_path[n+1]){
+                cur_path[level] = i;
+                visited[i] = true;
+                TravelingSalesman_BNB_Calc(adj, cur_bound, cur_weight, level+1, cur_path, final_path, visited);
+            }
+            cur_weight -= adj[cur_path[level-1]][i];
+            cur_bound = temp;
+            fill(visited.begin(), visited.end(), false);
+            for(int j=0; j<= level-1; j++)
+                visited[cur_path[j]] = true;
+        }
+    }
+}
+vector<int> TravelingSalesman_BNB(vector<vector<int>>& adj){
+    int n = adj.size();
+    vector<int> cur_path(n+1, -1);
+    int cur_bound = 0;
+    vector<bool> visited(n, false);
+    vector<int> final_path(n+2, 0);// final_path[n+1] = final_result(=min cost)
+    final_path[n+1] = INT_MAX;
+    for(int i=0; i<n; i++)
+        cur_bound += GetFirstMinCostFromVertex(adj, i) + GetSecondMinCostFromVertex(adj, i);
+    cur_bound = (cur_bound & 1) ? (cur_bound >> 1) + 1 : cur_bound >> 1;
+    visited[0] = true;
+    cur_path[0] = 0;
+    TravelingSalesman_BNB_Calc(adj, cur_bound, 0, 1, cur_path, final_path, visited);
+    return final_path;
+}
+
+// Traverling Salesman Using Reduced Matrix Method
+const int travel_size = 4;
+struct TravelNode{
+    vector<pair<int, int>> path;
+    int rmat[travel_size][travel_size];
+    int cost, vertex, level;// cost: lower bound, vertex: cur city, level: number of visited city
+};
+TravelNode* CreateTravelNode(int mat[travel_size][travel_size], vector<pair<int,int>> const& path, int level, int i, int j){
+    TravelNode* node = new TravelNode;
+    node->path = path;
+    if(level != 0)
+        node->path.push_back({i, j});
+    memcpy(node->rmat, mat, sizeof(node->rmat));
+    for(int k=0; level != 0 && k < travel_size; k++){
+        node->rmat[i][k] = INF;// set row to INF(by moving col)
+        node->rmat[k][j] = INF;// set col to INF(by moving row)
+    }
+    node->rmat[j][0] = INF;
+    node->level = level;
+    node->vertex = j;
+    return node;
+}
+int RowReduction(int rmat[travel_size][travel_size], int row[travel_size]){
+    fill_n(row, travel_size, INF);
+    for(int i=0; i<travel_size; i++)
+        for(int j=0; j<travel_size; j++)
+            if(rmat[i][j] < row[i])
+                row[i] = rmat[i][j];// get min val of each row
+    for(int i=0; i<travel_size; i++)
+        for(int j=0; j<travel_size; j++)
+            if(rmat[i][j] != INF && row[i] != INF)
+                rmat[i][j] -= row[i];
+    return 0;
+}
+int ColReduction(int rmat[travel_size][travel_size], int col[travel_size]){
+    fill_n(col, travel_size, INF);
+    for(int i=0; i<travel_size; i++)
+        for(int j=0; j<travel_size; j++)
+            if(rmat[i][j] < col[j])
+                col[j] = rmat[i][j];//get min val of each col
+    for(int i=0; i<travel_size; i++)
+        for(int j=0; j<travel_size; j++)
+            if(rmat[i][j] != INF && col[j] != INF)
+                rmat[i][j] -= col[j];
+    return 0;
+}
+int CalcTravelCost(int rmat[travel_size][travel_size]){
+    int cost = 0;
+    int row[travel_size];
+    int col[travel_size];
+    RowReduction(rmat, row);
+    ColReduction(rmat, col);
+    for(int i=0; i<travel_size; i++)
+        cost += (row[i] != INF) ? row[i] : 0, cost += (col[i] != INF) ? col[i] : 0;
+    return cost;
+}
+void PrintTravelPath(vector<pair<int,int>> const& list){
+    for(int i=0; i<list.size(); i++)
+        cout << list[i].first + 1 << "->" << list[i].second + 1 << endl;
+}
+struct Min_Heap{
+    bool operator()(const TravelNode* l, const TravelNode* r) const{
+        return l->cost > r->cost;
+    }
+};
+int TravelSalesman_ReducedMatrix(int mat[travel_size][travel_size]){
+    priority_queue<TravelNode*, vector<TravelNode*>, Min_Heap> pq;// cost sort by ascending order
+    vector<pair<int, int>> v;
+    TravelNode* root = CreateTravelNode(mat, v, 0, -1, 0);
+    root->cost = CalcTravelCost(root->rmat);
+    pq.push(root);
+    while(!pq.empty()){
+        TravelNode* min = pq.top();
+        pq.pop();
+        int i = min->vertex;
+        if(min->level == travel_size - 1){
+            min->path.push_back({i, 0});
+            PrintTravelPath(min->path);
+            return min->cost;
+        }
+        for(int j=0; j<travel_size; j++){
+            if(min->rmat[i][j] != INF){
+                TravelNode* child = CreateTravelNode(min->rmat, min->path, min->level + 1, i , j);
+                child->cost = min->cost + min->rmat[i][j] + CalcTravelCost(child->rmat);
+                pq.push(child);
+            }
+        }
+        delete min;
+    }
+    return 0;
+}
+
+
+// Job Assignment Problem
+const int job_num = 4;
+struct JobNode{
+    JobNode* parent;
+    int pathCost, cost, workerID, jobID;// pathcost contain cost for ancestor node including cur node
+    bool assigned[job_num];
+};
+JobNode* CreateJobNode(int x, int y, bool assigned[], JobNode* parent){
+    int n = job_num;
+    JobNode* node = new JobNode;
+    for(int i=0; i<n; i++)
+        node->assigned[i] = assigned[i];// origin code(not use vector): node->assigned[i] = assigned[i]
+    node->assigned[y] = true;
+    node->parent = parent;
+    node->workerID = x;
+    node->jobID = y;
+    return node;
+}
+int CalcJobAssignCost(vector<vector<int>>& mat, int x, int y, bool assigned[]){
+    // Calculate least cost of node after worker x is assigned to job y
+    int cost = 0;
+    int n = mat.size();
+    vector<bool> available(n, true);
+    for(int i=x+1; i<n; i++){
+        int min_val = INT_MAX, min_idx = -1;
+        for(int j=0; j<n; j++){
+            if(!assigned[j] && available[j] && mat[i][j] < min_val){
+                min_idx = j;
+                min_val = mat[i][j];
+            }
+        }
+        cost += min_val;
+        available[min_idx] = false;
+    }
+    return cost;
+}
+struct CompareJobCost{
+    bool operator()(const JobNode* l, const JobNode* r) const {
+        return l->cost > r->cost;
+    }
+};
+void PrintJobAssignment(JobNode* min){
+    if(min->parent == NULL)
+        return;
+    PrintJobAssignment(min->parent);// recursive call until root node is reached
+    cout << char(min->workerID + 'A') << ", " << min->jobID << endl;
+}
+int MinCostJobAssignment(vector<vector<int>>& mat){
+    int n = mat.size();
+    priority_queue<JobNode*, vector<JobNode*>, CompareJobCost> pq;//ascending order
+    bool assigned[job_num] = {false};
+    // Dummy Node
+    JobNode* root = CreateJobNode(-1, -1, assigned, NULL);
+    root->pathCost = root->cost = 0;
+    root->workerID = -1;
+    pq.push(root);
+    while(!pq.empty()){
+        JobNode* min = pq.top();
+        pq.pop();
+        int i = min->workerID + 1;// i is workerID
+        if(i == n){
+            PrintJobAssignment(min);
+            return min->cost;
+        }
+        for(int j=0; j<n; j++){// j is jobID
+            if(!min->assigned[j]){
+                JobNode* child = CreateJobNode(i, j, min->assigned, min);
+                child->pathCost = min->pathCost + mat[i][j];// min->pathCost is ancestor node, mat is cur node
+                child->cost = child->pathCost + CalcJobAssignCost(mat, i, j, child->assigned);
+                pq.push(child);
+            }
+        }
+    }
+}
+
+// Generate Binary Strings of Length N
+class BinaryStringNode{
+public:
+    int* sol;
+    int level;
+    vector<BinaryStringNode*> child;
+    BinaryStringNode* parent;
+    BinaryStringNode(BinaryStringNode* parent, int level, int n){
+        this->parent = parent;
+        this->level = level;
+        this->sol = new int[n];
+    }
+};
+void GenerateBinaryStringN(int &n){
+    BinaryStringNode* root = new BinaryStringNode(NULL, 0, n);
+    queue<BinaryStringNode*> q;
+    q.push(root);
+    while(!q.empty()){
+        BinaryStringNode* cur = q.front();
+        q.pop();
+        if(cur->level == n){
+            for(int i=0; i<n; i++)
+                cout << cur->sol[i];
+            cout << endl;
+        }
+        else{
+            int l = cur->level;
+            for(int i=0; i<=1; i++){// binary char consists of 0 and 1
+                BinaryStringNode* next = new BinaryStringNode(cur, l+1, n);
+                for(int k=0; k<l; k++)
+                    next->sol[k] = cur->sol[k];
+                next->sol[l] = i;// store 0 or 1 
+                cur->child.push_back(next);
+                q.push(next);
+            }
+        }
+    }
+}
 
 int main(void){
     ios::sync_with_stdio(0);
-    int n = 8;
-    vector<vector<int>> board(n, vector<int>(n, 0));
-    vector<bool> rows(n, false);
-    vector<bool> ld(2*n-1, false);
-    vector<bool> rd(2*n-1, false);
-    bool res = NQueen_BNB(board, 0, rows, ld, rd);
-    if(res == true)
-        PrintNQueen(board);
-    else
-        cout << "Not Exists" << endl;
+    int n = 3;
+    GenerateBinaryStringN(n);
     return 0;
 }
 

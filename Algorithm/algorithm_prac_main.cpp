@@ -1303,12 +1303,34 @@
     else
         cout << "Not Exists" << endl; */
 
+// Traveling Salesman
+/*     vector<vector<int>> adj = {
+        {0, 10, 15, 20},
+        {10, 0, 35, 25},
+        {15, 35, 0, 30},
+        {20, 25, 30, 0}
+    };
+    int n = adj.size();
+    vector<int> result(n+2, INT_MAX);
+    result = TravelingSalesman_BNB(adj);
+    cout << result[n+1] << endl;
+    for(int i=0; i<=n; i++)
+        cout << result[i] << " "; */
 
+// Job Assignment Problem
+/*     vector<vector<int>> mat = {
+        {9, 2, 7, 8},
+        {6, 4, 3, 7},
+        {5, 8, 1, 8},
+        {7, 6, 9, 4}
+    };
+    cout << MinCostJobAssignment(mat); */
 
-
-
-
-
-
-
-
+// Traverling Salesman Using Reduced Matrix Method
+/*     int mat[travel_size][travel_size] = {
+        {INF, 10, 15, 20},
+        {10, INF, 35, 25},
+        {15, 35, INF, 30},
+        {20, 25, 30, INF}
+    };
+    cout << TravelSalesman_ReducedMatrix(mat); */
