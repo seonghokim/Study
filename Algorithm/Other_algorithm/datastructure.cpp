@@ -4484,7 +4484,7 @@ class BTreeNode{
     BTreeNode** child;
     int n;//current number of key
     bool leaf;
-public:
+    public:
     BTreeNode(int _t, bool _leaf){
         t = _t;
         leaf = _leaf;
@@ -4503,7 +4503,7 @@ public:
             n++;//increase number of key 
         }
         else{
-            while(i >= 0 && key[i] > k)
+            while(i >= 0 && key[i] > k)// there are k index that is number of keys and there are k+1 index indicated child node
                 i--;
             if(child[i+1]->n == 2*t-1){// child is full
                 SplitChild(i+1, child[i+1]);
@@ -4513,7 +4513,7 @@ public:
             child[i+1]->InsertNonFull(k);
         }
     }
-    void SplitChild(int i, BTreeNode *y){// i is median of key array, y is cur child node
+    void SplitChild(int i, BTreeNode *y){// i is index of key array, y is cur child node
         BTreeNode* z =new BTreeNode(y->t, y->leaf);// z node size is half of y node
         z->n = t-1;// split key array size (t-1), median, (t-1) and z is 3rd splited array
         for(int j=0; j<t-1; j++)
@@ -4550,109 +4550,110 @@ public:
             return NULL;
         return child[i]->Search(k);
     }
-    int FindKey(int k){
+    int FindKey(int k){// Find key in this node
         int idx = 0;
         while(idx < n && key[idx] < k)
             ++idx;
-        return idx;
+        return idx;// key[idx] == k  or key[idx] >= k or idx == n (exceed number of key)
     }
     void Remove(int k){
         int idx = FindKey(k);
-        if(idx < n && key[idx] == k){
+        if(idx < n && key[idx] == k){// key exists in this node
             if(leaf)
-                RemoveFromLeaf(idx);
+                RemoveFromLeaf(idx);// Case 1
             else
-                RemoveFromNonLeaf(idx);
+                RemoveFromNonLeaf(idx);// Case 2
         }
-        else{
+        else{//key doesn't exist in this node(maybe exists in child node)
             if(leaf){
                 cout << "Key doesn't Exist" << endl;
                 return;
             }
-            bool flag = idx == n ? true : false;
-            if(child[idx]->n < t)
+            bool flag = idx == n ? true : false;// if sub tree of rooted with last child of cur node involves key, true
+            if(child[idx]->n < t)//Case 3 (t-1) keys
                 Fill(idx);
-            if(flag && idx > n)
+            if(flag && idx > n)// idx > n means last child is merged
                 child[idx-1]->Remove(k);
-            else
+            else// (>=t) child's key
                 child[idx]->Remove(k);
         }
         return;
     }
-    void RemoveFromLeaf(int idx){
+    void RemoveFromLeaf(int idx){// Case 1
         for(int i=idx + 1; i<n; i++)
-            key[i-1] = key[i];
-        n--;
+            key[i-1] = key[i];// elements left shift
+        n--;// reduce number of keys
         return;
     }
-    void RemoveFromNonLeaf(int idx){
+    void RemoveFromNonLeaf(int idx){// Case 2
         int k = key[idx];
-        if(child[idx]->n >= t){
+        if(child[idx]->n >= t){// Using Predecessor
             int pred = GetPred(idx);
             key[idx] = pred;
             child[idx]->Remove(pred);
         }
-        else if(child[idx+1]->n >= t){
+        else if(child[idx+1]->n >= t){// Using Successor
             int succ = GetSucc(idx);
             key[idx] = succ;
             child[idx+1]->Remove(succ);
         }
-        else{
+        else{// both(cur node's child) have (t-1) number of keys, erase key and merge both child nodes to one node
             Merge(idx);
             child[idx]->Remove(k);
         }
         return;
     }
-    int GetPred(int idx){
+    int GetPred(int idx){//go to prev index of key and go child node
         BTreeNode* cur = child[idx];
         while(!cur->leaf)
-            cur = cur->child[cur->n];
-        return cur->key[cur->n - 1];
+            cur = cur->child[cur->n];//rightmost child
+        return cur->key[cur->n - 1];// last key
     }
-    int GetSucc(int idx){
+    int GetSucc(int idx){// go to next index of key and go child node
         BTreeNode* cur = child[idx + 1];
         while(!cur->leaf)
-            cur = cur->child[0];
-        return cur->key[0];
+            cur = cur->child[0];//leftmost child
+        return cur->key[0];//first key
     }
     void Fill(int idx){
-        if(idx != 0 && child[idx - 1]->n >= t)
+        if(idx != 0 && child[idx - 1]->n >= t)//previous child has (>=t) key
             BorrowFromPrev(idx);
-        else if(idx != n && child[idx + 1]->n >= t)
+        else if(idx != n && child[idx + 1]->n >= t)// next child has (>=t) key
             BorrowFromNext(idx);
-        else{
-            if(idx != n)
-                Merge(idx);
+        else{// Merge child[idx] with sibling
+            if(idx != n)//not last child
+                Merge(idx);//merge with next child
             else
-                Merge(idx - 1);
+                Merge(idx - 1);//merge with prev child
         }
         return;
     }
-    void BorrowFromPrev(int idx){
-        BTreeNode* bchild = child[idx];
-        BTreeNode* bsibling = child[idx - 1];
-        for(int i = bchild->n - 1; i >= 0; i--)
-            bchild->key[i + 1] = bchild->key[i];
+    void BorrowFromPrev(int idx){//move cur node's prev key to cur child's first key and move prev child's last key to cur node's prev key
+        BTreeNode* bchild = child[idx];//cur child
+        BTreeNode* bsibling = child[idx - 1];//prev child
+        // free up key space of cur child
+        for(int i = bchild->n - 1; i >= 0; i--)// from last key to first key
+            bchild->key[i + 1] = bchild->key[i];//right shift because prev child's key is lower than cur child's key
         if(!bchild->leaf)
             for(int i = bchild->n; i>=0; --i)
-                bchild->child[i + 1] = bchild->child[i];
-        bchild->key[0] = key[idx - 1];
+                bchild->child[i + 1] = bchild->child[i];//child pointer shift to right
+        bchild->key[0] = key[idx - 1];// cur child's first key is cur node's prev key
         if(!bchild->leaf)
-            bchild->child[0] = bsibling->child[bsibling->n];
-        key[idx - 1] = bsibling->key[bsibling->n - 1];
+            bchild->child[0] = bsibling->child[bsibling->n];//set prev child's last child to cur child's fisrt child
+        key[idx - 1] = bsibling->key[bsibling->n - 1];//set cur node's prev key to prev child's last key 
         bchild->n += 1;
         bsibling->n -= 1;
         return;
     }
-    void BorrowFromNext(int idx){
-        BTreeNode* bchild = child[idx];
-        BTreeNode* bsibling = child[idx + 1];
-        bchild->key[bchild->n] = key[idx];
+    void BorrowFromNext(int idx){//move cur node's key to cur child's last key and move next child's first key to cur node's key
+        BTreeNode* bchild = child[idx];// cur child
+        BTreeNode* bsibling = child[idx + 1];// next child
+        bchild->key[bchild->n] = key[idx];//set cur child's last key as cur node's key 
         if(!bchild->leaf)
             bchild->child[bchild->n + 1] = bsibling->child[0];
-        key[idx] = bsibling->key[0];
+        key[idx] = bsibling->key[0];// set cur node's key as next child's first key
         for(int i = 1; i<bsibling->n; ++i)
-            bsibling->key[i - 1] = bsibling->key[i];
+            bsibling->key[i - 1] = bsibling->key[i];//left shift
         if(!bsibling->leaf)
             for(int i=1; i<=bsibling->n; ++i)
                 bsibling->child[i-1] = bsibling->child[i];
@@ -4661,20 +4662,20 @@ public:
         return;
     }
     void Merge(int idx){
-        BTreeNode* bchild = child[idx];
-        BTreeNode* bsibling = child[idx + 1];
-        bchild->key[t-1] = key[idx];
+        BTreeNode* bchild = child[idx];// cur child
+        BTreeNode* bsibling = child[idx + 1];// next child
+        bchild->key[t-1] = key[idx];//set child node's median key as cur node's key
         for(int i=0; i<bsibling->n; ++i)
-            bchild->key[i+t] = bsibling->key[i];
-        if(!bchild->leaf)
+            bchild->key[i+t] = bsibling->key[i];//concat cur child's key
+        if(!bchild->leaf)//shift child's child pointer 
             for(int i=0; i<=bsibling->n; ++i)
                 bchild->child[i+t] = bsibling->child[i];
         for(int i = idx + 1; i<n; i++)
-            key[i-1] = key[i];
+            key[i-1] = key[i];// left shift because cur node's key go to cur child's key's median
         for(int i = idx+2; i<=n; i++)
-            child[i-1] = child[i];
-        bchild->n += bsibling->n + 1;
-        n--;
+            child[i-1] = child[i];// left shift for child node
+        bchild->n += bsibling->n + 1;// +1 is cur node's key
+        n--;// cur node's key go to child node's key
         delete(bsibling);
         return;
     }
@@ -4683,7 +4684,7 @@ public:
 class BTree{
     BTreeNode* root;
     int t;//min degree
-public:
+    public:
     BTree(int _t){
         root = NULL;
         t = _t;
@@ -4733,7 +4734,100 @@ public:
         return;
     }
 };
-
+class BTreeNode2{//Not Including Aggressive Splitting
+    vector<int> key;
+    int t;
+    vector<BTreeNode2*> child;
+    bool leaf;
+    public:
+    BTreeNode2(int t, bool leaf){
+        this->t = t;
+        this->leaf = leaf;
+    }
+    void Traverse(int tab){
+        int i;
+        string s;
+        for(int j=0; j<tab; j++)
+            s += '\t';
+        for(i=0; i<key.size(); i++){
+            if(leaf == false)
+                child[i]->Traverse(tab+1);
+            cout << s << key[i] << endl;
+        }
+        if(leaf == false)
+            child[i]->Traverse(tab + 1);
+    }
+    void Insert(int new_key, int* val, BTreeNode2*& newEntry){
+        if(leaf == false){
+            int i=0;
+            while(i < key.size() && new_key > key[i])
+                i++;
+            child[i]->Insert(new_key, val, newEntry);
+            if(newEntry == NULL)
+                return;
+            if(key.size() < 2*t-1){
+                key.insert(key.begin()+i, *val);
+                child.insert(child.begin()+i+1, newEntry);
+                newEntry = NULL;
+            }
+            else{
+                key.insert(key.begin()+i, *val);
+                child.insert(child.begin()+i+1, newEntry);
+                Split(val, newEntry);
+            }
+        }
+        else{
+            vector<int>::iterator it;
+            it = lower_bound(key.begin(), key.end(), new_key);
+            key.insert(it, new_key);
+            if(key.size() == 2*t){
+                newEntry = new BTreeNode2(t, true);
+                *val = this->key[t];
+                for(int i=t+1; i<2*t; i++)
+                    newEntry->key.push_back(this->key[i]);
+                this->key.resize(t);
+            }
+        }
+    }
+    void Split(int* val, BTreeNode2*& newEntry){
+        newEntry = new BTreeNode2(t, false);
+        *val = this->key[t];
+        for(int i=t+1; i<2*t; i++)
+            newEntry->key.push_back(this->key[i]);
+        this->key.resize(t);
+        for(int i=t+1; i<= 2*t; i++)
+            newEntry->child.push_back(this->child[i]);
+        this->child.resize(t+1);
+    }
+    bool IsFull(){
+        return this->key.size() == (2*t-1);
+    }
+    BTreeNode2* MakeNewRoot(int val, BTreeNode2* newEntry){
+        BTreeNode2* root = new BTreeNode2(t, false);
+        root->key.push_back(val);
+        root->child.push_back(this);
+        root->child.push_back(newEntry);
+        return root;
+    }
+};
+class BTree2{
+    BTreeNode2* root;
+    int t;
+    public:
+    BTree2(int t){
+        root = new BTreeNode2(t, true);
+    }
+    void Insert(int key){
+        BTreeNode2* newEntry = NULL;
+        int val = 0;
+        root->Insert(key, &val, newEntry);
+        if(newEntry != NULL)
+            root = root->MakeNewRoot(val, newEntry);
+    }
+    void Display(){
+        root->Traverse(0);
+    }
+};
 
 
 
@@ -6275,43 +6369,16 @@ double MinAvgWeight(){
 }
 
 int main(){
-    BTree t(3);
-    t.Insert(1);
-    t.Insert(3);
-    t.Insert(7);
-    t.Insert(10);
-    t.Insert(11);
-    t.Insert(13);
-    t.Insert(14);
-    t.Insert(15);
-    t.Insert(18);
-    t.Insert(16);
-    t.Insert(19);
-    t.Insert(24);
-    t.Insert(25);
-    t.Insert(26);
-    t.Insert(21);
-    t.Insert(4);
-    t.Insert(5);
-    t.Insert(20);
-    t.Insert(22);
-    t.Insert(2);
-    t.Insert(17);
-    t.Insert(12);
-    t.Insert(6);
-    t.InorderTraverse(); cout << endl;
-    t.Remove(6);
-    t.InorderTraverse(); cout << endl;
-    t.Remove(13);
-    t.InorderTraverse(); cout << endl;
-    t.Remove(7);
-    t.InorderTraverse(); cout << endl;
-    t.Remove(4);
-    t.InorderTraverse(); cout << endl;
-    t.Remove(2);
-    t.InorderTraverse(); cout << endl;
-    t.Remove(16);
-    t.InorderTraverse(); cout << endl;
+    BTree2* t = new BTree2(3);
+    t->Insert(1);
+    t->Insert(2);
+    t->Display();
+    t->Insert(5);
+    t->Insert(6);
+    t->Display();
+    t->Insert(3);
+    t->Insert(4);
+    t->Display();
     return 0;
 }
 
