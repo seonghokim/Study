@@ -50,11 +50,40 @@
     t.InorderTraverse(); cout << endl;
     t.Remove(16);
     t.InorderTraverse(); cout << endl; */
+/*     BTree2* t = new BTree2(3);
+    t->Insert(1);
+    t->Insert(2);
+    t->Display();
+    t->Insert(5);
+    t->Insert(6);
+    t->Display();
+    t->Insert(3);
+    t->Insert(4);
+    t->Display(); */
 
-// 
+// B+ tree
+/*     int t = 3;
+    BPlusTree* bpt = new BPlusTree(t);
+    bpt->Insert("5", 33);
+    bpt->Insert("15", 21);
+    bpt->Insert("25", 31);
+    bpt->Insert("35", 41);
+    bpt->Insert("45", 10);
+    bpt->Print();
+    if(bpt->Search("5", 34) != NULL)
+        cout <<  "Found" << endl;
+    else
+        cout << "Not Found" << endl; */
 
-
-
+// Red-Black Tree
+/*     RedBlackTree t;
+    int arr[] = {1, 4, 6, 3, 5, 7, 8, 2, 9};
+    for(int i=0; i<9; i++){
+        t.Insert(arr[i]);
+        cout << endl;
+        t.InorderTraversal();
+    }
+    t.Print(); */
 
 
 

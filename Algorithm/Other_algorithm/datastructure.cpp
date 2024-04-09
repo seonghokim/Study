@@ -4829,7 +4829,282 @@ class BTree2{
     }
 };
 
+// B+ Tree
+class BPlusTreeNode{// Not includied Deleetion
+    public:
+    int t;
+    vector<string> key;
+    vector<vector<int>> val;
+    vector<BPlusTreeNode*> child;
+    bool leaf;
+    int n;
+    BPlusTreeNode* next;
+    BPlusTreeNode(int _t, BPlusTreeNode* _next = NULL){
+        t = _t;
+        next = _next;
+        leaf = true;
+        key.resize(2*t-1);
+        val.resize(2*t-1);
+        child.resize(2*t);
+        n = 0;
+    }
+    void InsertNonFull(string k, int v){
+        int i = n-1;
+        if(leaf){
+            key.insert(key.begin()+n, k);
+            val.insert(val.begin()+n, vector<int>(1, v));
+            n++;
+            while(i >=0 && key[i] > k){
+                swap(key[i], key[i+1]);
+                swap(val[i], val[i+1]);
+                i--;
+            }
+        } else{
+            while(i>=0 && key[i] > k)
+                i--;
+            i++;
+            if(child[i]->n == 2*t-1){
+                SplitChild(i);
+                if(key[i] < k)
+                    i++;
+            }
+            child[i]->InsertNonFull(k, v);
+        }
+    }
+    void SplitChild(int i){
+        BPlusTreeNode* y = child[i];
+        BPlusTreeNode* z = new BPlusTreeNode(y->t, y->next);
+        child.insert(child.begin()+i+1, z);
+        key.insert(key.begin()+i, y->key[t-1]);
+        val.insert(val.begin()+i, y->val[t-1]);
+        y->next = z;
+        z->leaf = y->leaf;
+        z->n = y->n = t-1;
+        for(int j=0; j<t-1; j++){
+            z->key[j] = y->key[j+t];
+            z->val[j] = y->val[j+t];
+        }
+        if(!y->leaf)
+            for(int j=0; j<t; j++)
+                z->child[j] = y->child[j+t];
+        n++;
+    }
+    void Print(){
+        for(int i=0; i<n; i++){
+            if(!leaf)
+                child[i]->Print();
+            cout << "[" << key[i] << "]" << endl;
+        }
+        if(!leaf)
+            child[n]->Print();
+    }
+    BPlusTreeNode* Search(string k, int v){
+        int i=0;
+        while(i<n && k > key[i])
+            i++;
+        if(key[i] == k)
+            for(int j=0; j<val[i].size(); j++)
+                if(val[i][j] == v)
+                    return this;
+        if(leaf)
+            return NULL;
+        else
+            return child[i]->Search(k, v);
+    }
+};
+class BPlusTree{
+    public:
+    BPlusTreeNode* root;
+    int t;
+    BPlusTree(int _t){
+        root = new BPlusTreeNode(_t);
+        root->leaf = true;
+    } 
+    void Insert(string k, int v){
+        BPlusTreeNode* r = root;
+        if(r->n == 2*t-1){
+            BPlusTreeNode* s = new BPlusTreeNode(t);
+            root = s;
+            s->child[0] = r;
+            s->SplitChild(0);
+            s->InsertNonFull(k, v);
+        } else
+            r->InsertNonFull(k, v);
+    }
+    void Print(){
+        root->Print();
+    }
+    BPlusTreeNode* Search(string k, int v){
+        return root == NULL ? NULL : root->Search(k, v);
+    }
+};
 
+// Red-Black Tree
+class RedBlackTree{
+    struct Node{
+        int data;
+        Node* left;
+        Node* right;
+        char color;
+        Node* parent;
+        Node(int data) : data(data), left(nullptr), right(nullptr), color('R'), parent(nullptr) {}
+    };
+    Node* root;
+    bool ll, lr, rl, rr;
+    Node* RotateLeft(Node* node){//maintain rule of binary search tree(a < b < c)
+        Node* x = node->right;
+        Node* y = x->left;
+        x->left = node;
+        node->right = y;
+        node->parent = x;
+        if(y != nullptr)
+            y->parent = node;
+        return x;
+    }
+    Node* RotateRight(Node* node){
+        Node* x = node->left;
+        Node* y = x->right;
+        x->right = node;
+        node->left = y;
+        node->parent = x;
+        if(y != nullptr)
+            y->parent = node;
+        return x;
+    }
+    Node* InsertLoop(Node* root, int data){
+        bool flag_dup_red = false;
+        if(root == nullptr)
+            return new Node(data);
+        else if(data < root->data){
+            root->left = InsertLoop(root->left, data);
+            root->left->parent = root;
+            if(root != this->root && root->color == 'R' && root->left->color == 'R')
+                flag_dup_red = true;
+        }
+        else{
+            root->right = InsertLoop(root->right, data);
+            root->right->parent = root;
+            if(root != this->root && root->color == 'R' && root->right->color == 'R')
+                flag_dup_red = true;
+        }
+        if(ll){
+            root = RotateLeft(root);
+            root->color = 'B';
+            root->left->color = 'R';
+            ll = false;
+        } else if(rr){
+            root = RotateRight(root);
+            root->color = 'B';
+            root->right->color = 'R';
+            rr = false;
+        } else if(rl){
+            root->right = RotateRight(root->right);
+            root->right->parent = root;
+            root = RotateLeft(root);
+            root->color = 'B';
+            root->left->color = 'R';
+            rl = false;
+        } else if(lr){
+            root->left = RotateLeft(root->left);
+            root->left->parent = root;
+            root = RotateRight(root);
+            root->color = 'B';
+            root->right->color = 'R';
+            lr = false;
+        }
+        if(flag_dup_red){
+            if(root->parent->right == root){
+                if(root->parent->left == nullptr || root->parent->left->color == 'B'){
+                    if(root->left != nullptr && root->left->color == 'R')
+                        rl = true;
+                    else if(root->right != nullptr && root->right->color == 'R')
+                        ll = true;
+                }
+                else{
+                    root->parent->left->color = 'B';
+                    root->color = 'B';
+                    if(root->parent != this->root)
+                        root->parent->color = 'R';
+                }
+            }
+            else{
+                if(root->parent->right == nullptr || root->parent->right->color == 'B'){
+                    if(root->left != nullptr && root->left->color == 'R')
+                        rr = true;
+                    else if(root->right != nullptr && root->right->color == 'R')
+                        lr = true;
+                }
+                else{
+                    root->parent->right->color = 'B';
+                    root->color = 'B';
+                    if(root->parent != this->root)
+                        root->parent->color = 'R';
+                }
+            }
+            flag_dup_red = false;
+        }
+        return root;
+    }
+    void InorderTraversalLoop(Node* node){
+        if(node != nullptr){
+            InorderTraversalLoop(node->left);
+            cout << node->data << " ";
+            InorderTraversalLoop(node->right);
+        }
+    }
+    void PrintLoop(Node* root, int space){
+        if(root != nullptr){
+            space += 10;
+            PrintLoop(root->right, space);
+            cout << endl;
+            for(int i=10; i<space; i++)
+                cout << " ";
+            cout << root->data << endl;
+            PrintLoop(root->left, space);
+        }
+    }
+    public:
+    RedBlackTree(): root(nullptr), ll(false), rr(false), lr(false), rl(false) {}
+    void Insert(int data){
+        if(root == nullptr){
+            root = new Node(data);
+            root->color = 'B';
+        }
+        else
+            root = InsertLoop(root, data);
+    }
+    void InorderTraversal(){
+        InorderTraversalLoop(root);
+    }
+    void Print(){
+        PrintLoop(root, 0);
+    }
+};
+
+enum COLOR_RB {RED, BLACK};
+class RBNode{
+    public:
+    int val;
+    COLOR_RB color;
+    RBNode *left, *right, *parent;
+    RBNode(int val) : val(val){
+        parent = left = right = nullptr;
+        color = RED;
+    }
+    RBNode* Uncle
+};
+
+// Ternary Tree
+
+
+// Interval Tree
+
+
+// 2-3-4 Tree
+
+
+
+// Segment Tree
 
 
 // -----------------------------------------------------------------
@@ -6369,16 +6644,14 @@ double MinAvgWeight(){
 }
 
 int main(){
-    BTree2* t = new BTree2(3);
-    t->Insert(1);
-    t->Insert(2);
-    t->Display();
-    t->Insert(5);
-    t->Insert(6);
-    t->Display();
-    t->Insert(3);
-    t->Insert(4);
-    t->Display();
+    RedBlackTree t;
+    int arr[] = {1, 4, 6, 3, 5, 7, 8, 2, 9};
+    for(int i=0; i<9; i++){
+        t.Insert(arr[i]);
+        cout << endl;
+        t.InorderTraversal();
+    }
+    t.Print();
     return 0;
 }
 
