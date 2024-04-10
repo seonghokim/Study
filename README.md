@@ -1,6 +1,6 @@
-To improve my understanding and skills of the C, C++ language,
+To improve my understanding and skills of the C, C++ language, algorithm, data structure and etc,
 
-I'm reviewing C, C++ programming language again and organizing contents in C, C++ language.
+I'm reviewing C, C++ programming language, algorithm, data structure again and organizing contents.
 I plan to organize each term and concept.
 
 Caution: The source code may differ from that written on the referenced site. (Modified and in use)
@@ -18,9 +18,9 @@ If you want to see the summary of C++ language, check "everything in c++.pptx" f
 
 The written language in the .pptx file is a mix of Korean and English.
 
-I update the source code or summary file daily :)
+I update the source code or summary file daily :) (Except for work or employment preparation)
 
-Later, I will post information related to "embedded SW" and also organize materials related to "machine learning" that will be studied in the future.
+Later, I will post information related to "embedded SW" and also organize materials related to "Machine Learning" that will be studied in the future.
 (I don't know when I will work on it... But, I should do it!)
 
 Reference site link:  
