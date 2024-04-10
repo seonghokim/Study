@@ -84,9 +84,72 @@
         t.InorderTraversal();
     }
     t.Print(); */
+/*     RBTree t;
+    t.Insert(7);
+    t.Insert(3);
+    t.Insert(18);
+    t.Insert(10);
+    t.Insert(22);
+    t.Insert(8);
+    t.Insert(11);
+    t.Insert(26);
+    t.Insert(2);
+    t.Insert(6);
+    t.Insert(13);
+    t.PrintInorder();
+    t.printLevelOrder();
+    cout << endl << "Deleting 18, 11, 3, 10, 22" << endl;
+    t.DeleteByValue(18);
+    t.DeleteByValue(11);
+    t.DeleteByValue(3);
+    t.DeleteByValue(10);
+    t.DeleteByValue(22);
+    t.PrintInorder();
+    t.printLevelOrder(); */
+
+// Ternary Tree
+/*     TernaryNode* root = CreateTernaryNode(30);
+    root->left = CreateTernaryNode(5);
+    root->middle = CreateTernaryNode(11);
+    root->right = CreateTernaryNode(63);
+    root->left->left = CreateTernaryNode(1);
+    root->left->middle = CreateTernaryNode(4);
+    root->left->right = CreateTernaryNode(8);
+    root->middle->left = CreateTernaryNode(6);
+    root->middle->middle = CreateTernaryNode(7);
+    root->middle->right = CreateTernaryNode(15);
+    root->right->left = CreateTernaryNode(31);
+    root->right->middle = CreateTernaryNode(55);
+    root->right->right = CreateTernaryNode(65);
+    TernaryNode* head = nullptr;
+    TernaryTreeToList(root, &head);
+    PrintListOfTernaryTree(head); */
+
+// Interval Tree
+/*     Interval i[] = {{15, 20}, {10, 30}, {17, 19}, {5, 20}, {12, 15}, {30, 40}};
+    int n = sizeof(i)/sizeof(i[0]);
+    ITNode* root = nullptr;
+    for(int j=0; j<n; j++)
+        root = InsertITNode(root, i[j]);
+    ITInorderTraverse(root);
+    Interval x = {6, 7};
+    Interval* res = SearchOverlapedInterval(root, x);
+    if(res == nullptr)
+        cout << "No Overlapping Interval"<< endl;
+    else
+        cout << "Overlaps with [" << res->low << "," << res->high << "]" << endl; */
+
+// Custom GNU Tree-based Container 
+/*     custom_node_update_policy<int, int , function<int(int)>, void*> policy;
+    policy.apply(10, 20);
+    cout << "Success" << endl; */
+
+
+// 2-3-4 Tree
 
 
 
+// Segment Tree
 
 
 
