@@ -3765,6 +3765,14 @@ int SizeRecursiveTree(Tree* t){
     else
         return (SizeRecursiveTree(t->left)+1+SizeRecursiveTree(t->right));
 }
+Tree* CopyTree(Tree* t){
+    if(t == NULL)
+        return NULL;
+    Tree* newNode = CreateTree(t->key);
+    newNode->left = CopyTree(t->left);
+    newNode->right = CopyTree(t->right);
+    return newNode;
+}
 //Inorder Traversal without recursion and stack
 int SizeMorrisTree(Tree* t){
     int count = 0;
@@ -5505,11 +5513,346 @@ struct custom_node_update_policy{
     void apply(Node_Iterator it, Const_Node_Iterator endIt){};
 };
 
-// 2-3-4 Tree
-
-
-
 // Segment Tree
+class SegmentTree{
+    vector<int> tree;
+    int size;
+    public:
+    SegmentTree(vector<int>& arr){
+        size = arr.size();
+        tree.resize(4 * size);
+        BuildTree(arr, 0, 0, size-1);
+    }
+    private:
+    void BuildTree(vector<int>& arr, int idx, int l, int r){
+        if(l == r){
+            tree[idx] = arr[l];
+            return;
+        }
+        int mid = (l+r)/2;
+        BuildTree(arr, 2*idx+1, l, mid);
+        BuildTree(arr, 2*idx+2, mid+1, r);
+        tree[idx] = min(tree[2*idx+1],tree[2*idx+2]);
+    }
+    int Query(int idx, int l, int r, int ql, int qr){
+        if(ql <= l && r <= qr)
+            return tree[idx];
+        int mid = (l+r)/2;
+        int min_val = INT_MAX;
+        if(ql <= mid)
+            min_val = min(min_val, Query(2*idx+1, l, mid, ql, qr));
+        if(qr > mid)
+            min_val = min(min_val, Query(2*idx+2, mid+1, r, ql, qr));
+        return min_val;
+    }
+    public:
+    int Query(int l, int r){
+        return Query(0, 0, size-1, l, r);
+    }
+};
+
+// Iterative Segment Tree
+void BuildIterativeSegmentTre(vector<int>& tree, vector<int>& arr, int n){
+    for(int i=0; i<n; i++)
+        tree[n+i] = arr[i];
+    for(int i=n-1; i>=1; i--)
+        tree[i] = max(tree[2*i], tree[2*i+1]);
+}
+void UpdateIterativeSegmentTree(vector<int>& tree, int pos, int val, int n){
+    pos += n;
+    tree[pos] = val;
+    while(pos > 1){
+        pos >>= 1;
+        tree[pos] = max(tree[2*pos], tree[2*pos+1]);
+    }
+}
+int QueryIterativeSegmentTree(vector<int>& tree, int l, int r, int n){
+    l += n;
+    r += n;
+    int max_low = INT_MIN;
+    while(l < r){
+        if(l & 1){
+            max_low = max(max_low, tree[l]);
+            l++;
+        }
+        if(r & 1){
+            r--;
+            max_low = max(max_low, tree[r]);
+        }
+        l >>= 1;
+        r >>= 1;
+    }
+    return max_low;
+}
+
+// Segment Tree Using Stack
+int64_t sgtree[1000];
+int64_t lazy[1000];
+using QueryAdaptor = tuple<int64_t, int64_t, int64_t>;
+void BuildSGTreeStack(int64_t* arr, int64_t n){
+    stack<QueryAdaptor> st;
+    st.emplace(1, 0, n-1);
+    while(!st.empty()){
+        int64_t cur, curra, currb;
+        tie(cur, curra, currb) = st.top();
+        st.pop();
+        if(curra == INF && currb == INF)
+            sgtree[cur] = sgtree[cur * 2] + sgtree[cur*2 +1];
+        else if(curra == currb)// leaf
+            sgtree[cur] = arr[curra];
+        else{
+            st.emplace(cur, INF, INF);
+            int64_t mid = (curra + currb) / 2;
+            st.emplace(cur*2, curra, mid);
+            st.emplace(cur*2+1, mid+1, currb);
+        }
+    }
+}
+inline void PushDownSGTreeStack(int64_t node, int64_t a, int64_t b){
+    if(lazy[node] != 0){
+        sgtree[node] += lazy[node] * (b-a+1);
+        if(a != b){
+            lazy[2*node] += lazy[node];
+            lazy[2*node+1] += lazy[node];
+        }
+        lazy[node] = 0;
+    }
+}
+void UpdateSGTreeStack(int64_t n, int64_t i, int64_t j, int64_t val){
+    stack<QueryAdaptor> st;
+    st.emplace(1, 0 , n-1);
+    while(!st.empty()){
+        int64_t cur, curra, currb;
+        tie(cur, curra, currb) = st.top();
+        st.pop();
+        if(curra == INF && currb == INF)
+            sgtree[cur] = sgtree[cur*2] + sgtree[cur*2 +1];
+        else{
+            PushDownSGTreeStack(cur, curra, currb);
+            if(curra > currb || curra > j || currb < i)
+                continue;
+            else if(curra >= i && currb <= j){
+                sgtree[cur] += val * (currb-curra+1);
+                if(curra != currb){
+                    lazy[cur*2] += val;
+                    lazy[cur*2+1] += val;
+                }
+            }
+            else{
+                st.emplace(cur,INF,INF);
+                int64_t mid = (curra+currb)/2;
+                st.emplace(cur*2, curra, mid);
+                st.emplace(cur*2+1, mid+1, currb);
+            }
+        }
+    }
+}
+int64_t QuerySGTreeStack(int64_t n, int64_t i, int64_t j){
+    stack<QueryAdaptor> st;
+    st.emplace(1, 0, n-1);
+    int64_t res = 0;
+    while(!st.empty()){
+        int64_t cur, a, b;
+        tie(cur, a, b) = st.top();
+        st.pop();
+        PushDownSGTreeStack(cur, a, b);
+        if(a>b || a>j || b<i)
+            continue;
+        else if(a >= i && b <= j)
+            res += sgtree[cur];
+        else{
+            int64_t mid = (a+b)/2;
+            st.emplace(cur*2, a, mid);
+            st.emplace(cur*2+1, mid+1, b);
+        }
+    }
+    return res;
+}
+// Persistent Segment Tree
+struct STreeNode{
+    int val;
+    STreeNode *left, *right;
+    STreeNode() {}
+    STreeNode(STreeNode* l, STreeNode *r, int v){
+        left = l;
+        right = r;
+        val = v;
+    }
+};
+void STreeBuild(STreeNode* n, int low, int high, int arr[]){// O(n log n)
+    if(low == high){
+        n->val = arr[low];
+        return;
+    }
+    int mid = (low+high)/2;
+    n->left = new STreeNode(nullptr, nullptr, 0);
+    n->right = new STreeNode(nullptr, nullptr, 0);
+    STreeBuild(n->left, low, mid, arr);
+    STreeBuild(n->right, mid+1, high, arr);
+    n->val = n->left->val + n->right->val;
+}
+void STreeUpgrade(STreeNode* prev, STreeNode* cur, int low, int high, int idx, int val){
+    if(idx > high || idx < low || low > high)
+        return;
+    if(low == high){
+        cur->val = val;
+        return;
+    }
+    int mid = (low+high)/2;
+    if(idx <= mid){
+        cur->right = prev->right;
+        cur->left = new STreeNode(nullptr, nullptr, 0);
+        STreeUpgrade(prev->left, cur->left, low, mid, idx, val);
+    }
+    else{
+        cur->left = prev->left;
+        cur->right = new STreeNode(nullptr, nullptr, 0);
+        STreeUpgrade(prev->right, cur->right, mid+1, high, idx, val);
+    }
+    cur->val = cur->left->val + cur->right->val;
+}
+int STreeQuery(STreeNode* n, int low, int high, int l, int r){
+    if(l > high || r < low || low > high)
+        return 0;
+    if(l <= low && high <= r)
+        return n->val;
+    int mid = (low+high)/2;
+    int p1 = STreeQuery(n->left, low, mid, l, r);
+    int p2 = STreeQuery(n->right, mid+1, high, l, r);
+    return p1+p2;
+}
+
+// Efficient Segment Tree
+void SegTreeBuild(int arr[], int tree[], int n){
+    for(int i=0; i<n; i++)// leaf
+        tree[n+i] = arr[i];
+    for(int i=n-1; i>0; i--)// parent
+        tree[i] = tree[i<<1] + tree[i<<1 | 1];
+}
+void SegTreeUpdate(int p, int val, int tree[], int n){
+    tree[p+n] = val;
+    p += n;
+    for(int i=p; i>1; i>>=1)
+        tree[i>>1] = tree[i] + tree[i^1];
+}
+int SegTreeQuery(int l, int r, int n, int tree[]){// interval [l, r)
+    int res = 0;
+    for(l += n, r+= n; l < r; l >>= 1, r>>=1){
+        if(l & 1)
+            res += tree[l++];
+        if(r & 1)
+            res += tree[--r];
+    }
+    return res;
+}
+
+// Dynamic Segment Tree
+struct DSTNode{
+    long long val;
+    DSTNode *L, *R;
+};
+DSTNode* GetDSTNode(){
+    DSTNode* temp = new DSTNode;
+    temp->val = 0;
+    temp->L = nullptr;
+    temp->R = nullptr;
+    return temp;
+}
+void UpdateDSTree(DSTNode* cur, long long idx, long long L, long long R, long long val){
+    if(L > idx || R < idx)
+        return;
+    if(L == R && L == idx){
+        cur->val = val;
+        return;
+    }
+    long long mid = (L+R)/2;
+    long long sum1 = 0, sum2 = 0;
+    if(idx <= mid){
+        if(cur->L == nullptr)
+            cur->L = GetDSTNode();
+        UpdateDSTree(cur->L, idx, L, mid, val);
+    }
+    else{
+        if(cur->R == nullptr)
+            cur->R = GetDSTNode();
+        UpdateDSTree(cur->R, idx, mid+1, R, val);
+    }
+    if(cur->L)
+        sum1 = cur->L->val;
+    if(cur->R)
+        sum2 = cur->R->val;
+    cur->val = sum1 + sum2;
+    return;
+}
+long long QueryDSTree(DSTNode* cur, long long a, long long b, long long L, long long R){
+    if(cur == nullptr)
+        return 0;
+    if(L>b || R<a)
+        return 0;
+    if(L>=a && R <=b)
+        return cur->val;
+    long long mid = (L+R)/2;
+    return QueryDSTree(cur->L, a, b, L, mid) + QueryDSTree(cur->R, a, b, mid+1, R);
+}
+
+// Lazy Propagation in Segment Tree
+vector<int> sgtree2(1000, 0);
+vector<int> lazy2(1000, 0);
+void UpdateLazySumSGTree(int cidx, int cs, int ce, int us, int ue, int diff){
+    // cidx : cur node's index
+    // cs, ce : cur node's starting and ending indexes
+    // us, ue : update query's starting and ending indexes
+    if(lazy2[cidx] != 0){// cur node is pending node
+        sgtree2[cidx] += (ce-cs+1)*lazy2[cidx];// in getting max value function, (ce-cs+1) is deleted
+        if(cs != ce){//check leaf
+            lazy2[cidx*2+1] += lazy2[cidx];
+            lazy2[cidx*2+2] += lazy2[cidx];
+        }
+        lazy2[cidx] = 0;
+    }
+    if(cs > ce || cs > ue || ce < us)// out of range
+        return;
+    if(cs >= us && ce <= ue){
+        sgtree2[cidx] += (ce-cs+1)*diff;// in getting max value function, (ce-cs+1) is deleted
+        if(cs != ce){
+            lazy2[cidx*2+1] += diff;
+            lazy2[cidx*2+2] += diff;
+        }
+        return;
+    }
+    int mid = (cs+ce)/2;// range overlap
+    UpdateLazySumSGTree(cidx*2+1, cs, mid, us, ue, diff);
+    UpdateLazySumSGTree(cidx*2+2, mid+1, ce, us, ue, diff);
+    sgtree2[cidx] = sgtree2[cidx*2+1] + sgtree2[cidx*2+2];// in getting max value function, not +, but use max(left,right)
+}
+int GetSumLazySumSGTree(int cs, int ce, int qs, int qe, int cidx){
+    if(lazy2[cidx] != 0){
+        sgtree2[cidx] += (ce-cs+1)*lazy2[cidx];// in getting max value function, (ce-cs+1) is deleted
+        if(cs != ce){
+            lazy2[cidx*2+1] += lazy2[cidx];
+            lazy2[cidx*2+2] += lazy2[cidx];
+        }
+        lazy2[cidx] = 0;
+    }
+    if(cs > ce || cs > qe || ce < qs)
+        return 0;
+    if(cs >= qs && ce <= qe)
+        return sgtree2[cidx];
+    int mid = (cs+ce)/2;
+    return GetSumLazySumSGTree(cs, mid, qs, qe, 2*cidx+1) + GetSumLazySumSGTree(mid+1, ce, qs, qe, 2*cidx+2);// in getting max value function, not +, but use max(left,right)
+}
+void BuildLazySumSGTree(int arr[], int cs, int ce, int cidx){
+    if(cs > ce)
+        return;
+    if(cs == ce){
+        sgtree2[cidx] = arr[cs];
+        return;
+    }
+    int mid = (cs+ce)/2;
+    BuildLazySumSGTree(arr, cs, mid, cidx*2+1);
+    BuildLazySumSGTree(arr, mid+1, ce, cidx*2+2);
+    sgtree2[cidx] = sgtree2[cidx*2+1] + sgtree2[cidx*2+2];// in getting max value function, not +, but use max(left,right)
+}
 
 
 // -----------------------------------------------------------------
@@ -7049,7 +7392,12 @@ double MinAvgWeight(){
 }
 
 int main(){
-    IntervalTree IT;
+    int arr[] = {1,3,5,7,9,11};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    BuildLazySumSGTree(arr, 0, n-1, 0);
+    cout << GetSumLazySumSGTree(0, n-1, 1, 3, 0) << endl;
+    UpdateLazySumSGTree(0, 0, n-1, 1, 5, 10);
+    cout << GetSumLazySumSGTree(0, n-1, 1, 3, 0) << endl;
     return 0;
 }
 

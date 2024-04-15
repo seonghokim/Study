@@ -144,28 +144,66 @@
     policy.apply(10, 20);
     cout << "Success" << endl; */
 
+// Persistent Segment Tree
+/*     int arr[] = {1,2,3,4,5};
+    int n = sizeof(arr)/sizeof(int);
+    STreeNode* version[100];
+    STreeNode* root = new STreeNode(nullptr, nullptr, 0);
+    STreeBuild(root, 0, n-1, arr);
+    version[0] = root;
+    version[1] = new STreeNode(nullptr, nullptr, 0);
+    STreeUpgrade(version[0], version[1], 0, n-1, 4, 1);
+    version[2] = new STreeNode(nullptr, nullptr, 0);
+    STreeUpgrade(version[1], version[2], 0, n-1, 2, 10);
+    cout << STreeQuery(version[1], 0, n-1, 0, 4) << endl;
+    cout << STreeQuery(version[2], 0, n-1, 3, 4) << endl;
+    cout << STreeQuery(version[0], 0, n-1, 0, 3) << endl; */
 
-// 2-3-4 Tree
-
-
+// Efficient Segment Tree
+/*     int arr[] = {1,2,3,4,5,6,7,8,9,10,11,12};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    int tree[2*n];
+    SegTreeBuild(arr, tree, n);
+    cout << SegTreeQuery(1, 3, n, tree) << endl;
+    SegTreeUpdate(2, 1, tree, n);
+    cout << SegTreeQuery(1, 3, n, tree); 
+ */
 
 // Segment Tree
+/*     vector<int> arr = {1, 3, 2, 5, 4, 6};
+    SegmentTree st(arr);
+    cout << st.Query(1, 5) << endl; */
 
+// Iterative Segment Tree
+/*     vector<int> arr = {2,6,10,4,7,28,9,11,6,33};
+    int n = arr.size();
+    vector<int> tree(2*n);
+    BuildIterativeSegmentTre(tree, arr, n);
+    int l = 1, r = 5;
+    cout << QueryIterativeSegmentTree(tree, l, r+1, n) << endl;
+    int idx = 5, val =32;
+    UpdateIterativeSegmentTree(tree, idx, val, n);
+    l = 2, r = 8;
+    cout << QueryIterativeSegmentTree(tree, l, r+1, n); */
 
+// Segment Tree Using Stack
+/*     memset(sgtree, 0, sizeof(int64_t)* 1000);
+    memset(lazy, 0, sizeof(int64_t) * 1000);
+    int64_t arr[] = {1,3,5,7,9,11};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    BuildSGTreeStack(arr, n);
+    cout << QuerySGTreeStack(n,1,3)<<endl;
+    UpdateSGTreeStack(n,1,5,10);
+    cout << QuerySGTreeStack(n,1,3)<<endl; */
 
+// Dynamic Segment Tree
+/*     DSTNode* root = GetDSTNode();
+    UpdateDSTree(root, 1, 1, 10, 10);
+    UpdateDSTree(root, 3, 1, 10, 5);
+    cout << QueryDSTree(root, 2, 8, 1, 10) << endl;
+    cout << QueryDSTree(root, 1, 10, 1, 10) << endl; */
 
-
-
-
-
-
-
-
-
-
-
-
-
+// Lazy Propagation in Segment Tree
 
 
 
