@@ -5795,7 +5795,7 @@ long long QueryDSTree(DSTNode* cur, long long a, long long b, long long L, long 
     return QueryDSTree(cur->L, a, b, L, mid) + QueryDSTree(cur->R, a, b, mid+1, R);
 }
 
-// Lazy Propagation in Segment Tree
+// Lazy Propagation in Sum Segment Tree
 vector<int> sgtree2(1000, 0);
 vector<int> lazy2(1000, 0);
 void UpdateLazySumSGTree(int cidx, int cs, int ce, int us, int ue, int diff){
@@ -5854,6 +5854,145 @@ void BuildLazySumSGTree(int arr[], int cs, int ce, int cidx){
     sgtree2[cidx] = sgtree2[cidx*2+1] + sgtree2[cidx*2+2];// in getting max value function, not +, but use max(left,right)
 }
 
+// Lazy Propagation in Set Segment Tree
+class LazySetSegTree{
+    // n: size of input arr, size: size of segment tree, stamp: used for storing update's time stamp
+    int n = 0, size = 0, tm = 0;
+    bool flag_tm = false;
+    vector<long long> tree, lazy, stamp, arr;
+    vector<bool> pending;// trace pending update
+    public:
+    int GetN(){
+        return n;
+    }
+    int GetTM(){
+        return tm;
+    }
+    int SetTM(){
+        return ++tm;
+    }
+    int SetTM(int n){
+        return (tm = n);
+    }
+    void Init(int n){
+        this->n = n;
+        this->size = 4*n+10;
+        tree.assign(size, 0);
+        lazy.assign(size, 0);
+        arr.assign(size, 0);
+        stamp.assign(size, 0);
+        pending.assign(size, false);
+    }
+    LazySetSegTree(vector<int>& v){
+        int n = v.size();
+        Init(n);
+        for(int i=0; i<n; i++)
+            arr[n] = v[i];
+        this->Build(0, n-1, 0);
+    }
+    LazySetSegTree(int v[], int n){
+        Init(n);
+        for(int i=0; i<n; i++)
+            arr[i] = v[i];
+        this->Build(0, n-1, 0);
+    }
+    LazySetSegTree(int n){
+        Init(n);
+        this->Build(0, n-1, 0);
+    }
+    void Update(int cidx, int cs, int ce, int us, int ue, int diff, int stamp_val){
+        
+        if(pending[cidx]){
+            tree[cidx] = (ce-cs+1) * lazy[cidx];
+            if(cs != ce){
+                if(stamp[cidx*2+1] <= stamp[cidx]){
+                    lazy[cidx*2+1] = lazy[cidx];
+                    stamp[cidx*2+1] = stamp[cidx];
+                    pending[cidx*2+1] = true;
+                }
+                if(stamp[cidx*2+2] <= stamp[cidx]){
+                    lazy[cidx*2+2] = lazy[cidx];
+                    stamp[cidx*2+2] = stamp[cidx];
+                    pending[cidx*2+2] = true;
+                }
+            }
+            pending[cidx] = false;
+        }
+        if(cs > ce || cs > ue || ce < us)
+            return;
+        if(cs >= us && ce <= ue){
+            tree[cidx] = (ce-cs+1) * diff;
+            if(cs != ce){
+                if(stamp[cidx*2+1] <= stamp_val){
+                    lazy[cidx*2+1] = diff;
+                    stamp[cidx*2+1] = stamp_val;
+                    pending[cidx*2+1] = true;
+                }
+                if(stamp[cidx*2+2] <= stamp_val){
+                    lazy[cidx*2+2] = diff;
+                    stamp[cidx*2+2] = stamp_val;
+                    pending[cidx*2+2] = true;
+                }
+            }
+            stamp[cidx] = stamp_val;
+            return;
+        }
+        int mid = (cs+ce)/2;
+        Update(cidx*2+1, cs, mid, us, ue, diff, stamp_val);
+        Update(cidx*2+2, mid+1, ce, us, ue, diff, stamp_val);
+        tree[cidx] = tree[cidx*2+1] + tree[cidx*2+2];
+    }
+    int GetSum(int cs, int ce, int qs, int qe, int cidx){
+        if(pending[cidx]){
+            tree[cidx] = (ce-cs+1) * lazy[cidx];
+            if(cs != ce){
+                if(stamp[cidx*2+1] <= stamp[cidx]){
+                    lazy[cidx*2+1] = lazy[cidx];
+                    stamp[cidx*2+1] = stamp[cidx];
+                    pending[cidx*2+1] = true;
+                }
+                if(stamp[cidx*2+2] <= stamp[cidx]){
+                    lazy[cidx*2+2] = lazy[cidx];
+                    stamp[cidx*2+2] = stamp[cidx];
+                    pending[cidx*2+2] = true;
+                }
+            }
+            pending[cidx] = false;
+        }
+        if(cs > ce || cs > qe || ce < qs)
+            return 0;
+        if(cs >= qs && ce <= qe)
+            return tree[cidx];
+        int mid = (cs+ce)/2;
+        return GetSum(cs, mid, qs, qe, 2*cidx+1) + GetSum(mid+1, ce, qs, qe, 2*cidx+2);
+    }
+    int Query(int qs, int qe){
+        return GetSum(0, n-1, qs, qe, 0);
+    }
+    void Build(int cs, int ce, int cidx){
+        if(cs > ce)
+            return;
+        if(cs == ce){
+            tree[cidx] = arr[cs];
+            return;
+        }
+        int mid = (cs+ce)/2;
+        if(cs <= mid)
+            Build(cs, mid, cidx*2+1);
+        if(mid+1 <= ce)
+            Build(mid+1, ce, cidx*2+2);
+        tree[cidx] = tree[cidx*2+1] + tree[cidx*2+2];
+    }
+    void How_to_Use(){
+        vector<int> arr = {1,2,3,4};
+        LazySetSegTree *sgt = new LazySetSegTree(arr);
+        sgt->Update(0,0,n-1,0,3,0, (++tm));
+        sgt->Update(0,0,n-1,2,3,2,(++tm));
+        sgt->Update(0,0,n-1,0,2,10,(++tm));
+        int res = sgt->Query(1,2);
+        cout << res << endl;
+    }
+};
 
 // -----------------------------------------------------------------
 // -----------------------------------------------------------------
@@ -7392,12 +7531,13 @@ double MinAvgWeight(){
 }
 
 int main(){
-    int arr[] = {1,3,5,7,9,11};
-    int n = sizeof(arr)/sizeof(arr[0]);
-    BuildLazySumSGTree(arr, 0, n-1, 0);
-    cout << GetSumLazySumSGTree(0, n-1, 1, 3, 0) << endl;
-    UpdateLazySumSGTree(0, 0, n-1, 1, 5, 10);
-    cout << GetSumLazySumSGTree(0, n-1, 1, 3, 0) << endl;
+    vector<int> arr = {1,2,3,4};
+    LazySetSegTree *sgt = new LazySetSegTree(arr);
+    sgt->Update(0,0,sgt->GetN()-1,0,3,0, sgt->SetTM());
+    sgt->Update(0,0,sgt->GetN()-1,2,3,2,sgt->SetTM());
+    sgt->Update(0,0,sgt->GetN()-1,0,2,10,sgt->SetTM());
+    int res = sgt->Query(1,2);
+    cout << res << endl;
     return 0;
 }
 

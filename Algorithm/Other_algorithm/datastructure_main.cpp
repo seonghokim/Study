@@ -204,11 +204,24 @@
     cout << QueryDSTree(root, 1, 10, 1, 10) << endl; */
 
 // Lazy Propagation in Segment Tree
+/*     int arr[] = {1,3,5,7,9,11};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    BuildLazySGTree(arr, 0, n-1, 0);
+    cout << GetSumLazySGTree(0, n-1, 1, 3, 0) << endl;
+    UpdateLazySGTree(0, 0, n-1, 1, 5, 10);
+    cout << GetSumLazySGTree(0, n-1, 1, 3, 0) << endl; */
 
-
-
-
-
+// Lazy Propagation in Set Segment Tree
+/*     vector<int> arr = {1,2,3,4};
+    LazySetSegTree *sgt = new LazySetSegTree(arr);
+    sgt->How_to_Use(); */
+/*     vector<int> arr = {1,2,3,4};
+    LazySetSegTree *sgt = new LazySetSegTree(arr);
+    sgt->Update(0,0,sgt->GetN()-1,0,3,0, sgt->SetTM());
+    sgt->Update(0,0,sgt->GetN()-1,2,3,2,sgt->SetTM());
+    sgt->Update(0,0,sgt->GetN()-1,0,2,10,sgt->SetTM());
+    int res = sgt->Query(1,2);
+    cout << res << endl; */
 
 
 
