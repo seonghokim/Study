@@ -5410,6 +5410,194 @@ class RBTree{
         cout << endl;
   }
 };
+class RBTreeNode{
+    public:
+    string data, color;
+    RBTreeNode* child[2];
+    RBTreeNode(string data){
+        this->data = data;
+        this->color = "R";
+        child[0] = child[1] = nullptr;
+    }
+};
+class RBTree2{// for top down insertion
+    public:
+    RBTreeNode* root = nullptr;
+    int Height(RBTreeNode* root){
+        int l = 0, r = 0;
+        if(root == nullptr || (root->child[0] == nullptr && root->child[1] == nullptr))
+            return 0;
+        l = Height(root->child[0]);
+        r = Height(root->child[1]);
+        return (max(l, r) + 1);
+    }
+    static int Check(int dir){
+        return dir == 0 ? 1 : 0;
+    }
+    static bool IsRed(RBTreeNode* node){
+        return node != nullptr && node->color == "R";
+    }
+    RBTreeNode* SingleRotate(RBTreeNode* node, int dir){
+        RBTreeNode* temp = node->child[Check(dir)];
+        node->child[Check(dir)] = temp->child[dir];
+        temp->child[dir] = node;
+        root->color = "R";
+        temp->color = "B";
+        return temp;
+    }
+    RBTreeNode* DoubleRotate(RBTreeNode* node, int dir){
+        node->child[Check(dir)] = SingleRotate(node->child[Check(dir)], Check(dir));
+        return SingleRotate(node, dir);
+    }
+    RBTreeNode* Insert(RBTree2* tree, string data){
+        if(tree->root == nullptr){
+            tree->root = new RBTreeNode(data);
+            if(tree->root == nullptr)
+                return nullptr;
+        }
+        else{
+            RBTreeNode* temp = new RBTreeNode("");
+            RBTreeNode *g, *t;
+            RBTreeNode *p, *q;
+            int dir = 0, last = 0;
+            t = temp;
+            g = p = nullptr;
+            t->child[1] = tree->root;
+            q = t->child[1];
+            while(true){
+                if(q == nullptr){
+                    q = new RBTreeNode(data);
+                    p->child[dir] = q;
+                }
+                else if(IsRed(q->child[0]) && IsRed(q->child[1])){
+                    q->color = "R";
+                    q->child[0]->color = "B";
+                    q->child[1]->color = "B";
+                }
+                if(IsRed(q) && IsRed(p)){
+                    int dir2;
+                    if(t->child[1] == g)
+                        dir2 = 1;
+                    else
+                        dir2 = 0;
+                    if(q == p->child[last])
+                        t->child[dir2] = SingleRotate(g, last == 0 ? 1 : 0);
+                    else
+                        t->child[dir2] = DoubleRotate(g, last == 0 ? 1 : 0);
+                }
+                if(q->data == data)
+                    break;
+                last = dir;
+                dir = q->data < data ? 1 : 0;
+                if(g != nullptr)
+                    t = g;
+                g = p;
+                p = q;
+                q = q->child[dir];
+            }
+            tree->root = temp->child[1];
+        }
+        tree->root->color = "B";
+        return tree->root;
+    }
+    void PrintLevel(RBTreeNode* root, int i){
+        if(root == nullptr)
+            return;
+        if(i == 1){
+            cout << "| " << root->data << " | " << root->color << " |";
+            if(root->child[0] != nullptr)
+                cout << " " << root->child[0]->data << " |";
+            else
+                cout << " Null |";
+            if(root->child[1] != nullptr)
+                cout << " " << root->child[1]->data << " |";
+            else
+                cout << " Null |";
+            cout << " ";
+            return;
+        }
+        PrintLevel(root->child[0], i-1);
+        PrintLevel(root->child[1], i-1);
+    }
+    void LevelOrder(RBTreeNode* root){
+        for(int i=1; i<Height(root)+1; i++){
+            PrintLevel(root, i);
+            cout << endl;
+        }
+    }
+};
+
+// Left Leaning Red Black Tree
+struct LLRBTreeNode{
+    LLRBTreeNode *left, *right;
+    int data;
+    bool color;
+};
+LLRBTreeNode* CreateLLRBTreeNode(int data, bool color){
+    LLRBTreeNode* node = new LLRBTreeNode();
+    node->left = node->right = nullptr;
+    node->data = data;
+    node->color = color;
+    return node;
+}
+LLRBTreeNode* RotateLeftLLRB(LLRBTreeNode* node){
+    LLRBTreeNode* rchild = node->right;
+    LLRBTreeNode* lchild = rchild->left;
+    rchild->left = node;
+    node->right = lchild;
+    return rchild;
+}
+LLRBTreeNode* RotateRightLLRB(LLRBTreeNode* node){
+    LLRBTreeNode* lchild = node->left;
+    LLRBTreeNode* rchild = lchild->right;
+    lchild->right = node;
+    node->left = rchild;
+    return lchild;
+}
+int IsRedLLRB(LLRBTreeNode* node){
+    if(node == nullptr)
+        return 0;
+    return node->color == true;
+}
+void SwapColorLLRB(LLRBTreeNode* node1, LLRBTreeNode* node2){
+    bool temp = node1->color;
+    node1->color = node2->color;
+    node2->color = temp;
+}
+LLRBTreeNode* InsertLLRB(LLRBTreeNode* node, int data){
+    if(node == nullptr)
+        return CreateLLRBTreeNode(data, false);
+    if(data < node->data)
+        node->left = InsertLLRB(node->left, data);
+    else if(data > node->data)
+        node->right = InsertLLRB(node->right, data);
+    else
+        return node;
+    // Case 1: right child is Red, left chid is black or doesn't exist
+    if(IsRedLLRB(node->right) && !IsRedLLRB(node->left)){
+        node = RotateLeftLLRB(node);
+        SwapColorLLRB(node, node->left);
+    }
+    // Case 2: left child and left grand child is Red
+    if(IsRedLLRB(node->left) && IsRedLLRB(node->left->left)){
+        node = RotateRightLLRB(node);
+        SwapColorLLRB(node, node->right);
+    }
+    // Case 3: both left and right child are Red
+    if(IsRedLLRB(node->left) && IsRedLLRB(node->right)){
+        node->color = !node->color;
+        node->left->color = node->right->color = false;
+    }
+    return node;
+}
+void InorderLLRB(LLRBTreeNode* node){
+    if(node){
+        InorderLLRB(node->left);
+        cout << node->data << " ";
+        InorderLLRB(node->right);
+    }
+}
+
 // Ternary Tree
 struct TernaryNode{
     int data;
@@ -7531,13 +7719,20 @@ double MinAvgWeight(){
 }
 
 int main(){
-    vector<int> arr = {1,2,3,4};
-    LazySetSegTree *sgt = new LazySetSegTree(arr);
-    sgt->Update(0,0,sgt->GetN()-1,0,3,0, sgt->SetTM());
-    sgt->Update(0,0,sgt->GetN()-1,2,3,2,sgt->SetTM());
-    sgt->Update(0,0,sgt->GetN()-1,0,2,10,sgt->SetTM());
-    int res = sgt->Query(1,2);
-    cout << res << endl;
+    LLRBTreeNode* root = nullptr;
+    root = InsertLLRB(root, 10);
+    root->color = false;
+    root = InsertLLRB(root, 20);
+    root->color = false;
+    root = InsertLLRB(root, 30);
+    root->color = false;
+    root = InsertLLRB(root, 40);
+    root->color = false;
+    root = InsertLLRB(root, 50);
+    root->color = false;
+    root = InsertLLRB(root, 25);
+    root->color = false;
+    InorderLLRB(root);
     return 0;
 }
 

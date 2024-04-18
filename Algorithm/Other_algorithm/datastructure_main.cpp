@@ -106,6 +106,36 @@
     t.DeleteByValue(22);
     t.PrintInorder();
     t.printLevelOrder(); */
+/*     RBTree2* tree = new RBTree2();
+    string sent, word;
+    sent = "old is gold";
+    vector<string> word_arr;
+    stringstream ss(sent);
+    while(ss >> word)
+        word_arr.push_back(word);
+    for(int i=0; i<word_arr.size(); i++)
+        tree->root = tree->Insert(tree, word_arr[i]);
+    tree->LevelOrder(tree->root);
+    word = "forever";
+    tree->root = tree->Insert(tree, word);
+    cout << endl;
+    tree->LevelOrder(tree->root); */
+
+// Left Leaning Red Black Tree
+/*     LLRBTreeNode* root = nullptr;
+    root = InsertLLRB(root, 10);
+    root->color = false;
+    root = InsertLLRB(root, 20);
+    root->color = false;
+    root = InsertLLRB(root, 30);
+    root->color = false;
+    root = InsertLLRB(root, 40);
+    root->color = false;
+    root = InsertLLRB(root, 50);
+    root->color = false;
+    root = InsertLLRB(root, 25);
+    root->color = false;
+    InorderLLRB(root); */
 
 // Ternary Tree
 /*     TernaryNode* root = CreateTernaryNode(30);
