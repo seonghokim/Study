@@ -5531,9 +5531,9 @@ class RBTree2{// for top down insertion
 struct LLRBTreeNode{
     LLRBTreeNode *left, *right;
     int data;
-    bool color;
+    bool color;// Red = true, Black = false
 };
-LLRBTreeNode* CreateLLRBTreeNode(int data, bool color){
+LLRBTreeNode* CreateLLRBTreeNode(int data, bool color = true){
     LLRBTreeNode* node = new LLRBTreeNode();
     node->left = node->right = nullptr;
     node->data = data;
@@ -7718,21 +7718,178 @@ double MinAvgWeight(){
     return result;
 }
 
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// ----------------------------- Matrix ----------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+
+// Traverse matrix using recursion
+void TraverseMatrixUsingRecurison(vector<vector<int>>& mat, int i, int j){// O(n*m)
+    int N = mat.size();
+    int M = mat[0].size();
+    if(i == N-1 && j == M-1){
+        cout << mat[i][j] << endl;
+        return;
+    }
+    cout << mat[i][j] << ", ";
+    if(j < M-1)
+        TraverseMatrixUsingRecurison(mat, i, j+1);
+    else
+        TraverseMatrixUsingRecurison(mat, i+1, 0);
+}
+
+// Rotate Matrix Elements
+void ClockwiseRotateMatrix(int m, int n, vector<vector<int>>& mat){
+    int r = 0, c = 0;
+    int prev, cur;
+    while(r < m && c < n){
+        if(r + 1 == m || c + 1 == n)
+            break;
+        prev = mat[r+1][c];
+        for(int i=c; i<n; i++){// first row
+            cur = mat[r][i];
+            mat[r][i] = prev;
+            prev = cur;
+        }
+        r++;
+        for(int i = r; i<m; i++){// last column
+            cur = mat[i][n-1];
+            mat[i][n-1] = prev;
+            prev = cur;
+        }
+        n--;
+        if(r < m){
+            for(int i = n-1; i>=c; i--){// last row
+                cur = mat[m-1][i];
+                mat[m-1][i] = prev;
+                prev = cur;
+            }
+        }
+        m--;
+        if(c < n){
+            for(int i=m-1; i>=r; i--){
+                cur = mat[i][c];
+                mat[i][c] = prev;
+                prev = cur;
+            }
+        }
+        c++;
+    }
+    for(int i = 0; i<mat.size(); i++){
+        for(int j=0; j<mat[0].size(); j++)
+            cout << mat[i][j] << " ";
+        cout << endl;
+    }
+}
+
+// Sort Matrix with Strict Order
+void SortMatrixWithStrictOrder(vector<vector<int>>& mat){
+    int n = mat.size();
+    vector<int> temp(2*n);
+    int k = 0;
+    for(int i=0;i<n;i++)// Copy source
+        for(int j=0; j<n; j++)
+            temp[k++] = mat[i][j];
+    sort(temp.begin(), temp.end());// Sort Ascending Order
+    k = 0;
+    for(int i=0; i<n; i++)// Copy Result
+        for(int j=0; j<n; j++)
+            mat[i][j] = temp[k++];
+}
+
+// Search elements in sorted matrix
+void RowPairBinarySearch(vector<vector<int>>& mat, int i, int j_low, int j_high, int x){
+    while(j_low <= j_high){
+        int j_mid = (j_low+j_high)/2;
+        if(mat[i][j_mid] == x){
+            cout << "(" << i << "," << j_mid << ")" << endl;
+            return;
+        }
+        else if(mat[i][j_mid] > x)
+            j_high = j_mid-1;
+        else
+            j_low = j_mid+1;
+    }
+    cout << "Not Found\n";
+}
+void SearchInSortedMatrix(vector<vector<int>>& mat, int n, int m, int x){
+    if(n==1){
+        RowPairBinarySearch(mat, 0, 0, m-1, x);
+        return;
+    }
+    int i_low = 0, i_high = n-1;
+    int j_mid = m/2;
+    while((i_low+1) < i_high){
+        int i_mid = (i_low+i_high)/2;
+        if(mat[i_mid][j_mid] == x){
+            cout << "(" << i_mid << "," << j_mid << ")" << endl;
+            return;
+        }
+        else if(mat[i_mid][j_mid] > x)
+            i_high = i_mid;
+        else
+            i_low = i_mid;
+    }
+    if(mat[i_low][j_mid] == x)
+        cout << "(" << i_low << "," << j_mid << ")" << endl;
+    else if(mat[i_low+1][j_mid] == x)
+        cout << "(" << i_low+1 << "," << j_mid << ")" << endl;
+    else if(x <= mat[i_low][j_mid-1])
+        RowPairBinarySearch(mat, i_low, 0, j_mid-1, x);
+    else if(x >= mat[i_low][j_mid+1] && x<= mat[i_low][m-1])
+        RowPairBinarySearch(mat, i_low, j_mid+1, m-1, x);
+    else if(x <= mat[i_low+1][j_mid-1])
+        RowPairBinarySearch(mat, i_low+1, 0, j_mid-1, x);
+    else
+        RowPairBinarySearch(mat, i_low+1, j_mid+1, m-1, x);
+}
+void RowBinarySearch(vector<vector<int>>& mat, int n, int m, int k, int x){
+    int l = 0, r= m-1, mid;
+    while(l <= r){
+        mid = (l+r)/2;
+        if(a[x][mid] == k){
+            cout << "(" << x << "," << mid << ")" << endl;
+            return;
+        }
+        if(a[x][mid] > k)
+            r = mid-1;
+        if(a[x][mid] < k)
+            l = mid+1;
+    }
+    cout << "Not Found\n";
+}
+void SearchInSortedMatrixWithRowSearch(vector<vector<int>>& mat, int n, int m, int k){
+    int l = 0, r = n-1; mid;
+    while(l <= r){
+        mid = (l+r)/2;
+        if(k == a[mid][0]){
+            cout << "(" << mid << ",0)" << endl;
+            return;
+        }
+        if(k == a[mid][m-1]){
+            int t = m-1;
+            cout << "(" << mid << "," << t << ")" << endl;
+            return;
+        }
+        if(k > a[mid][0] && k < a[mid][m-1]){
+            RowBinarySearch(a, n, m, k, mid);
+            return;
+        }
+        if(k < a[mid][0])
+            r = mid-1;
+        if(k > a[mid][m-1])
+            l = mid+1;
+    }
+}
+
 int main(){
-    LLRBTreeNode* root = nullptr;
-    root = InsertLLRB(root, 10);
-    root->color = false;
-    root = InsertLLRB(root, 20);
-    root->color = false;
-    root = InsertLLRB(root, 30);
-    root->color = false;
-    root = InsertLLRB(root, 40);
-    root->color = false;
-    root = InsertLLRB(root, 50);
-    root->color = false;
-    root = InsertLLRB(root, 25);
-    root->color = false;
-    InorderLLRB(root);
+    fastio;
+    vector<vector<int>> mat = {{1,2,3}, {4,5,6}, {7,8,9}};
+    int n = mat.size();
+    int m = mat[0].size();
+    int x = 8;
+    SearchInSortedMatrix(mat, n, m, x);
     return 0;
 }
 

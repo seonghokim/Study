@@ -253,8 +253,9 @@
     int res = sgt->Query(1,2);
     cout << res << endl; */
 
-
-
+// Traverse matrix using recursion
+/*     vector<vector<int>> mat = {{1,2,3}, {4,5,6}, {7,8,9}};
+    TraverseMatrixUsingRecurison(mat, 0, 0); */
 
 
 
