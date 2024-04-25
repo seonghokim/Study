@@ -7848,48 +7848,164 @@ void RowBinarySearch(vector<vector<int>>& mat, int n, int m, int k, int x){
     int l = 0, r= m-1, mid;
     while(l <= r){
         mid = (l+r)/2;
-        if(a[x][mid] == k){
+        if(mat[x][mid] == k){
             cout << "(" << x << "," << mid << ")" << endl;
             return;
         }
-        if(a[x][mid] > k)
+        if(mat[x][mid] > k)
             r = mid-1;
-        if(a[x][mid] < k)
+        if(mat[x][mid] < k)
             l = mid+1;
     }
     cout << "Not Found\n";
 }
 void SearchInSortedMatrixWithRowSearch(vector<vector<int>>& mat, int n, int m, int k){
-    int l = 0, r = n-1; mid;
+    int l = 0, r = n-1, mid;
     while(l <= r){
         mid = (l+r)/2;
-        if(k == a[mid][0]){
+        if(k == mat[mid][0]){
             cout << "(" << mid << ",0)" << endl;
             return;
         }
-        if(k == a[mid][m-1]){
+        if(k == mat[mid][m-1]){
             int t = m-1;
             cout << "(" << mid << "," << t << ")" << endl;
             return;
         }
-        if(k > a[mid][0] && k < a[mid][m-1]){
-            RowBinarySearch(a, n, m, k, mid);
+        if(k > mat[mid][0] && k < mat[mid][m-1]){
+            RowBinarySearch(mat, n, m, k, mid);
             return;
         }
-        if(k < a[mid][0])
+        if(k < mat[mid][0])
             r = mid-1;
-        if(k > a[mid][m-1])
+        if(k > mat[mid][m-1])
             l = mid+1;
     }
 }
 
+// Determinant of matrix
+int DeterminantOfMatrix(vector<vector<int>>& mat){// O(n^3)
+    int n = mat.size();
+    int n1, n2, det = 1, idx, total = 1;
+    int temp[n+1];
+    for(int i=0; i<n; i++){
+        idx = i;
+        while(idx < n && mat[idx][i] == 0)
+            idx++;
+        if(idx == n)// if there is non zero element, 
+            continue;//determinant of mat as zero
+        if(idx != i){
+            for(int j=0; j<n; j++)
+                swap(mat[idx][j], mat[i][j]);
+            det = det * pow(-1, idx-i);//sign change 
+        }
+        for(int j=0; j<n; j++)//store diagonal row element 
+            temp[j] = mat[i][j];
+        for(int j=i+1; j<n; j++){//traverse every row below diagonal element
+            n1 = temp[i];// diagonal element
+            n2 = mat[j][i];//next row element
+            for(int k=0; k<n; k++)
+                mat[j][k] = n1 * mat[j][k] - n2 * temp[k];
+            total *= n1;// det (kA) = k det(A)
+        }
+    }
+    for(int i=0; i<n; i++)// Cal diagonal element for getting determinant
+        det *= mat[i][i];
+    return (det/total);
+}
+
+// Adjoint and Inverse of Matrix
+void GetCofactor(vector<vector<int>>&mat, vector<vector<int>>& cofac, int p, int q){
+    int n = mat.size();
+    int i=0, j=0;
+    for(int r = 0; r < n; r++)
+        for(int c = 0; c<n; c++)
+            if(r != p && c != q){
+                cofac[i][j++] = mat[r][c];
+                if(j == n-1){
+                    j=0;
+                    i++;
+                }
+            }
+}
+int GetDeterminant(vector<vector<int>>& mat, int n){
+    int d = 0;
+    if(n == 1)
+        return mat[0][0];
+    vector<vector<int>> cofac(n, vector<int>(n));
+    int sign = 1;
+    for(int k = 0; k<n; k++){
+        GetCofactor(mat, cofac, 0, k);
+        d += sign * mat[0][k] * GetDeterminant(cofac, n-1);
+        sign *= -1;
+    }
+    return d;
+}
+void AdjointMatrix(vector<vector<int>>& mat, vector<vector<int>>& adj){
+    int n = mat.size();
+    if(n == 1){
+        adj[0][0] = 1;
+        return;
+    }
+    int sign = 1;
+    vector<vector<int>> temp(n, vector<int>(n));
+    for(int i=0; i<n; i++)
+        for(int j=0; j<n; j++){
+            GetCofactor(mat, temp, i, j);
+            sign = (i+j) % 2 == 0 ? 1 : -1;
+            adj[j][i] = (sign) * GetDeterminant(temp, n-1);
+        }
+}
+bool InverseMatrix(vector<vector<int>>& mat, vector<vector<double>>& inv){
+    int n = mat.size();
+    int det = GetDeterminant(mat, n);
+    if(det == 0){
+        cout << "This matrix is singular matrix, So, can't find inverse\n";
+        return false;
+    }
+    vector<vector<int>> adj(n, vector<int>(n));
+    AdjointMatrix(mat, adj);
+    for(int i=0; i<n; i++)
+        for(int j=0; j<n; j++)
+            inv[i][j] = adj[i][j] / (double)det;
+    return true;
+}
+void PrintMatrix(vector<vector<int>>& mat){
+    int n = mat.size();
+    for(auto k : mat){
+        for(auto l : k)
+            cout << l << " ";
+        cout << endl;
+    }
+    cout << endl;
+}
+void PrintMatrix(vector<vector<double>>& mat){
+    int n = mat.size();
+    for(auto k : mat){
+        for(auto l : k)
+            cout << l << " ";
+        cout << endl;
+    }
+    cout << endl;
+}
+
 int main(){
     fastio;
-    vector<vector<int>> mat = {{1,2,3}, {4,5,6}, {7,8,9}};
+    vector<vector<int>> mat = {
+                {5, -2, 2, 7},
+                {1, 0, 0, 3},
+                {-3, 1, 5, 0},
+                {3, -1, -9, 4}};
     int n = mat.size();
-    int m = mat[0].size();
-    int x = 8;
-    SearchInSortedMatrix(mat, n, m, x);
+    vector<vector<int>> adj(n, vector<int>(n));
+    vector<vector<double>> inv(n, vector<double>(n));
+    
+    PrintMatrix(mat);
+    AdjointMatrix(mat, adj);
+    PrintMatrix(adj);
+    InverseMatrix(mat, inv);
+    PrintMatrix(inv);
+
     return 0;
 }
 
