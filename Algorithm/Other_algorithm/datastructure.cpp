@@ -7989,22 +7989,109 @@ void PrintMatrix(vector<vector<double>>& mat){
     cout << endl;
 }
 
+void PrintZigZagMatrix(vector<vector<int>>& mat){// O(n * m)
+    int n = mat.size(), m = mat[0].size();
+    int r = 0, c = 0;
+    bool row_inc = false;// same state can't appear more than once
+    int mn = min(m, n);
+    for(int len = 1; len <= mn; ++len){
+        for(int i=0; i<len; i++){
+            cout << mat[r][c] << " ";
+            if(i+1 == len)
+                break;
+            if(row_inc)// dir: left diagonal
+                ++r, --c;
+            else// dir: right diagonal
+                --r, ++c;
+        }
+        if(len == mn)
+            break;
+        if(row_inc)// dir: down
+            ++r, row_inc = false;
+        else// dir: right
+            ++c, row_inc = true;
+    }
+    if(r == 0){
+        if(c == m-1)
+            ++r;// dir: down
+        else
+            ++c;// dir: right
+        row_inc = true;
+    }
+    else{
+        if(r == n-1)
+            ++c;
+        else
+            ++r;
+        row_inc = false;
+    }
+    int max_val = max(m, n) -1;
+    for(int len, diag = max_val; diag > 0; --diag){
+        if(diag > mn)
+            len = mn;
+        else
+            len = diag;
+        for(int i=0; i<len; i++){
+            cout << mat[r][c] << " ";
+            if(i+1 == len)
+                break;
+            if(row_inc)
+                ++r, --c;
+            else
+                ++c, --r;
+        }
+        if(r == 0 || c == m-1){
+            if(c == m-1)
+                ++r;
+            else
+                ++c;
+            row_inc = true;
+        }
+        else if(c == 0 || r == n-1){
+            if(r == n-1)
+                ++c;
+            else
+                ++r;
+            row_inc = false;
+        }
+    }
+}
+void PrintZigZagMatrix2(vector<vector<int>>& mat){
+    int row = mat.size(), col = mat[0].size();
+    int r = 0, c = 0;
+    bool flag_move = true;
+    bool r_flag, ld_flag, rd_flag, d_flag;//moving direcion flag(ld = left down diagonal, rd: right up diagonal)
+    r_flag = true;
+    ld_flag = rd_flag = d_flag = false;
+    while(flag_move){
+        cout << mat[r][c] << " ";
+        if(r == row-1 && c == col-1){
+            flag_move = false;
+            break;
+        }
+        // Be carefule!, if-if-else if-if is important for Print order.
+        // ld_flag affects d_flag, rd_flag affects r_flag(r_flag doesn't affect ld_flag, d_flag doesn't affect rd_flag)
+        if(ld_flag)
+            (c-1 >= 0 && r+1 < row) ? (++r, --c) : (ld_flag = false, d_flag = true);
+        if(d_flag)
+            ((r+1 < row) ? ++r : ++c), (d_flag = false, rd_flag = true);
+        else if(rd_flag)
+            (c+1 < col && r-1 >=0) ? (--r, ++c) : (rd_flag = false, r_flag = true);
+        if(r_flag)
+            ((c+1 < col) ? ++c : ++r), r_flag = false, ld_flag = true;
+    }
+}
+
 int main(){
     fastio;
     vector<vector<int>> mat = {
-                {5, -2, 2, 7},
-                {1, 0, 0, 3},
-                {-3, 1, 5, 0},
-                {3, -1, -9, 4}};
-    int n = mat.size();
-    vector<vector<int>> adj(n, vector<int>(n));
-    vector<vector<double>> inv(n, vector<double>(n));
-    
-    PrintMatrix(mat);
-    AdjointMatrix(mat, adj);
-    PrintMatrix(adj);
-    InverseMatrix(mat, inv);
-    PrintMatrix(inv);
+        {1,   2,  3,  4},
+        {6,   7,  8,  9},
+        {11, 12, 13, 14},
+        {16, 17, 18, 19},
+        {21, 22, 23, 24}
+    };
+    PrintZigZagMatrix2(mat);
 
     return 0;
 }
