@@ -1,11 +1,16 @@
+dict1 = {10: 'a', 20: [1, 2, 3], 30: 'c'}
+print("Given Dictionary:", dict1)
+ 
+# new dictionary and
+# copying using copy() method
+dict2 = dict1.copy()
+print("New copy:", dict2)
+ 
+# Updating dict2 elements and
+# checking the change in dict1
+dict2[10] = 10
+dict2[20][2] = '45'  # list item updated
+ 
+print("Updated copy:", dict2)
 
-
-List = [[2,3,4],[1, 4, 16, 64],[3, 6, 9, 12]]
-
-sortList = lambda x: (sorted(i) for i in x)
-print(sortList(List))
-
-secondLargest = lambda x, f : [y[len(y)-2] for y in f(x)]
-res = secondLargest(List, sortList)
-
-print(res)
+print(dict1)
