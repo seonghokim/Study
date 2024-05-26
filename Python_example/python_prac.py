@@ -1,13 +1,9 @@
-
-import itertools
-import operator
-
-GFG = [5, 3, 6, 2, 1, 9, 1]
-
-result = itertools.accumulate(GFG, max)
-
-for each in result:
-    print(each)
-
-
-
+def simpleGeneratorFun():
+    yield 1
+    yield 2
+    yield 3
+ 
+ 
+# Driver code to check above generator function
+for value in simpleGeneratorFun():
+    print(value)
