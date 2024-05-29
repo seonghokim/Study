@@ -1,21 +1,29 @@
-def runMatch(mystr):
-    
-    # match case
-    match mystr:
-        # pattern 1
-        case ["a"]:
-            print("a")
-        # pattern 2
-        case ["a", *b]:
-            print(f"a and {b}")
-        # pattern 3
-        case (*a, "e"):
-            print(f"{a} and e")#(*a, "e"), [*a, "e"]
-        # default pattern
-        case _:
-            print("No data")
-            
-runMatch([])
-runMatch(["a"])
-runMatch(["a", "b"])
-runMatch(["b", "c", "d", "e"])
+import logging 
+logging.basicConfig(filename='example.log',
+                    level=logging.INFO) 
+ 
+def logger(func): 
+    def log_func(*args): 
+        logging.info( 
+            'Running "{}" with arguments {}'.format(func.__name__,
+                                                    args)) 
+        print(func(*args)) 
+         
+    # Necessary for closure to
+    # work (returning WITHOUT parenthesis) 
+    return log_func             
+ 
+def add(x, y): 
+    return x+y 
+ 
+def sub(x, y): 
+    return x-y 
+ 
+add_logger = logger(add) 
+sub_logger = logger(sub) 
+ 
+add_logger(3, 3) 
+add_logger(4, 5) 
+ 
+sub_logger(10, 5) 
+sub_logger(20, 10) 
