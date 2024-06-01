@@ -1,6 +1,8 @@
-a1 = {''}
-a2 = {''}
-if a1 is a2:
-    print(True)
-else:
-    print(False)
+
+
+from re import split 
+  
+print(split('\W+', 'Words, words , Words')) 
+print(split('\W+', "Word's words Words")) 
+print(split('\W+', 'On 12th Jan 2016, at 11:02 AM')) 
+print(split('\d+', 'On 12th Jan 2016, at 11:02 AM')) 
