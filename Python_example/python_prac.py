@@ -1,22 +1,72 @@
-
-class BirthDay:
-    def __init__(self, birth_year: int, birth_month: int, birth_date: int):
-        self.year = birth_year
-        self.month = birth_month
-        self.date = birth_date
-
-    @classmethod
-    def by_security_number(cls, security_number: str):
-        birth_year = 1900 + int(security_number[:2])
-        birth_month = int(security_number[2:4])
-        birth_date = int(security_number[4:6])
-        return cls(birth_year, birth_month, birth_date)
-
-
-if __name__ == "__main__":
-    birth1 = BirthDay(1999, 1, 31)
-    birth2 = BirthDay.by_security_number("990131")
-    print(birth1.year)
-    print(birth2.year)
-
-
+// Abstract Factory Interface
+interface CarFactory {
+    Car createCar();
+    CarSpecification createSpecification();
+}
+// Concrete Factory for North America Cars
+class NorthAmericaCarFactory implements CarFactory {
+    public Car createCar() {
+        return new Sedan();
+    }
+    public CarSpecification createSpecification() {
+        return new NorthAmericaSpecification();
+    }
+}
+// Concrete Factory for Europe Cars
+class EuropeCarFactory implements CarFactory {
+    public Car createCar() {
+        return new Hatchback();
+    }
+    public CarSpecification createSpecification() {
+        return new EuropeSpecification();
+    }
+}
+// Abstract Product Interface for Cars
+interface Car {
+    void assemble();
+}
+// Abstract Product Interface for Car Specifications
+interface CarSpecification {
+    void display();
+}
+// Concrete Product for Sedan Car
+class Sedan implements Car {
+    public void assemble() {
+        System.out.println("Assembling Sedan car.");
+    }
+}
+// Concrete Product for Hatchback Car
+class Hatchback implements Car {
+    public void assemble() {
+        System.out.println("Assembling Hatchback car.");
+    }
+}
+// Concrete Product for North America Car Specification
+class NorthAmericaSpecification implements CarSpecification {
+    public void display() {
+        System.out.println("North America Car Specification: Safety features compliant with local regulations.");
+    }
+}
+// Concrete Product for Europe Car Specification
+class EuropeSpecification implements CarSpecification {
+    public void display() {
+        System.out.println("Europe Car Specification: Fuel efficiency and emissions compliant with EU standards.");
+    }
+}
+// Client Code
+public class CarFactoryClient {
+    public static void main(String[] args) {
+        // Creating cars for North America
+        CarFactory northAmericaFactory = new NorthAmericaCarFactory();
+        Car northAmericaCar = northAmericaFactory.createCar();
+        CarSpecification northAmericaSpec = northAmericaFactory.createSpecification();
+        northAmericaCar.assemble();
+        northAmericaSpec.display();
+        // Creating cars for Europe
+        CarFactory europeFactory = new EuropeCarFactory();
+        Car europeCar = europeFactory.createCar();
+        CarSpecification europeSpec = europeFactory.createSpecification();
+        europeCar.assemble();
+        europeSpec.display();
+    }
+}
