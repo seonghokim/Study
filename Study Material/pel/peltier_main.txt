@@ -1,0 +1,1432 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "stm32f4xx.h"
+#include "ksh_peltier_control.h"
+
+#define TIMER_PRESCALER_FREQ_2    1000000                      //1MHz 
+#define TIMER_FREQ_2            (225*2)            // Actuator 진동 주파수
+
+#define TIMER_PRESCALER_FREQ_PWM_9    10000000                 //10MHz
+#define PWM_FREQ_9                    10000                           //10kHz
+#define PWM_WIDTH_9                   (TIMER_PRESCALER_FREQ_PWM_9 / PWM_FREQ_9)
+#define DUTY_IDLE_9                   (PWM_WIDTH_9 / 2)     // 50% duty
+#define DUTY_MAX_9                    (PWM_WIDTH_9 - 1)     // 최대 duty 값.
+
+int i=0;
+int j=0;
+
+
+typedef enum
+{
+  false = 0, true  = !false
+}bool;
+//#######################    Vibration Motor   ###########################
+int vibration_count = 0;
+int timer_count = 0;
+int vib_intensity = 0;
+int vib_time = 5;
+char temp_buf[10][100] = {0,};
+char buf[100] = {0,};
+int packet = 0;
+
+//-------------------------------------------------------------------------
+
+
+
+//###########################     IMU     #############################
+int imu_temp_idx=0;
+char imu_data;
+char imu_buffer[100]={0,};
+char imu_tmp_buffer[100] = {0,};
+bool imu_buffer_state = false;
+bool imu_buffer_fill_state = false;
+bool imu_initial = false;
+bool imu_qe_state = false;
+char* imu_speed= "<sor20>"; 
+char* imu_quaternion = "<sof2>";
+char* imu_euler = "<sof1>";
+char* imu_polling = "<sor0>";
+char* imu_polling_data = "*";
+
+bool imu_state=  false;
+bool imu_start_state = false;
+bool imu_end_state = false;
+
+int tim5_count = 0;
+int imu_freq = 60;
+int imu_period = 0;
+bool imu_polling_state= false;
+//-------------------------------------------------------------------------
+
+
+
+//##########################     Button     #############################
+bool button_state_1 = false;
+int button_count_1= 0;
+bool button1_state = false;
+
+bool button_state_2 = false;
+int button_count_2= 0;
+bool button2_state = false;
+
+bool button_state_3 = false;
+int button_count_3= 0;
+bool button3_state = false;
+
+bool button_state_4 = false;
+int button_count_4= 0;
+bool button4_state = false;
+
+bool button_state_5 = false;
+int button_count_5= 0;
+bool button5_state = false;
+
+char button_buffer='0';
+//-------------------------------------------------------------------------
+
+
+
+//###########################     Encoder    ############################ 
+
+typedef struct  {
+  bool dataA;
+  bool dataB;
+}CurrentStateEncoder;
+
+typedef struct  {
+  bool dataA;
+  bool dataB;
+}BeforeStateEncoder;
+
+BeforeStateEncoder bse;
+CurrentStateEncoder cse;
+
+bool state_encoder = false;
+//bool state[4] = {0,};
+bool rotateCW = false;
+bool rotateCCW = false;
+int state_before = 0;
+int state_current = 0;
+//bool count_encoder = 0;
+bool state_knob = false;
+int count_knob = 0;
+int freq_knob = 100;
+int time_knob = 0;
+//-------------------------------------------------------------------------
+
+
+
+//##################     High Voltage Circuit Variable    ######################## 
+int HVC_count = -1;
+
+//-------------------------------------------------------------------------
+
+
+//##########################     Peltier     #############################
+const int peltier_temper_setTime = 1000;//단위 ms, (1kHz 기준)
+const int peltier_temper_interval = 2;// 휴식, 대기상태의 시간(단위 : s)
+
+typedef struct  {
+  int start_bit;
+  int com_bit;
+  int min_bit;
+  int max_bit;
+  int time_bit;        // on, off
+  int frq_bit;
+  int extra_bit;       // 여분
+  int stop_bit;
+}RecvData;
+RecvData Do_RD;
+
+void init_RecvData() {
+  Do_RD.start_bit = 0;
+  Do_RD.com_bit = 0;
+  Do_RD.min_bit = 0;
+  Do_RD.max_bit = 0;
+  Do_RD.time_bit = 0;
+  Do_RD.frq_bit = 0;
+  Do_RD.extra_bit = 0;
+  Do_RD.stop_bit = 0;
+  
+  printf("RecvData All reset\n");
+}
+char imsi_buffer[32];
+int timer2_count_for_perceive = 0;
+bool state_timer2_count_for_hot1 = false;
+bool state_timer2_count_for_hot2 = false;
+bool state_timer2_count_for_hot3 = false;
+bool state_timer2_count_for_hot4 = false;
+bool state_timer2_count_for_cold1 = false;
+bool state_timer2_count_for_cold2 = false;
+bool state_timer2_count_for_cold3 = false;
+bool state_timer2_count_for_cold4 = false;
+bool state_timer2_count_for_idle = false;
+PelCtrlVal pVal[2];
+int pelCntPeriode = 0;                              // 팰티어 구동 카운터
+int printCnt = 0;                                       // 출력 카운터
+int pelFreq = 100;                                  // 펠티어 구동주기 (PID 제어에 필요함
+int pelPeriode = TIMER_FREQ_2 / 100;    // TIMER를 공유하므로, 펠티어 구동 주기가 반영된 주기값 계산
+int printPeriode = 5;                              // 출력 주기
+double currentSet[2][2] = {{0, 0},{0, 0}};
+bool Do_print_pel_flag = false;           
+int pel_cntTime = 0;
+char buffer3[100] = {0};
+//-------------------------------------------------------------------------
+
+
+//####################        Prototype Functions       #######################
+void setCold();
+void setHot();
+void setInitial();
+void setInitial2();
+void CheckBeforeStateEncoder(bool dataA, bool dataB);
+void CheckCurrentStateEncoder(bool dataA, bool dataB);
+void setRotationDirection();
+void parsing();
+void parsingData2();
+void SetPWM_TIM4_CH1(int value) ;
+void UART1Print(const char *pucBuffer);
+void UART6Print(const char *pucBuffer);
+void USART_puts(USART_TypeDef* USARTx, volatile char *s);
+//-------------------------------------------------------------------------
+
+
+//######################        Stepping Motor       ########################
+bool step_flag_1=false;
+bool step_flag_2=false;
+bool on_off_flag_First=false;
+bool on_off_flag_Second=false;
+int step_check_1=0;
+int step_check_2=0;
+int initial_1 = 0;
+int initial_2 = 0;
+//-------------------------------------------------------------------------
+
+
+
+
+void Init_TIM2(){//buttons, 60Hz
+        uint16_t PrescalerValue;
+        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure; //Timer관련구조체
+        NVIC_InitTypeDef NVIC_InitStructure; 
+
+        NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn; 
+        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f; 
+        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f;
+        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+        NVIC_Init(&NVIC_InitStructure);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+        
+        SystemCoreClockUpdate();
+        PrescalerValue = 839; 
+        TIM_TimeBaseStructure.TIM_Period = 1665 ;//60hz
+        TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
+        TIM_TimeBaseStructure.TIM_ClockDivision = 0; 
+        TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+        TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+
+        TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+
+        TIM_Cmd(TIM2, ENABLE);
+}
+
+void Init_TIM3(){//Peltier, 450Hz
+    uint16_t PrescalerValue;
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure; //Timer관련구조체
+    NVIC_InitTypeDef NVIC_InitStructure; 
+    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn; 
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+    NVIC_Init(&NVIC_InitStructure); 
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+    
+    SystemCoreClockUpdate(); // SystemCoreClock을 업데이트함.
+    PrescalerValue = (uint16_t) (SystemCoreClock/ 2 / TIMER_PRESCALER_FREQ_2) -1; 
+    TIM_TimeBaseStructure.TIM_Period = (TIMER_PRESCALER_FREQ_2 / TIMER_FREQ_2) -1 ;
+    TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue; // Timer의 최대주파수를설정함
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0; 
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+    TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+    TIM_Cmd(TIM3, ENABLE);
+}
+
+void Init_TIM4(){//vibration motor PWM(120Hz,PD12)
+    uint16_t PrescalerValue;
+    
+    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+
+    NVIC_InitTypeDef NVIC_InitStructure; 
+    NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;   
+    NVIC_Init(&NVIC_InitStructure);  
+    
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+
+    SystemCoreClockUpdate();PrescalerValue = 839;//100,000
+    TIM_TimeBaseStructure.TIM_Period = 832;//769-130HZ, 384-260HZ, 833-120HZ, 713-140hz
+
+
+    TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue; 
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0; 
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    
+    TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
+    
+    /* TIM IT enable */
+    TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+    
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+    
+    GPIO_PinAFConfig(GPIOD, GPIO_PinSource12, GPIO_AF_TIM4);
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; 
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOD, &GPIO_InitStructure);
+    
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;  
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;    
+    TIM_OCInitStructure.TIM_Pulse = 0;       
+    
+    TIM_OC1Init(TIM4, &TIM_OCInitStructure);
+    TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Disable);     
+    
+    //TIM4_CH1: PD12
+    //TIM4_CH2: PD13
+    //TIM4_CH3: PD14
+    //TIM4_CH4: PD15
+    
+//void SetPWM_TIM4_CHx(int value)   // CHx <- x meains is channel (input channel that use your channel)
+//{       	
+//    TIM_OCInitTypeDef TIM_OCInitStructure;
+//    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+//    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+//    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+//    TIM_OCInitStructure.TIM_Pulse = value;   // (pulse)/(timer_period) => PWM_duty(%), ex:( period=1000, pulse=500 => duty 50%)
+//	
+//    TIM_OCxInit(TIM4, &TIM_OCInitStructure); //OCx <- x meaning is channel
+//}
+    
+    /* TIMX enable counter */
+    TIM_Cmd(TIM4, ENABLE);
+}
+
+void Init_TIM5(){//Peltier Control Timer(1kHz), Haptic Knob
+        uint16_t PrescalerValue;
+        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure; //Timer관련구조체
+        NVIC_InitTypeDef NVIC_InitStructure; 
+
+        NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQn; 
+        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f; 
+        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f;
+        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+        NVIC_Init(&NVIC_InitStructure);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
+        
+        SystemCoreClockUpdate();
+        PrescalerValue = 839; 
+        TIM_TimeBaseStructure.TIM_Period = 99 ;//1kHz
+        TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
+        TIM_TimeBaseStructure.TIM_ClockDivision = 0; 
+        TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+        TIM_TimeBaseInit(TIM5, &TIM_TimeBaseStructure);
+
+        TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
+
+        TIM_Cmd(TIM5, ENABLE);
+}
+
+void Init_TIM7(){//Stepping Motor(10Hz)
+        uint16_t PrescalerValue;
+        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure; //Timer관련구조체
+        NVIC_InitTypeDef NVIC_InitStructure; 
+
+        NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn; 
+        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f; 
+        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f;
+        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+        NVIC_Init(&NVIC_InitStructure);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
+        
+        SystemCoreClockUpdate();
+        PrescalerValue = 1679; 
+        TIM_TimeBaseStructure.TIM_Period = 4999;//10Hz
+        TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
+        TIM_TimeBaseStructure.TIM_ClockDivision = 0; 
+        TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+        TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
+
+        TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);
+
+        TIM_Cmd(TIM7, ENABLE);
+}
+
+void Init_USART1(void){//Bluetooth
+    
+   GPIO_InitTypeDef GPIO_InitStructure; 
+   USART_InitTypeDef USART_InitStructure; 
+   NVIC_InitTypeDef NVIC_InitStructure; 
+   
+   // Enable peripheral
+   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); 
+   RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+   
+   // Configure USART Interrupt
+   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn; 
+   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f; 
+   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f; 
+   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+   NVIC_Init(&NVIC_InitStructure); 
+   
+   // GPIO AF config
+   GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
+   GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
+       // Configure GPIO(UART TX/RX) 
+   GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9; // USART TX Pin Number
+   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+   GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   GPIO_Init(GPIOA, &GPIO_InitStructure);
+   GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_10; // USART RX Pin Number
+   GPIO_Init(GPIOA, &GPIO_InitStructure);
+   
+   // Configure UART peripheral
+   USART_InitStructure.USART_BaudRate   = 115200; //Baudrate
+   USART_InitStructure.USART_WordLength = USART_WordLength_8b; 
+   USART_InitStructure.USART_StopBits   = USART_StopBits_1; 
+   USART_InitStructure.USART_Parity     = USART_Parity_No ; 
+   USART_InitStructure.USART_HardwareFlowControl 
+      = USART_HardwareFlowControl_None;
+   USART_InitStructure.USART_Mode       = USART_Mode_Rx | USART_Mode_Tx; 
+   
+   USART_Init(USART1, &USART_InitStructure); 
+   
+   // Enable USART receive interrupt
+   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); 
+   
+   USART_Cmd(USART1, ENABLE); 
+}
+
+void Init_USART6(void) { // IMU(C6,C7)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  USART_InitTypeDef USART_InitStructure;
+  NVIC_InitTypeDef NVIC_InitStructure;
+  
+  // Enable peripheral
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
+  
+  // Configure USART Interrupt
+  NVIC_InitStructure.NVIC_IRQChannel = USART6_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0f;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0f;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  //        
+  // GPIO AF config       //PC6:TX, PC7: RX
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6);
+  
+  // Configure GPIO(UART TX/RX)
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  
+  // Configure UART peripheral
+  USART_InitStructure.USART_BaudRate = 115200;
+  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+  USART_InitStructure.USART_StopBits = USART_StopBits_1;
+  USART_InitStructure.USART_Parity = USART_Parity_No;
+  USART_InitStructure.USART_HardwareFlowControl
+    = USART_HardwareFlowControl_None;
+  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+  
+  USART_Init(USART6, &USART_InitStructure);
+  
+  // Enable USART receive interrupt
+  USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
+  
+  USART_Cmd(USART6, ENABLE);
+} 
+
+void Init_GPIO_D() {//i don't know what it is
+            GPIO_InitTypeDef GPIO_InitStructure;
+            
+            RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+            
+            GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
+             
+            GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;        
+            GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+            GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+
+            GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;   
+            GPIO_Init(GPIOD, &GPIO_InitStructure);                         
+}
+void Init_GPIO_A_IN() {//Button(PA0)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;//PA0.is physical button for test board.
+   
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;   
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL; //DOWN, NOPULL  
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_Init(GPIOA, &GPIO_InitStructure);          
+ 
+}
+
+void Init_GPIO_A_High_Voltage(){//High Voltage Amplifier(PA11, PA12)
+            GPIO_InitTypeDef GPIO_InitStructure;
+            
+            RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+            
+            GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_11 | GPIO_Pin_12;
+             
+            GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;        
+            GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+            GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+
+            GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;   
+            GPIO_Init(GPIOA, &GPIO_InitStructure);     
+}
+
+void Init_GPIO_C_IN() {//Button(PC15)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+   
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;   
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;   
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_Init(GPIOC, &GPIO_InitStructure);          
+ 
+}
+void Init_GPIO_A_OUT() {//Haptic Knob(PA3)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+   
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;   
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_Init(GPIOA, &GPIO_InitStructure);          
+ 
+}
+void Init_GPIO_D_OUT() {//Stepping Motor(PD2, PD3, PD4, PD5, PD6, PD7)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 |GPIO_Pin_6 | GPIO_Pin_7;
+  
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;     
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;   
+  GPIO_Init(GPIOD, &GPIO_InitStructure);          
+
+}
+void Init_GPIO_D_IN() {//Button Out(PD8, PD9, PD10, PD11, PD13)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_13;
+  
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;     
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;   
+  GPIO_Init(GPIOD, &GPIO_InitStructure);          
+
+}
+void Init_GPIO_E_IN() {//Button In(PD2, PD3, PD4, PD5, PD6, PD7)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
+  
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;     
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;   
+  GPIO_Init(GPIOE, &GPIO_InitStructure);          
+
+}
+void Init_GPIO_B_IN() {//Encoder(PB8, PB9)
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
+  
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;   
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;        
+  
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;   
+  GPIO_Init(GPIOA, &GPIO_InitStructure);          
+
+}
+
+void Init_PWM_9(){//Peltier(PE5)
+    
+    uint16_t PrescalerValue;
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
+    // unsigned short duty;
+    
+    /* TIM9, GPIOD clock enable */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM9, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+    
+    GPIO_PinAFConfig(GPIOE, GPIO_PinSource5, GPIO_AF_TIM9);
+   
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOE, &GPIO_InitStructure);
+    
+    
+    /* Compute the prescaler value */
+    SystemCoreClockUpdate();
+    PrescalerValue = (uint16_t) (SystemCoreClock  / TIMER_PRESCALER_FREQ_PWM_9) - 1;   // timer base counter에 1MHz 입력
+    
+    /* Time base configuration */
+    TIM_TimeBaseStructure.TIM_Period = TIMER_PRESCALER_FREQ_PWM_9 / PWM_FREQ_9 - 1;     // 1kHz timer
+    TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    
+    TIM_TimeBaseInit(TIM9, &TIM_TimeBaseStructure);
+    
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;  
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;    
+    TIM_OCInitStructure.TIM_Pulse = DUTY_IDLE_9;       // default 50%
+    
+    TIM_OC1Init(TIM9, &TIM_OCInitStructure);
+    TIM_OC1PreloadConfig(TIM9, TIM_OCPreload_Disable);     
+    
+//    
+//    TIM_OC2Init(TIM9, &TIM_OCInitStructure);
+//    TIM_OC2PreloadConfig(TIM9, TIM_OCPreload_Disable);   
+//    
+//    
+    /* TIM4 enable counter */
+    TIM_Cmd(TIM9, ENABLE);
+    
+    //OC1 = TIM9
+    //TIM_OC1Init = (PE) 5
+    //TIM_OC2Init = (PE) 6
+    
+    TIM_SetCompare1(TIM9,0);
+    //TIM_SetCompare2(TIM9,0);
+    
+}
+
+
+
+int main()
+{
+   Init_GPIO_A_High_Voltage();
+   Init_GPIO_A_OUT();
+   Init_GPIO_D_OUT();
+   Init_GPIO_A_IN();
+   Init_GPIO_B_IN();
+   Init_GPIO_C_IN();
+   Init_GPIO_D_IN();
+   Init_GPIO_E_IN();
+   Init_TIM2();
+   Init_TIM3();
+   Init_TIM4();
+   Init_TIM5();
+   Init_TIM7();
+
+   Init_PWM_9();
+   Init_USART1();
+   Init_USART6();
+    GPIO_WriteBit(GPIOA, GPIO_Pin_11, Bit_RESET);
+    GPIO_WriteBit(GPIOA, GPIO_Pin_12, Bit_RESET); 
+    
+    GPIO_WriteBit(GPIOE, GPIO_Pin_8, Bit_RESET);
+    GPIO_WriteBit(GPIOE, GPIO_Pin_9, Bit_RESET);
+    GPIO_WriteBit(GPIOE, GPIO_Pin_10, Bit_RESET);
+    GPIO_WriteBit(GPIOE, GPIO_Pin_11, Bit_RESET);
+    GPIO_WriteBit(GPIOE, GPIO_Pin_13, Bit_RESET);
+    
+    GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_RESET);
+    time_knob = 500/freq_knob;
+    
+   GPIO_WriteBit(GPIOD, GPIO_Pin_2, Bit_SET);
+   GPIO_WriteBit(GPIOD, GPIO_Pin_3, Bit_SET);
+   bse.dataA = false;
+   bse.dataB = false;
+    cse.dataA = false;
+    cse.dataB = false;
+    initPelCtrlVal(&pVal[0], 50, 0.5, 0);
+    initPelCtrlVal(&pVal[1], 50, 0.5, 0);
+    initPeltierControl();
+   SetPWM_TIM4_CH1(0);
+   
+	while(1){
+        }
+}
+
+void TIM2_IRQHandler(void)//Button(연속입력 x, 1번 입력만 가능), 60Hz( A, S, D, F 출력)
+{
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
+    {
+        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+        //------------------- 1번 버튼(PD8)------------------- 
+        if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_11) && !button_state_1 && button_count_1  == 0 ){
+          button_state_1 = true;
+          button_count_1++;
+          
+        }
+        else if(button_state_1 == true ){
+          button_buffer = 'A';
+          GPIO_WriteBit(GPIOE, GPIO_Pin_8, Bit_RESET);
+          if(imu_state == false && button1_state == false){
+            UART1Print("A");
+            button1_state = true;
+          }
+          button_count_1++;
+        }
+        if(button_state_1 == true && button_count_1 >= 15 && !GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_11)){
+          button_buffer = 'z';
+          GPIO_WriteBit(GPIOE, GPIO_Pin_8, Bit_SET);
+           if(imu_state == false && button1_state == true){
+            UART1Print("z");
+            button1_state = false;
+          }
+          button_state_1 = false;
+          button_count_1  = 0;
+          button_buffer = '0';
+        }
+        //------------------- 2번 버튼(PD9)-------------------
+              if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_12) && !button_state_2 && button_count_2  == 0 ){
+          button_state_2 = true;
+          button_count_2++;
+          
+        }
+        else if(button_state_2 == true ){
+          button_buffer = 'S';
+          GPIO_WriteBit(GPIOE, GPIO_Pin_9, Bit_RESET);
+          if(imu_state == false && button2_state == false){
+            UART1Print("S");
+            button2_state = true;
+          }
+          button_count_2++;
+        }
+        if(button_count_2 >= 15 && !GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_12)){
+          GPIO_WriteBit(GPIOE, GPIO_Pin_9, Bit_SET);
+          if(imu_state == false && button2_state == true){
+            button2_state = false;
+            UART1Print("x");
+          }
+          button_state_2 = false;
+          button_count_2  = 0;
+          button_buffer = '0';
+        }
+        //------------------- 3번 버튼(PD10)-------------------
+         if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_13) && !button_state_3 && button_count_3  == 0 ){
+          button_state_3 = true;
+          button_count_3++;
+          
+        }
+        else if(button_state_3 == true ){
+          button_buffer = 'D';
+          GPIO_WriteBit(GPIOE, GPIO_Pin_10, Bit_RESET);
+          if(imu_state == false && button3_state == false){
+            UART1Print("D");
+            button3_state = true;
+          }
+          button_count_3++;
+        }
+        if(button_count_3 >= 15 && !GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_13)){
+          GPIO_WriteBit(GPIOE, GPIO_Pin_10, Bit_SET);
+          if(imu_state == false && button3_state == true){
+            UART1Print("c");
+            button3_state = false;
+          }
+          button_state_3 = false;
+          button_count_3  = 0;
+          button_buffer = '0';
+        }
+        //------------------- 4번 버튼(PD11)-------------------
+         if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_14) && !button_state_4 && button_count_4  == 0 ){
+          button_state_4 = true;
+          button_count_4++;
+          
+        }
+        else if(button_state_4 == true ){
+          button_buffer = 'F';
+          GPIO_WriteBit(GPIOE, GPIO_Pin_11, Bit_RESET);
+          if(imu_state == false && button4_state == false){
+            UART1Print("F");
+            button4_state = true;
+          }
+          button_count_4++;
+        }
+        if(button_count_4 >= 15 && !GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_14)){
+          GPIO_WriteBit(GPIOE, GPIO_Pin_11, Bit_SET);
+          if(imu_state == false && button4_state == true){
+            UART1Print("v");
+            button4_state = false;
+          }
+          button_state_4 = false;
+          button_count_4  = 0;
+          button_buffer = '0';
+        }
+        //------------------- 5번 버튼(PD13)-------------------
+         if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4) && !button_state_5 && button_count_5  == 0 ){
+          button_state_5 = true;
+          button_count_5++;
+          
+        }
+        else if(button_state_5 == true ){
+          GPIO_WriteBit(GPIOE, GPIO_Pin_13, Bit_RESET);
+          button_buffer = 'G';
+          if(imu_state == false)
+            UART1Print("G");
+          button_count_5++;
+        }
+        if(button_count_5 >= 15 && !GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)){
+          GPIO_WriteBit(GPIOE, GPIO_Pin_13, Bit_SET);
+          button_state_5 = false;
+          button_count_5  = 0;
+          button_buffer = '0';
+        }
+        //------------------- Encoder -------------------
+        if(state_encoder == true){
+        bse.dataA = cse.dataA;
+        bse.dataB = cse.dataB;
+        CheckBeforeStateEncoder(bse.dataA, bse.dataB);
+        cse.dataA = GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_8);
+        cse.dataB = GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_9);
+        CheckCurrentStateEncoder(cse.dataA, cse.dataB);
+        setRotationDirection();
+        if(rotateCW == true){
+          UART1Print("J");
+          rotateCW = false;
+        }
+        else if(rotateCCW == true){
+          UART1Print("K");
+          rotateCCW = false;
+        }
+        //else
+         // UART1Print("L");
+        }
+        
+        
+    }
+}
+
+
+void TIM3_IRQHandler(void)//Peltier      
+{
+    // 펠티어 제어를 위한 변수들
+    double curTemp1, curTemp2;
+    int adcVal1, adcVal2;
+    double PIDVal1, PIDVal2;
+    int PID_Percent = 50;
+    
+    if (TIM_GetITStatus(TIM3, TIM_IT_Update) == SET)
+    {
+        TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+
+        pel_cntTime++;
+        //******************펠티어 구동 영역 시작******************
+        if(++pelCntPeriode == pelPeriode) {         // 펠티어 구동 주기
+            adcVal1 = readPeltier1TempADCVal();
+            //adcVal2 = readPeltier2TempADCVal();
+            currentSet[0][0] = (double)readMoter1CSADCVal() / 4095 / 0.14 * 3; 
+            //currentSet[1][0] = (double)readMoter2CSADCVal() / 4095 / 0.14 * 3;
+            
+            // 현재 온도 구하기
+            curTemp1 = calTempFromThermistor(DEFAULT_ADC_MAX, adcVal1, DEFAULT_TO, DEFAULT_RO, DEFAULT_B, -1, DEFAULT_R2)+9.5;
+            //curTemp2 = calTempFromThermistor(DEFAULT_ADC_MAX, adcVal2, DEFAULT_TO, DEFAULT_RO, DEFAULT_B, -1, DEFAULT_R2);
+            
+            // PID 값 구하기 <-- 현재 온도 입력
+            PIDVal1 = PI_control(pVal[0].targetTemp, curTemp1, pelFreq, &(pVal[0].pidData));
+           // PIDVal2 = PI_control(pVal[1].targetTemp, curTemp2, pelFreq, &(pVal[1].pidData));
+            
+            // PID 영향 조절 : PID제어 절대값이 PID_Percent보다 작도록
+            if(PIDVal1 > PID_Percent) { PIDVal1 = PID_Percent; }
+            if(PIDVal1 < -PID_Percent) { PIDVal1 = -PID_Percent; }
+            
+           // if(PIDVal2 > PID_Percent) { PIDVal2 = PID_Percent;  }
+           // if(PIDVal2 < -PID_Percent) { PIDVal2 = -PID_Percent; }
+            
+            // [DEBUG] 목표 온도 도달 시간 측정 (오차 범위 이내 들어올 경우 종료)
+            if(pVal[0].toggleReachedTargetTemp == 0) {
+                if(isReachedTargetTemp(pVal[0].targetTemp, curTemp1, 1.0) == 0) {
+                    pVal[0].cntTime++;
+                }
+                else {
+                    pVal[0].toggleReachedTargetTemp = 1;
+                }
+            }
+            
+//            if(pVal[1].toggleReachedTargetTemp == 0) {
+//                if(isReachedTargetTemp(pVal[1].targetTemp, curTemp2, 1.0) == 0) {
+//                    pVal[1].cntTime++;
+//                }
+//                else {
+//                    pVal[1].toggleReachedTargetTemp = 1;
+//                }
+//            }
+            
+            // 1번 펠티어 제어 : q 입력 또는 온도 범위 벗어날 경우 정지
+            if(pVal[0].cmdPeltier == 'q' || (curTemp1 < -30.0) || (curTemp1 > 50.0)) {
+                TIM_SetCompare1(TIM9, 0);
+            }
+            else if(PIDVal1 < 0) {  // Cooling
+                moter1Backward();
+                TIM_SetCompare1(TIM9, (int)((100.0 - PID_Percent - PIDVal1) * 0.01 * (double)DUTY_MAX_9 * 1));//1
+            }
+            else if(PIDVal1 > 0) {  // Heating
+                moter1Forward();
+                TIM_SetCompare1(TIM9, (int)((100.0 - PID_Percent + PIDVal1) * 0.01 * (double)DUTY_MAX_9 * 0.7));
+            }
+            else {
+                moter1Off();
+                TIM_SetCompare1(TIM9, 0);
+            }
+            
+            // 2번 펠티어 제어 : q 입력 또는 온도 범위 벗어날 경우 정지
+//            if(pVal[1].cmdPeltier == 'q' || (curTemp2 < 0.0) || (curTemp2 > 50.0)) {
+//                TIM_SetCompare2(TIM9, 0);
+//            }
+//            else if(PIDVal2 < 0) {
+//                moter2Backward();
+//                TIM_SetCompare2(TIM9, (int)((100.0 - PID_Percent - PIDVal2) * 0.01 * (double)DUTY_MAX_9 * 1));
+//            }
+//            else if(PIDVal2 > 0) {
+//                moter2Forward();
+//                TIM_SetCompare2(TIM9, (int)((100.0 - PID_Percent + PIDVal2) * 0.01 * (double)DUTY_MAX_9 * 0.7));
+//            }
+//            else {
+//                moter2Off();
+//                TIM_SetCompare1(TIM9, 0);
+//            }
+                        // 디버깅용 문자열 출력
+            
+            if(Do_print_pel_flag== true)
+            {
+              if(++printCnt == printPeriode) {
+                // Debugging용 문자열 생성
+                
+                // 온도 디버깅
+                sprintf(buffer3,"%.2lf , %.4lf\n", 
+                        (pel_cntTime) / (double)450, curTemp1);
+                
+                printf(buffer3,"[%2d:%2d] Setting : %.lf, Temperature : %.2lf, Error : %.2lf\n", (pVal[1].cntTime * 2) / 60, (pVal[1].cntTime * 2) % 60, pVal[1].targetTemp, curTemp2, (double)curTemp2 - pVal[1].targetTemp);
+                printCnt = 0;   // 출력 주기 카운팅 초기화
+              }
+              
+            }
+    
+            pelCntPeriode = 0;  // Peltier 제어 카운팅 초기화
+        }
+        
+        //******************펠티어 구동 영역 종료******************
+    }
+}
+
+
+void TIM4_IRQHandler(void)//Vibration motor, 120Hz
+{
+    if (TIM_GetITStatus(TIM4, TIM_IT_Update) == SET)
+    {
+        TIM_ClearITPendingBit(TIM4, TIM_IT_Update);//4~5(120hz,400#)
+        if(packet !=0){
+          if(timer_count == vib_time){
+            SetPWM_TIM4_CH1(0);
+            timer_count = 0;
+            packet = 0;
+          }
+          else
+            timer_count++;
+        }
+
+    }
+}
+
+void TIM5_IRQHandler(void){//Peltier
+    if (TIM_GetITStatus(TIM5, TIM_IT_Update) == SET)
+    {
+        TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
+        if(state_timer2_count_for_hot1 == true){// 뜨거운 감각
+          if(timer2_count_for_perceive == 0){//2초
+            setHot();
+            parsingData2();
+          }
+          else if(timer2_count_for_perceive == 3000){
+            setInitial2();
+            parsingData2();
+            timer2_count_for_perceive = -1;
+            state_timer2_count_for_hot1 = false;
+          }
+          timer2_count_for_perceive++;
+        }
+
+        
+        //COLD
+        else if(state_timer2_count_for_cold1 == true){//차가운 감각
+          if(timer2_count_for_perceive == 0){//2초
+            setCold();
+            parsingData2();
+          }
+          else if( timer2_count_for_perceive == 3500){// 900ms 
+            setInitial2();
+            parsingData2();
+            timer2_count_for_perceive = -1;
+            state_timer2_count_for_cold1 = false;
+          }
+          timer2_count_for_perceive++;
+        }
+            if(state_knob == true){
+      if(count_knob == time_knob){
+        GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
+      }
+      else if(count_knob == time_knob * 2){
+        GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_RESET);
+        count_knob = -1;
+      }
+      count_knob++;
+   }
+        
+    }
+}
+
+void TIM7_IRQHandler(void)//Step Motor (10Hz), High Voltage Amplifier (0.1Hz)    
+{
+  if (TIM_GetITStatus(TIM7, TIM_IT_Update) == SET)
+  {
+    TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+    if(on_off_flag_First==true){
+        
+      if(step_check_1==0)
+             GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_SET);
+      else if(step_check_1 == 1)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_RESET);
+      else if(step_check_1 == 2)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_SET);
+       else if(step_check_1 == 3)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_RESET);
+      else if(step_check_1 == 4)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_SET);
+       else if(step_check_1 == 5)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_RESET);
+      else if(step_check_1 == 6)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_SET);
+        else if(step_check_1 == 7)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_RESET);
+      else if(step_check_1 == 8)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_SET);
+      else if(step_check_1 == 9){
+            GPIO_WriteBit(GPIOD, GPIO_Pin_4, Bit_RESET);
+            GPIO_WriteBit(GPIOD, GPIO_Pin_2, Bit_SET);                  //EN
+            on_off_flag_First=false;
+            step_check_1 = -1;
+      }
+      step_check_1++;
+     }
+    
+    if(on_off_flag_Second==true){
+        
+      if(step_check_2==0)
+              GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_SET);
+      else if(step_check_2 == 1)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_RESET);
+      else if(step_check_2 == 2)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_SET);     
+      else if(step_check_2 == 3)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_RESET);
+      else if(step_check_2 == 4)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_SET);    
+      else if(step_check_2 == 5)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_RESET);
+      else if(step_check_2 == 6)
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_SET);    //EN
+      else if(step_check_2 == 7){
+            GPIO_WriteBit(GPIOD, GPIO_Pin_6, Bit_RESET);
+            GPIO_WriteBit(GPIOD, GPIO_Pin_3, Bit_SET);
+            on_off_flag_Second=false;
+            step_check_2 = -1;
+      }
+      step_check_2++;
+     }
+
+      
+      
+      if(HVC_count == 0){
+          GPIO_WriteBit(GPIOA, GPIO_Pin_11, Bit_SET);
+          GPIO_WriteBit(GPIOA, GPIO_Pin_12, Bit_RESET);
+      }
+      else if(HVC_count ==  40){
+          GPIO_WriteBit(GPIOA, GPIO_Pin_11, Bit_RESET);
+          GPIO_WriteBit(GPIOA, GPIO_Pin_12, Bit_RESET);
+      }
+      else if(HVC_count == 50){
+          GPIO_WriteBit(GPIOA, GPIO_Pin_11, Bit_RESET);
+          GPIO_WriteBit(GPIOA, GPIO_Pin_12, Bit_SET);
+      }
+      else if(HVC_count == 90){
+          GPIO_WriteBit(GPIOA, GPIO_Pin_11, Bit_RESET);
+          GPIO_WriteBit(GPIOA, GPIO_Pin_12, Bit_RESET);
+          HVC_count = -1;
+      }  
+      HVC_count++;
+    
+    
+  }
+}
+
+
+
+void TIM9_IRQHandler(void)//Not use       
+{
+  if (TIM_GetITStatus(TIM9, TIM_IT_Update) == SET)
+  {
+    TIM_ClearITPendingBit(TIM9, TIM_IT_Update);
+  }
+}
+
+void SetPWM_TIM4_CH1(int value)//Vibration motor, 120Hz
+{       	
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;  
+    TIM_OCInitStructure.TIM_Pulse = value;   // (pulse)/(timer_period) => PWM_duty(%), ex:( period=1000, pulse=500 => duty 50%)
+	
+    TIM_OC1Init(TIM4, &TIM_OCInitStructure); //OCx <- x meaning is channel
+}
+
+
+void SetPWM_TIM9_CH1(int value)//Peltier
+{          
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+    TIM_OCInitStructure.TIM_Pulse = value;   // (pulse)/(timer_period) => PWM_duty(%), ex:( period=1000, pulse=500 => duty 50%)
+   
+    TIM_OC2Init(TIM9, &TIM_OCInitStructure); //OCx <- x meaning is channel
+}
+
+
+void USART1_IRQHandler(void)//Peltier(H,C,P), StepMotor(Z,X,V,B), IMU(Y,U,I), VibrationMotor(w,h), Button(A,B)
+{
+  volatile static char cBT;
+        if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET && USART_GetFlagStatus(USART1, USART_FLAG_TXE) == SET) // RX에 무슨 값이 들어왔는가?를 확인하는 방법.
+        {
+                
+                cBT = USART_ReceiveData(USART1);//마이크로 컨트롤러 내부의 RX에 일정 값이 들어모녀 한글자, 한글자씩 저장함.
+               //HOT
+                if(cBT == 'H'){//Feltier on/off
+                  state_timer2_count_for_hot1 = true;
+                  cBT = ' ';
+               }
+
+               //COLD
+               if(cBT == 'C'){//Feltier on/off
+                  state_timer2_count_for_cold1 = true;
+                  cBT = ' ';
+               }
+              if(cBT == 'P'){//펠티어 온도 출력 toggle
+                  Do_print_pel_flag = !Do_print_pel_flag;
+                  cBT= ' ';
+               }
+               if(cBT == 'M'){//Encoder
+                 state_encoder = true;
+                 cBT = ' ';
+               }
+               if(cBT == 's'){
+                 state_knob = false;
+                 GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_RESET);
+               }
+               if(cBT == 'a'){
+                 state_knob = true;
+               }
+               if(cBT == 'm'){
+                 state_knob = false;
+                 GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
+               }
+               if(cBT =='E'){
+                UART6Print(imu_polling);
+                imu_polling_state = !imu_polling_state ;
+              }
+              if(cBT =='e'){
+               UART6Print(imu_polling_data);
+              }
+              //A_Left ---LOCK
+
+              if(cBT == 'T'){
+                if(imu_qe_state == false){
+                  imu_qe_state = true;
+                  UART6Print(imu_quaternion);
+                }
+                else if(imu_qe_state == true){
+                  imu_qe_state = false;
+                  UART6Print(imu_euler);
+                }
+              }
+              if(cBT =='U'){//IMU Data Transfer Speed control(30HZ)
+                UART6Print(imu_speed);
+                imu_freq = 50;
+              }
+              if(cBT =='Y'){//IMU Data Transfer Speed control(100HZ)
+                UART6Print("<sor10>");
+                 imu_freq = 100;
+              }
+              if(cBT == 'I'){
+                imu_state = !imu_state;
+              }
+              if(cBT == 'w'){//Low impact vibration
+                  vib_time = 13;
+                  packet= 400;
+                  SetPWM_TIM4_CH1(packet);
+              }
+              if(cBT == 'h'){//High impact vibration
+                  vib_time = 5;
+                  packet = 400;
+                  SetPWM_TIM4_CH1(packet);
+              }
+        }
+}
+
+void USART6_IRQHandler(void)//IMU Data sending
+{
+  if (USART_GetITStatus(USART6, USART_IT_RXNE) == SET)
+  {
+   if(imu_state == true){
+    imu_data = USART_ReceiveData(USART6);
+    if(imu_data == '*' && imu_start_state == false){
+      imu_buffer[imu_temp_idx] = imu_data;
+      imu_buffer[imu_temp_idx+1] = button_buffer;
+      imu_buffer[imu_temp_idx+2] =',';
+      imu_start_state = true;
+      imu_temp_idx = 3;
+    }
+    else if(imu_data == '*' && imu_start_state == true){
+      memset(imu_buffer,0,imu_temp_idx+10);
+      imu_temp_idx = 0;
+      imu_start_state = false;
+    }
+    if(imu_data !='*' && imu_data != 0x0A && imu_data!=0x0D && imu_start_state == true){
+      imu_buffer[imu_temp_idx] = imu_data;
+      imu_temp_idx++;
+    }
+    if(imu_data == 0x0D && imu_end_state == false){
+      imu_end_state = true;
+    }
+    if(imu_data == 0x0A && imu_start_state == true && imu_end_state == true){//LineFeed(CR: 0x0D, LF: 0x0A)
+      imu_buffer[imu_temp_idx] = '#';
+      imu_buffer[imu_temp_idx+1] = 0x0D;
+      //imu_buffer[imu_temp_idx+2] = 0X0D;
+      imu_start_state = false;
+      imu_end_state = false;
+      UART1Print(imu_buffer);
+      memset(imu_buffer,0,imu_temp_idx+10);
+      imu_temp_idx = 0;
+      }
+  }
+      
+    
+    
+    
+  }
+}
+
+void UART1Print(const char *pucBuffer) {//All Print
+  // Loop while there are more characters to send.
+  while (*pucBuffer && USART_GetITStatus(USART1, USART_IT_RXNE) != SET) {
+    // Write the next character to the UART.        
+    USART_SendData(USART1, *pucBuffer++);
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET && USART_GetITStatus(USART1, USART_IT_RXNE) != SET);
+  }
+}
+
+void UART6Print(const char *pucBuffer) {//All Print
+  // Loop while there are more characters to send.
+  while (*pucBuffer && USART_GetITStatus(USART6, USART_IT_RXNE) != SET) {
+    // Write the next character to the UART.        
+    USART_SendData(USART6, *pucBuffer++);
+    while(USART_GetFlagStatus(USART6, USART_FLAG_TXE) == RESET && USART_GetITStatus(USART6, USART_IT_RXNE) != SET);
+    
+  }
+}
+
+void parsing(){//Parsing For Vibration Motor 
+  int n = 0;
+  static char tokenizer[] = " ";
+  static char *tok = NULL;
+  int count = 0;
+  tok = strtok(buf, tokenizer);
+  while(tok != NULL){
+    strcpy(temp_buf[count],tok);
+    tok = strtok(NULL, tokenizer);
+    count++;
+  }
+  count = 0;
+  packet = atoi(temp_buf[0]);
+  memset(temp_buf, 0 , 100);
+}
+
+
+void parsingData2(){//Peltier
+  
+    int n= 0;
+    int tTemp = 0;
+    //-------------------------------------------------------
+    if(Do_RD.com_bit == 7){  
+        tTemp = Do_RD.max_bit;
+        if(tTemp < -30) 
+            tTemp = -30;
+        else if(tTemp > 50) 
+            tTemp = 50;
+        pVal[n].pidData.preError = 0;
+        pVal[n].pidData.integral = 0;
+        pVal[n].targetTemp = tTemp;
+        pVal[n].cmdPeltier = 'p';
+        pVal[n].cntTime = 0;
+        pVal[n].toggleReachedTargetTemp = 0;
+        sprintf(imsi_buffer, "Peltier On\nTemp : %d\n", tTemp);      //****
+        UART1Print(imsi_buffer); //****
+    }
+    //-------------------------------------------------------
+    else if(Do_RD.com_bit == 8) {
+        pVal[n].pidData.preError = 0;
+        pVal[n].pidData.integral = 0;
+        pVal[n].cmdPeltier = 'q';
+        pVal[n].targetTemp = 25.0;//Set to Current Temperature
+        pVal[n].cntTime = 0;
+        pVal[n].toggleReachedTargetTemp = 0;
+        sprintf(imsi_buffer, "Peltier  Off\n");      //****
+        UART1Print(imsi_buffer); //****
+    }
+    //-------------------------------------------------------
+    else if(Do_RD.com_bit ==9 )
+    {
+      //펠티어 온도 출력 on
+      if(Do_RD.min_bit ==1){
+        Do_RD.com_bit = 0;
+        Do_RD.min_bit =0;
+        pel_cntTime = 0;
+        sprintf(imsi_buffer, "Peltier Print On\n");      //****
+        UART1Print(imsi_buffer); //****
+      }//펠티어 온도 출력 off
+      else if(Do_RD.min_bit == 0){
+        sprintf(imsi_buffer, "Peltier Print Off\n");      //****
+        UART1Print(imsi_buffer); //****
+      }
+    }
+    //---------------------------------------------------------
+    else
+        sprintf(imsi_buffer, "Error INPUT\n");// 이상한 입력은 다 에러처리
+}
+
+void setCold(){
+                    Do_RD.com_bit = 7;
+                    Do_RD.min_bit = 0;
+                    Do_RD.max_bit = 3;//차가운 온도 설정
+                    Do_RD.time_bit = 0;
+                    Do_RD.frq_bit = 0;
+                    Do_RD.extra_bit = 0;
+}
+
+void setHot(){
+                     Do_RD.com_bit = 7;
+                    Do_RD.min_bit = 0;
+                    Do_RD.max_bit = 40;//뜨거운 온도 설정
+                    Do_RD.time_bit = 0;
+                    Do_RD.frq_bit = 0;
+                    Do_RD.extra_bit = 0;
+}
+
+void setInitial(){
+                    Do_RD.com_bit = 7;
+                    Do_RD.min_bit = 0;
+                    Do_RD.max_bit = 30;
+                    Do_RD.time_bit = 0;
+                    Do_RD.frq_bit = 0;
+                    Do_RD.extra_bit = 0;
+}
+void setInitial2(){
+                    Do_RD.com_bit = 8;
+                    Do_RD.min_bit = 0;
+                    Do_RD.max_bit = 0;
+                    Do_RD.time_bit = 0;
+                    Do_RD.frq_bit = 0;
+                    Do_RD.extra_bit = 0;
+}
+
+
+void CheckBeforeStateEncoder(bool dataA, bool dataB){//CW 방향 
+  if(dataA == false && dataB == false)
+    state_before = 1;
+  else if(dataA == true && dataB == false)
+    state_before = 2;
+  else if(dataA == true && dataB == true)
+    state_before = 3;
+  else if(dataA == false && dataB == true)
+    state_before = 4;
+}
+
+void CheckCurrentStateEncoder(bool dataA, bool dataB){//CW 방향
+    if(dataA == false && dataB == false)
+    state_current = 1;
+  else if(dataA == true && dataB == false)
+    state_current = 2;
+  else if(dataA == true && dataB == true)
+    state_current = 3;
+  else if(dataA == false && dataB == true)
+    state_current = 4;
+}
+
+void setRotationDirection(){
+  if((state_current - state_before == 1) || (state_current - state_before == -3))
+     rotateCW = true;
+  else if((state_current - state_before == -1) || (state_current - state_before == 3))
+    rotateCCW = true;
+}
+      
